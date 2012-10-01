@@ -16,6 +16,7 @@ file(GLOB_RECURSE
 	main.c
 	posFunction.c
 	strat.c
+    move_queue.c
 	modules/*
 )
 
