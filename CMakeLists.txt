@@ -43,6 +43,7 @@ include_directories(modules/math/fast_math)
 include_directories(modules/math/fixed_point)
 include_directories(modules/math/geometry)
 include_directories(modules/math/vect2)
+include_directories(modules/uptime)
 
 add_executable(
 	simu
