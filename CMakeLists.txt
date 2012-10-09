@@ -46,6 +46,7 @@ include_directories(modules/math/vect2)
 include_directories(modules/uptime)
 include_directories(modules/vt100)
 include_directories(modules/cirbuf)
+include_directories(modules/rdline)
 
 add_executable(
 	simu
