@@ -44,6 +44,8 @@ include_directories(modules/math/fixed_point)
 include_directories(modules/math/geometry)
 include_directories(modules/math/vect2)
 include_directories(modules/uptime)
+include_directories(modules/vt100)
+include_directories(modules/cirbuf)
 
 add_executable(
 	simu
