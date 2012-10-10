@@ -47,6 +47,7 @@ include_directories(modules/uptime)
 include_directories(modules/vt100)
 include_directories(modules/cirbuf)
 include_directories(modules/rdline)
+include_directories(modules/parse)
 
 add_executable(
 	simu
