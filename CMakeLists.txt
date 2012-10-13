@@ -18,6 +18,9 @@ file(GLOB_RECURSE
 	strat.c
     strat_utils.c
     move_queue.c
+    commands.c
+    commandline.c
+    commands_misc.c
 	modules/*
 )
 
