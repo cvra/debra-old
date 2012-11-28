@@ -18,6 +18,10 @@ file(GLOB_RECURSE
 	strat.c
     strat_utils.c
     move_queue.c
+    commands.c
+    commandline.c
+    commands_misc.c
+    commands_arm.c
 	modules/*
 )
 
@@ -44,6 +48,10 @@ include_directories(modules/math/fixed_point)
 include_directories(modules/math/geometry)
 include_directories(modules/math/vect2)
 include_directories(modules/uptime)
+include_directories(modules/vt100)
+include_directories(modules/cirbuf)
+include_directories(modules/rdline)
+include_directories(modules/parse)
 
 add_executable(
 	simu
