@@ -6,6 +6,7 @@ project(cvra-simu)
 file(GLOB_RECURSE
 	source_files
 	arm.c
+    arm_interpolators.c
 	armFunc.c
 	avoiding.c
 	com_balises.c
