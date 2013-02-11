@@ -23,6 +23,7 @@ file(GLOB_RECURSE
     commandline.c
     commands_misc.c
     commands_arm.c
+    commands_cs.c
 	modules/*
 )
 
