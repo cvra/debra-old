@@ -7,7 +7,6 @@ file(GLOB_RECURSE
 	source_files
 	arm.c
 	armFunc.c
-	avoiding.c
 	com_balises.c
 	comm_pc.c
 	cvra_cs.c
@@ -16,7 +15,6 @@ file(GLOB_RECURSE
 	main.c
 	posFunction.c
 	strat.c
-    strat_utils.c
     move_queue.c
     commands.c
     commandline.c
