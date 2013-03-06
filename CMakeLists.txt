@@ -50,6 +50,7 @@ include_directories(modules/vt100)
 include_directories(modules/cirbuf)
 include_directories(modules/rdline)
 include_directories(modules/parse)
+include_directories(modules/ramp)
 
 add_executable(
 	simu
