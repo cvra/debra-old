@@ -7,7 +7,6 @@ file(GLOB_RECURSE
 	source_files
 	arm.c
 	armFunc.c
-	com_balises.c
 	comm_pc.c
 	cvra_cs.c
 	fifo.c
