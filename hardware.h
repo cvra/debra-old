@@ -28,37 +28,6 @@
 #include <aversive.h>
 #include "arm.h"
 
-/** @typedef pump_mode_t
- * Holds the state (enabled and direction) of a pump.
- */
-typedef enum {OFF, /**< Pump is off. */
-    VENT_BAS, /**< Pumps through the bottom tube. */
-    RESERVED, /**< Reserved value (invalid value). */
-    VENT_LAT /**< Pumps through the side tube. */
-} pump_mode_t;
-
-/** @typedef pump_handle_t
- * @brief A pump number. */
-typedef enum {PUMP_RIGHT, /**< The right pump. */
-    PUMP_LEFT, /**< The left pump. */
-    PUMP_NONE /**< Reserved value for no pump. */
-} pump_handle_t;
-
-/** Inits the IO pins. */
-void cvra_board_init(void);
-
-void cvra_board_manage_sensors(void * dummy);
-void cvra_get_avoiding_sensors(int *l, int *r);
-
-void cvra_board_manage_outputs(void);
-void cvra_pump_left_mode(pump_mode_t m);
-void cvra_pump_right_mode(pump_mode_t m);
-void cvra_pump_mode(pump_mode_t m, pump_handle_t curArm);
-
-void cvra_electroaimant_front_on(void);
-void cvra_electroaimant_front_off(void);
-void cvra_electroaimant_back_on(void);
-void cvra_electroaimant_back_off(void);
 
 /** Sets the baudrate of a given UART
  *

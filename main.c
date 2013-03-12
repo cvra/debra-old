@@ -118,9 +118,6 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
 	sei(); /** FIXME @todo sei() Necessaire ? */
 #endif
 
-	/* Step 4 : Init les IO. */
-	cvra_board_init();
-	
 	/* Step 5 : Init la regulation et l'odometrie. */
 	//cvra_cs_init();  // Desactive depuis la casse du moteur.
 	

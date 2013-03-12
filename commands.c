@@ -6,8 +6,6 @@
 /** Resets the board. */
 extern parse_inst_t cmd_reset;
 
-/** Manages pumps state. */
-extern parse_inst_t cmd_pump;
 
 /* commands_arm.c */
 /** Shutdowns an arm. */
@@ -32,12 +30,12 @@ extern parse_inst_t cmd_position_set;
 /* All the following commands are declared in commands_misc.c */
 extern parse_inst_t cmd_start;
 
+
 parse_ctx_t commands[] = {
     (parse_ctx_t)&cmd_reset,
     (parse_ctx_t)&cmd_arm_shutdown,
     (parse_ctx_t)&cmd_arm_shutdown_both,
     (parse_ctx_t)&cmd_arm_goto,
-    (parse_ctx_t)&cmd_pump,
     (parse_ctx_t)&cmd_arm_coordinate_system,
     (parse_ctx_t)&cmd_position_get,
     (parse_ctx_t)&cmd_position_set,

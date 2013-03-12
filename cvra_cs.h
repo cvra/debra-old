@@ -22,7 +22,6 @@
 
 #include <obstacle_avoidance.h>
 
-#include <cvra_bldc.h>
 #include "arm.h"
 #include "strat.h"
 #include "cvra_param_robot.h"
@@ -85,11 +84,7 @@ enum trajectory_type_t {
  */
 struct _rob {
     uint8_t verbosity_level;				///< @deprecated Contient le niveau de debug du robot.
-    
-    void * right_motor;                  	///< Adresse du module moteur droite
-    void * left_motor;                   	///< Adresse du module moteur gauche
-    cvra_adc_t analog_in;                	///< Instance de cvra_adc pour la carte analog in
-    
+     
     struct robot_system rs;                 ///< Robot system (angle & distance).
     struct robot_position pos;              ///< Position manager.
     struct cs angle_cs;                     ///< Control system manager for angle.

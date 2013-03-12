@@ -35,7 +35,6 @@
 
 #include "cvra_cs.h"
 #include "hardware.h"
-#include <cvra_bldc.h>
 #include "cvra_param_robot.h"
 
 
@@ -47,10 +46,7 @@ void cvra_cs_init(void) {
 	/*--------------------------------------------------------------------------*/
 	/*                                Motor                                     */
 	/*--------------------------------------------------------------------------*/
-	robot.left_motor = LEFT_MOTOR_ADRESS;
-	robot.right_motor = RIGHT_MOTOR_ADRESS;
-	cvra_bldc_reset(robot.left_motor);
-	cvra_bldc_reset(robot.right_motor);
+    /*XXX TODO */
 
 	/****************************************************************************/
 	/*                             Robot system                                 */
@@ -61,12 +57,12 @@ void cvra_cs_init(void) {
 	/*************************f***************************************************/
 	/*                         Encoders & PWMs                                  */
 	/****************************************************************************/
-	rs_set_left_pwm(&robot.rs, cvra_bldc_set_pwm, robot.left_motor);
+	/*rs_set_left_pwm(&robot.rs, cvra_bldc_set_pwm, robot.left_motor);
 	rs_set_right_pwm(&robot.rs, cvra_bldc_set_pwm_negative, robot.right_motor);
 	rs_set_left_ext_encoder(&robot.rs, cvra_bldc_get_encoder, robot.left_motor,
 			ROBOT_WHEEL_L_CORR);	// CALIBRATION : Changer ce coefficient a 1 si le codeur va dans le mauvais sens
 	rs_set_right_ext_encoder(&robot.rs, cvra_bldc_get_encoder, robot.right_motor,
-			ROBOT_WHEEL_R_CORR); // CALIBRATION : idem
+			ROBOT_WHEEL_R_CORR); // CALIBRATION : idem*/
 
 	/****************************************************************************/
 	/*                          Position manager                                */
