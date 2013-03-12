@@ -1,12 +1,14 @@
 #include <aversive.h>
-#include <string.h>
 #include <uptime.h>
-#include <stdio.h>
+#include <string.h>
 #include <circles.h>
 #include <vect2.h>
 #include <2wheels/position_manager.h>
+#include <cvra_dc.h>
 #include <aversive/error.h>
 #include "cvra_cs.h"
+
+#include "adresses.h"
 
 #include "arm.h"
 #include <math.h>
@@ -53,7 +55,27 @@ void arm_highlevel_init(void) {
     robot.left_arm.offset_rotation = M_PI / 2;
     robot.right_arm.offset_rotation = -M_PI / 2;
 
-    /* TODO Connect IOs. */
+    arm_connect_io(&robot.left_arm,
+            /* Z */
+            cvra_dc_set_pwm0, ARMSMOTORCONTROLLER_BASE,
+            cvra_dc_get_encoder0, ARMSMOTORCONTROLLER_BASE,
+            /* Shoulder */
+            cvra_dc_set_pwm1, ARMSMOTORCONTROLLER_BASE,
+            cvra_dc_get_encoder1, ARMSMOTORCONTROLLER_BASE,
+            /* Elbow */
+            cvra_dc_set_pwm2, ARMSMOTORCONTROLLER_BASE,
+            cvra_dc_get_encoder2, ARMSMOTORCONTROLLER_BASE);
+
+    arm_connect_io(&robot.right_arm, 
+            /* Z */
+            cvra_dc_set_pwm3, ARMSMOTORCONTROLLER_BASE,
+            cvra_dc_get_encoder3, ARMSMOTORCONTROLLER_BASE,
+            /* Shoulder */
+            cvra_dc_set_pwm4, ARMSMOTORCONTROLLER_BASE,
+            cvra_dc_get_encoder4, ARMSMOTORCONTROLLER_BASE,
+            /* Elbow */
+            cvra_dc_set_pwm5, ARMSMOTORCONTROLLER_BASE,
+            cvra_dc_get_encoder5, ARMSMOTORCONTROLLER_BASE);
 }
 
 void arm_init(arm_t *arm) {
