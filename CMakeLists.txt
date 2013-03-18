@@ -19,10 +19,6 @@ file(GLOB_RECURSE
 	nastya/strat.c
     nastya/move_queue.c
     nastya/commands.c
-    nastya/commandline.c
-    nastya/commands_misc.c
-    nastya/commands_arm.c
-    nastya/commands_strat.c
 )
 
 file(GLOB_RECURSE

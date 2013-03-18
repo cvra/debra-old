@@ -41,7 +41,7 @@ void cmd_start() {
 
 /** An array of all the commands. */
 command_t commands_list[] = {
-    COMMAND("test",test_func),
+    COMMAND("test_argv",test_func),
     COMMAND("arm_shutdown",cmd_arm_shutdown),
     COMMAND("reset", cmd_reset),
     COMMAND("start",cmd_start),
