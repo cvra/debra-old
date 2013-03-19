@@ -68,6 +68,35 @@ void cmd_pid(int argc, char **argv) {
     }
 }
 
+/** Gets or sets position. */
+void cmd_position(int argc, char **argv) {
+    if(argc < 2) {
+        /* Position get */
+        printf("Position : (%d;%d;%d)\n", position_get_x_s16(&robot.pos), position_get_y_s16(&robot.pos), position_get_a_deg_s16(&robot.pos)); 
+    }
+    else {
+        if(argc < 4) {
+            printf("Usage : %s x y a_deg\n", argv[0]); 
+        }
+        else {
+            position_set(&robot.pos, atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
+        }
+    }
+
+}
+
+/** Lists all available commands. */
+void cmd_help(void) {
+    int i;
+    extern command_t commands_list[];
+    for(i=0;commands_list[i].f!= NULL;i++) {
+        printf("%s\t", commands_list[i].name);
+        if(i > 0 && i%4 == 0)
+            printf("\n");
+    }
+    printf("\n");
+}
+
 /** An array of all the commands. */
 command_t commands_list[] = {
     COMMAND("test_argv",test_func),
@@ -75,6 +104,8 @@ command_t commands_list[] = {
     COMMAND("reset", cmd_reset),
     COMMAND("start",cmd_start),
     COMMAND("pid", cmd_pid), 
+    COMMAND("position", cmd_position),
+    COMMAND("help", cmd_help),
     COMMAND("none",NULL), /* must be last. */
 };
 
