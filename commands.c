@@ -37,7 +37,36 @@ void cmd_start() {
     printf("Match done. Hope you enjoyed it !\n");
 }
 
+/** Setups PID. */
+void cmd_pid(int argc, char **argv) {
+    if(argc < 2) {
+        /* Show current gains. */
+        printf("Distance : \tKp=%d\tGi=%d\tGd=%d\n", pid_get_gain_P(&robot.distance_pid), 
+                                          pid_get_gain_I(&robot.distance_pid),
+                                          pid_get_gain_D(&robot.distance_pid));
 
+        printf("Angle : \tKp=%d\tGi=%d\tGd=%d\n", pid_get_gain_P(&robot.angle_pid), 
+                                       pid_get_gain_I(&robot.angle_pid),
+                                       pid_get_gain_D(&robot.angle_pid));
+
+    }
+    else if(argc < 5) {
+            printf("usage: %s pid_name P I D\n", argv[0]);
+
+    } 
+    else {
+        struct pid_filter *pid;
+
+        if(!strcmp(argv[1], "distance")) pid =  &robot.distance_pid;
+        else if(!strcmp(argv[1], "angle")) pid =  &robot.angle_pid;
+        else {
+            printf("Unknown PID name : %s\n", argv[1]);
+            return;
+        }
+
+        pid_set_gains(pid, atoi(argv[2]), atoi(argv[3]), atoi(argv[4])); 
+    }
+}
 
 /** An array of all the commands. */
 command_t commands_list[] = {
@@ -45,6 +74,7 @@ command_t commands_list[] = {
     COMMAND("arm_shutdown",cmd_arm_shutdown),
     COMMAND("reset", cmd_reset),
     COMMAND("start",cmd_start),
+    COMMAND("pid", cmd_pid), 
     COMMAND("none",NULL), /* must be last. */
 };
 

@@ -105,8 +105,6 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
     /**FIXME @todo Est-ce qu'on a encore besoin de fast_math_init() dans la version finale ? */
     fast_math_init();
 
-	//fast_benchmark();
-
 	/* Step 3 : Demare le scheduler pour le multitache. */
 	scheduler_init(); 
 
@@ -117,7 +115,7 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
 #endif
 
 	/* Step 5 : Init la regulation et l'odometrie. */
-	//cvra_cs_init();  // Desactive depuis la casse du moteur.
+	cvra_cs_init();  // Desactive depuis la casse du moteur.
 	
 	/* Step 6 : Init les bras.  */
     /** FIXME @todo Reimplementer l'init des bras avec la nouvelle API. */
