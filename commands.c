@@ -82,7 +82,15 @@ void cmd_position(int argc, char **argv) {
             position_set(&robot.pos, atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
         }
     }
+}
 
+/** Sets or gets right wheel gain. */
+void cmd_right_gain(int argc, char **argv) {
+    /** @todo We should be more cautious when handling user input. */
+    if(argc == 2)
+        robot.rs.right_ext_gain = atof(argv[1]);
+
+    printf("Right wheel gain = %.4f\n", robot.rs.right_ext_gain);
 }
 
 /** Lists all available commands. */
@@ -105,6 +113,7 @@ command_t commands_list[] = {
     COMMAND("start",cmd_start),
     COMMAND("pid", cmd_pid), 
     COMMAND("position", cmd_position),
+    COMMAND("right_gain", cmd_right_gain),
     COMMAND("help", cmd_help),
     COMMAND("none",NULL), /* must be last. */
 };
