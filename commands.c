@@ -44,7 +44,14 @@ void cmd_pwm(int argc, char **argv) {
         printf("Putting channel %d = %d\n", atoi(argv[1]), atoi(argv[2]));
         cvra_dc_set_pwm(HEXMOTORCONTROLLER_BASE, atoi(argv[1]), atoi(argv[2]));
     }
+}
 
+/** Gets the encoder values. */
+void cmd_encoders(void) {
+    int i;
+    for(i=0;i<6;i++)
+        printf("%d;", cvra_dc_get_encoder(HEXMOTORCONTROLLER_BASE, i));
+    printf("\n");
 }
 
 /** Setups PID. */
@@ -133,6 +140,7 @@ command_t commands_list[] = {
     COMMAND("start",cmd_start),
     COMMAND("pid", cmd_pid), 
     COMMAND("pwm", cmd_pwm),
+    COMMAND("encoders", cmd_encoders),
     COMMAND("position", cmd_position),
     COMMAND("right_gain", cmd_right_gain),
     COMMAND("error", cmd_error_dump),

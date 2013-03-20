@@ -25,6 +25,7 @@
 #include <pid.h>
 #include <quadramp.h>
 #include <scheduler.h>
+#include <cvra_dc.h>
 
 #include <aversive/error.h>
 #include "error_numbers.h"
@@ -47,6 +48,11 @@ void cvra_cs_init(void) {
 	/*                                Motor                                     */
 	/*--------------------------------------------------------------------------*/
     /*XXX TODO */
+
+    for(i=0;i<6;i++) {
+        cvra_dc_set_encoder(HEXMOTORCONTROLLER_BASE, i, 0);
+        cvra_dc_set_pwm(HEXMOTORCONTROLLER_BASE, i, 0);
+    }
 
 	/****************************************************************************/
 	/*                             Robot system                                 */
