@@ -1,6 +1,7 @@
 #include <commandline.h>
 #include <string.h>
 #include "cvra_cs.h"
+#include <uptime.h>
 
 /** Prints all args, then exits. */
 void test_func(int argc, char **argv) {
@@ -52,7 +53,6 @@ void cmd_pid(int argc, char **argv) {
     }
     else if(argc < 5) {
             printf("usage: %s pid_name P I D\n", argv[0]);
-
     } 
     else {
         struct pid_filter *pid;
@@ -64,6 +64,7 @@ void cmd_pid(int argc, char **argv) {
             return;
         }
 
+        /** @todo We should be more cautious when handling user input. */
         pid_set_gains(pid, atoi(argv[2]), atoi(argv[3]), atoi(argv[4])); 
     }
 }
@@ -89,7 +90,6 @@ void cmd_right_gain(int argc, char **argv) {
     /** @todo We should be more cautious when handling user input. */
     if(argc == 2)
         robot.rs.right_ext_gain = atof(argv[1]);
-
     printf("Right wheel gain = %.4f\n", robot.rs.right_ext_gain);
 }
 
@@ -105,6 +105,17 @@ void cmd_help(void) {
     printf("\n");
 }
 
+/** Dumps an error curve. */
+void cmd_error_dump(void) {
+    trajectory_d_rel(&robot.traj, 200);
+    while(!trajectory_finished(&robot.traj)) {
+        /* Dumps every 10 ms. */
+        if(uptime_get() % 10000 == 0) {
+            printf("%d;%d\n", uptime_get() / 1000, cs_get_error(&robot.distance_cs));
+        }
+    }
+}
+
 /** An array of all the commands. */
 command_t commands_list[] = {
     COMMAND("test_argv",test_func),
@@ -114,6 +125,7 @@ command_t commands_list[] = {
     COMMAND("pid", cmd_pid), 
     COMMAND("position", cmd_position),
     COMMAND("right_gain", cmd_right_gain),
+    COMMAND("error", cmd_error_dump),
     COMMAND("help", cmd_help),
     COMMAND("none",NULL), /* must be last. */
 };
