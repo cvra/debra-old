@@ -195,20 +195,7 @@ void cvra_cs_manage(__attribute__((unused)) void * dummy) {
 	/* Affichage des courbes d'asservissement. */
 	dump_error();
 
-#if 1
 	/* Gestion du blocage */
 	bd_manage(&robot.angle_bd);
 	bd_manage(&robot.distance_bd);
-
-	if ((bd_get(&robot.angle_bd) || bd_get(&robot.distance_bd))
-			&& !robot.is_aligning) {
-		// Stop la bete :)
-		printf("Choc roue %i,%i\r", bd_get(&robot.angle_bd),  bd_get(&robot.distance_bd));
-		trajectory_hardstop(&robot.traj);
-		robot.is_blocked = 1;
-		robot.mode = BOARD_MODE_FREE; /* On coupe tout. */
-		restart_power(NULL);
-
-	}
-#endif
 }
