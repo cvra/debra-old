@@ -132,6 +132,11 @@ void cmd_error_dump(void) {
     }
 }
 
+/** Reads the robot_system state. */
+void cmd_rs(void) {
+    printf("angle=%d\tdistance=%d\n", rs_get_ext_angle(&robot.rs), rs_get_ext_distance(&robot.rs));
+}
+
 /** An array of all the commands. */
 command_t commands_list[] = {
     COMMAND("test_argv",test_func),
@@ -145,6 +150,7 @@ command_t commands_list[] = {
     COMMAND("right_gain", cmd_right_gain),
     COMMAND("error", cmd_error_dump),
     COMMAND("help", cmd_help),
+    COMMAND("rs", cmd_rs),
     COMMAND("none",NULL), /* must be last. */
 };
 

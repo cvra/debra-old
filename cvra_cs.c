@@ -43,11 +43,12 @@ struct _rob robot;
 
 
 void cvra_cs_init(void) {
-	robot.mode = BOARD_MODE_ANGLE_DISTANCE;
+	robot.mode = BOARD_MODE_ANGLE_ONLY;
 	/*--------------------------------------------------------------------------*/
 	/*                                Motor                                     */
 	/*--------------------------------------------------------------------------*/
     /*XXX TODO */
+    int i;
 
     for(i=0;i<6;i++) {
         cvra_dc_set_encoder(HEXMOTORCONTROLLER_BASE, i, 0);
@@ -63,12 +64,10 @@ void cvra_cs_init(void) {
 	/*************************f***************************************************/
 	/*                         Encoders & PWMs                                  */
 	/****************************************************************************/
-	/*rs_set_left_pwm(&robot.rs, cvra_bldc_set_pwm, robot.left_motor);
-	rs_set_right_pwm(&robot.rs, cvra_bldc_set_pwm_negative, robot.right_motor);
-	rs_set_left_ext_encoder(&robot.rs, cvra_bldc_get_encoder, robot.left_motor,
-			ROBOT_WHEEL_L_CORR);	// CALIBRATION : Changer ce coefficient a 1 si le codeur va dans le mauvais sens
-	rs_set_right_ext_encoder(&robot.rs, cvra_bldc_get_encoder, robot.right_motor,
-			ROBOT_WHEEL_R_CORR); // CALIBRATION : idem*/
+	rs_set_left_pwm(&robot.rs, cvra_dc_set_pwm0, HEXMOTORCONTROLLER_BASE);
+	rs_set_right_pwm(&robot.rs, cvra_dc_set_pwm5, HEXMOTORCONTROLLER_BASE);
+	rs_set_left_ext_encoder(&robot.rs, cvra_dc_get_encoder0, HEXMOTORCONTROLLER_BASE, 1.);
+	rs_set_right_ext_encoder(&robot.rs, cvra_dc_get_encoder5, HEXMOTORCONTROLLER_BASE, -1.);
 
 	/****************************************************************************/
 	/*                          Position manager                                */
@@ -85,7 +84,7 @@ void cvra_cs_init(void) {
 	/****************************************************************************/
 
 	pid_init(&robot.angle_pid);
-	pid_set_gains(&robot.angle_pid, ROBOT_PID_ANGL_P, ROBOT_PID_ANGL_I, ROBOT_PID_ANGL_D);		// CALIBRATION : Mettre les gains < 0 si le moteur compense dans le mauvais sens
+	pid_set_gains(&robot.angle_pid, 100, 0, 0);
 	pid_set_maximums(&robot.angle_pid, 0, 5000, 30000);
 	pid_set_out_shift(&robot.angle_pid, 10);
 
@@ -103,7 +102,7 @@ void cvra_cs_init(void) {
 	/****************************************************************************/
 
 	pid_init(&robot.distance_pid); /* Initialise le PID. */
-	pid_set_gains(&robot.distance_pid, ROBOT_PID_DIST_P, ROBOT_PID_DIST_I, ROBOT_PID_DIST_D); /* Regles les gains du PID. */
+	pid_set_gains(&robot.distance_pid, 0, 0, 0); /* Regles les gains du PID. */
 	pid_set_maximums(&robot.distance_pid, 0, 5000, 30000); /* pas de max sur l'entree, integral limite a 5000, sortie limitee a 4095 (PWM 12 bits). */
 	pid_set_out_shift(&robot.distance_pid, 10); /* Divise la sortie par 1024. */
 
@@ -173,7 +172,7 @@ static void dump_error(void) {
 }
 
 void cvra_cs_manage(__attribute__((unused)) void * dummy) {
-	NOTICE(ERROR_CS, __FUNCTION__);
+	//NOTICE(ERROR_CS, __FUNCTION__);
 
 	/* Gestion de la position. */
 	rs_update(&robot.rs);

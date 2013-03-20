@@ -37,7 +37,6 @@ extern command_t commands_list[];
  * @param [in] e The error structure, filled with every needed info.
  */
 void mylog(struct error * e, ...) {
-#if 0
 	va_list ap;
 	va_start(ap, e);	
     /* Prints the filename (not the full path) and line number. */
@@ -45,8 +44,8 @@ void mylog(struct error * e, ...) {
 	vprintf(e->text, ap);
 	printf("\r\n");
 	va_end(ap);
-#endif
 }
+
 /** Cette variable contient le temps maximum passe dans une boucle du scheduler.
  * Elle donne donc une assez bonne indication de l'occupation du CPU. */
 int32_t longest_scheduler_interrupt_time=0;
