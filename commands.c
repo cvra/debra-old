@@ -132,6 +132,11 @@ void cmd_error_dump(void) {
     }
 }
 
+/** Goes forward by a given distance. */
+void cmd_forward(int argc, char **argv) {
+
+}
+
 /** Reads the robot_system state. */
 void cmd_rs(void) {
     printf("angle=%d\tdistance=%d\n", rs_get_ext_angle(&robot.rs), rs_get_ext_distance(&robot.rs));

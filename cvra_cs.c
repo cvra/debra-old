@@ -75,8 +75,8 @@ void cvra_cs_init(void) {
 	position_init(&robot.pos);
 	/* Links the position manager to the robot system. */
 	position_set_related_robot_system(&robot.pos, &robot.rs);
-	position_set_physical_params(&robot.pos, ROBOT_ECART_ROUE, // Distance between encoding wheels. // 276
-			ROBOT_INC_MM); // imp / mm  //
+	position_set_physical_params(&robot.pos, 178., // Distance between encoding wheels. // 276
+			162.); // imp / mm  //
 
 	/****************************************************************************/
 	/*                       Regulation de l'angle                              */
