@@ -38,6 +38,15 @@ void cmd_start() {
     printf("Match done. Hope you enjoyed it !\n");
 }
 
+/** Writes to a specific PWM. */
+void cmd_pwm(int argc, char **argv) {
+    if(argc == 3) {
+        printf("Putting channel %d = %d\n", atoi(argv[1]), atoi(argv[2]));
+        cvra_dc_set_pwm(HEXMOTORCONTROLLER_BASE, atoi(argv[1]), atoi(argv[2]));
+    }
+
+}
+
 /** Setups PID. */
 void cmd_pid(int argc, char **argv) {
     if(argc < 2) {
@@ -123,6 +132,7 @@ command_t commands_list[] = {
     COMMAND("reset", cmd_reset),
     COMMAND("start",cmd_start),
     COMMAND("pid", cmd_pid), 
+    COMMAND("pwm", cmd_pwm),
     COMMAND("position", cmd_position),
     COMMAND("right_gain", cmd_right_gain),
     COMMAND("error", cmd_error_dump),

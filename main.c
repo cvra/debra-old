@@ -37,6 +37,7 @@ extern command_t commands_list[];
  * @param [in] e The error structure, filled with every needed info.
  */
 void mylog(struct error * e, ...) {
+#if 0
 	va_list ap;
 	va_start(ap, e);	
     /* Prints the filename (not the full path) and line number. */
@@ -44,6 +45,7 @@ void mylog(struct error * e, ...) {
 	vprintf(e->text, ap);
 	printf("\r\n");
 	va_end(ap);
+#endif
 }
 /** Cette variable contient le temps maximum passe dans une boucle du scheduler.
  * Elle donne donc une assez bonne indication de l'occupation du CPU. */
@@ -90,7 +92,7 @@ void main_timer_interrupt(__attribute__((unused)) void *param) {
  */ 
 int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) {
 
-	robot.verbosity_level = ERROR_SEVERITY_NOTICE;
+	//robot.verbosity_level = ERROR_SEVERITY_NOTICE;
     
 	/* Step 1 : Setup UART speed. Doit etre en premier car necessaire pour le log. */
 	//cvra_set_uart_speed(COMPC_BASE, 57600);
@@ -111,7 +113,6 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
 #ifdef COMPILE_ON_ROBOT
 	/* Step 3 (suite) : Si on est sur le robot on inscrit le tick dans la table des interrupts. */
 	alt_ic_isr_register(0, TICK_IRQ, main_timer_interrupt, NULL, 0);
-	sei(); /** FIXME @todo sei() Necessaire ? */
 #endif
 
 	/* Step 5 : Init la regulation et l'odometrie. */
