@@ -43,11 +43,10 @@ struct _rob robot;
 
 
 void cvra_cs_init(void) {
-	robot.mode = BOARD_MODE_ANGLE_ONLY;
+	robot.mode = BOARD_MODE_DISTANCE_ONLY;
 	/*--------------------------------------------------------------------------*/
 	/*                                Motor                                     */
 	/*--------------------------------------------------------------------------*/
-    /*XXX TODO */
     int i;
 
     for(i=0;i<6;i++) {
@@ -102,7 +101,7 @@ void cvra_cs_init(void) {
 	/****************************************************************************/
 
 	pid_init(&robot.distance_pid); /* Initialise le PID. */
-	pid_set_gains(&robot.distance_pid, 0, 0, 0); /* Regles les gains du PID. */
+	pid_set_gains(&robot.distance_pid, 100, 0, 0); /* Regles les gains du PID. */
 	pid_set_maximums(&robot.distance_pid, 0, 5000, 30000); /* pas de max sur l'entree, integral limite a 5000, sortie limitee a 4095 (PWM 12 bits). */
 	pid_set_out_shift(&robot.distance_pid, 10); /* Divise la sortie par 1024. */
 
