@@ -134,12 +134,23 @@ void cmd_error_dump(void) {
 
 /** Goes forward by a given distance. */
 void cmd_forward(int argc, char **argv) {
+    if(argc < 2) {
+        printf("Usage : %s distance_mm\n", argv[0]);
+        return;
+    }
 
+    trajectory_d_rel(&robot.traj, atoi(argv[1])); 
 }
 
 /** Reads the robot_system state. */
 void cmd_rs(void) {
-    printf("angle=%d\tdistance=%d\n", rs_get_ext_angle(&robot.rs), rs_get_ext_distance(&robot.rs));
+    int32_t start_time = uptime_get();
+    int32_t time;
+    /* Print if for 5s. */
+    while((time = uptime_get()) < start_time + 5* 1000000) { 
+        if(time % 10000==0) /* Print every 10 ms. */
+            printf("%d;%d;%d\n",(time-start_time)/1000, rs_get_ext_angle(&robot.rs), rs_get_ext_distance(&robot.rs));
+    }
 }
 
 /** An array of all the commands. */
@@ -152,6 +163,7 @@ command_t commands_list[] = {
     COMMAND("pwm", cmd_pwm),
     COMMAND("encoders", cmd_encoders),
     COMMAND("position", cmd_position),
+    COMMAND("forward", cmd_forward),
     COMMAND("right_gain", cmd_right_gain),
     COMMAND("error", cmd_error_dump),
     COMMAND("help", cmd_help),

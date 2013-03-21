@@ -121,8 +121,8 @@ void cvra_cs_init(void) {
 	trajectory_init(&robot.traj, ASSERV_FREQUENCY);
 	trajectory_set_cs(&robot.traj, &robot.distance_cs, &robot.angle_cs);
 	trajectory_set_robot_params(&robot.traj, &robot.rs, &robot.pos);
-	trajectory_set_speed(&robot.traj, 2400, 1200); /* distance, angle */
-	trajectory_set_acc(&robot.traj, 40., 30.);
+	trajectory_set_speed(&robot.traj, speed_mm2imp(700), 1200); /* distance, angle */
+	trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 2800), 30.);
 	/* distance window, angle window, angle start */
 	trajectory_set_windows(&robot.traj, 30., 1.0, 20.); // Prod
 
