@@ -127,7 +127,7 @@ void cmd_help(void) {
 
 /** Dumps an error curve. */
 void cmd_error_dump(void) {
-    trajectory_d_rel(&robot.traj, 200);
+//    trajectory_d_rel(&robot.traj, 200);
     while(!trajectory_finished(&robot.traj)) {
         /* Dumps every 10 ms. */
         if(uptime_get() % 10000 == 0) {
@@ -146,14 +146,21 @@ void cmd_forward(int argc, char **argv) {
     trajectory_d_rel(&robot.traj, atoi(argv[1])); 
 }
 
+/** Turns of a given angle. */
+void cmd_turn(int argc, char **argv) {
+    if(argc == 2)
+        trajectory_a_rel(&robot.traj, atoi(argv[1]));
+
+}
+
 /** Reads the robot_system state. */
 void cmd_rs(void) {
     int32_t start_time = uptime_get();
     int32_t time;
-    /* Print if for 5s. */
+    /* Print it for 5s. */
     while((time = uptime_get()) < start_time + 5* 1000000) { 
-        if(time % 10000==0) /* Print every 10 ms. */
-            printf("%d;%d;%d\n",(time-start_time)/1000, rs_get_ext_angle(&robot.rs), rs_get_ext_distance(&robot.rs));
+        printf("%d;%d;%d\n",(time-start_time)/1000, rs_get_ext_angle(&robot.rs), rs_get_ext_distance(&robot.rs));
+        while(uptime_get() < time + 10000);
     }
 }
 
@@ -171,6 +178,7 @@ command_t commands_list[] = {
     COMMAND("right_gain", cmd_right_gain),
     COMMAND("error", cmd_error_dump),
     COMMAND("help", cmd_help),
+    COMMAND("turn", cmd_turn),
     COMMAND("rs", cmd_rs),
     COMMAND("none",NULL), /* must be last. */
 };
