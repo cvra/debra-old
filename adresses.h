@@ -26,8 +26,7 @@
 #else
 
 /** Left motor board address */
-#define LEFT_MOTOR_ADRESS   (int *)(0x0)
-#define RIGHT_MOTOR_ADRESS  (int *)(0x0)
+#define HEXMOTORCONTROLLER_BASE (int *)(0x0)
 #define ANALOG_SPI_ADRESS   (int *)(0x0)
 #define DIGITAL_OUTPUT0     (int *)(0x0)
 #define Z_AXIS_DC_ADRESS    (int *)(0x0)

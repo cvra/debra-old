@@ -16,6 +16,7 @@
 #include <stdarg.h>
 #include <uptime.h>
 #include <string.h>
+#include <cvra_servo.h>
 
 #include <commandline.h>
 
@@ -108,6 +109,8 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
 
 	/* Step 3 : Demare le scheduler pour le multitache. */
 	scheduler_init(); 
+
+    /* Puts the servomotors at neutra position. */
 
 #ifdef COMPILE_ON_ROBOT
 	/* Step 3 (suite) : Si on est sur le robot on inscrit le tick dans la table des interrupts. */

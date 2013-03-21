@@ -42,15 +42,19 @@ void cmd_start() {
 void cmd_pwm(int argc, char **argv) {
     if(argc == 3) {
         printf("Putting channel %d = %d\n", atoi(argv[1]), atoi(argv[2]));
+#ifdef COMPILE_ON_ROBOT
         cvra_dc_set_pwm(HEXMOTORCONTROLLER_BASE, atoi(argv[1]), atoi(argv[2]));
+#endif
     }
 }
 
 /** Gets the encoder values. */
 void cmd_encoders(void) {
+#ifdef COMPILE_ON_ROBOT
     int i;
     for(i=0;i<6;i++)
         printf("%d;", cvra_dc_get_encoder(HEXMOTORCONTROLLER_BASE, i));
+#endif
     printf("\n");
 }
 

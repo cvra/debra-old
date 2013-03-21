@@ -26,6 +26,7 @@
 #include <quadramp.h>
 #include <scheduler.h>
 #include <cvra_dc.h>
+#include <2wheels/trajectory_manager_utils.h>
 
 #include <aversive/error.h>
 #include "error_numbers.h"
@@ -121,7 +122,7 @@ void cvra_cs_init(void) {
 	trajectory_init(&robot.traj, ASSERV_FREQUENCY);
 	trajectory_set_cs(&robot.traj, &robot.distance_cs, &robot.angle_cs);
 	trajectory_set_robot_params(&robot.traj, &robot.rs, &robot.pos);
-	trajectory_set_speed(&robot.traj, speed_mm2imp(700), 1200); /* distance, angle */
+	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 700), 1200); /* distance, angle */
 	trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 2800), 30.);
 	/* distance window, angle window, angle start */
 	trajectory_set_windows(&robot.traj, 30., 1.0, 20.); // Prod
@@ -142,20 +143,6 @@ void cvra_cs_init(void) {
 	/* ajoute la regulation au multitache. ASSERV_FREQUENCY est dans cvra_cs.h */
 	scheduler_add_periodical_event_priority(cvra_cs_manage, NULL, (1000000
 			/ ASSERV_FREQUENCY) / SCHEDULER_UNIT, 130);
-}
-
-/**
- @brief Brings power back on after a blocking.
- 
- This functions resets the blocking detection systems, sets the robot on angle
- and distance mode and stops the current trajectory.
- */
-static void restart_power(__attribute__((unused)) void * dummy) {
-	bd_reset(&robot.angle_bd);
-	bd_reset(&robot.distance_bd);
-	robot.mode = BOARD_MODE_ANGLE_DISTANCE;
-	trajectory_hardstop(&robot.traj);
-	robot.is_blocked = 0;
 }
 
 /** Logge l'erreur sur les differents regulateurs et l'affiche avec le temps. */
