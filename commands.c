@@ -164,11 +164,56 @@ void cmd_rs(void) {
     }
 }
 
+/** Goes to a given (x,y) point. */
+void cmd_goto(int argc, char **argv) {
+    if(argc < 3) {
+        printf("Usage %s x y\n", argv[0]);
+        return;
+    }
+    trajectory_goto_forward_xy_abs(&robot.traj, atoi(argv[1]), atoi(argv[2]));
+}
+
+/** Puts the robot to a certain mode. */
+void cmd_mode(int argc, char **argv) {
+    if(argc != 2) return;
+
+    if(!strcmp("angle", argv[1])) robot.mode = BOARD_MODE_ANGLE_ONLY;
+    if(!strcmp("distance", argv[1])) robot.mode = BOARD_MODE_DISTANCE_ONLY;
+    if(!strcmp("all", argv[1])) robot.mode = BOARD_MODE_ANGLE_DISTANCE;
+}
+
+void cmd_demo(void) {
+    trajectory_goto_forward_xy_abs(&robot.traj, 300, 300);
+    wait_traj_end(END_TRAJ);
+    trajectory_goto_forward_xy_abs(&robot.traj, 300, 600);
+    wait_traj_end(END_TRAJ);
+    getchar();
+    if(uptime_get() % 2) {
+        trajectory_goto_backward_xy_abs(&robot.traj, 0, 0);
+        wait_traj_end(END_TRAJ);
+
+        trajectory_a_abs(&robot.traj, 0);
+    }
+    else {
+        trajectory_a_abs(&robot.traj, 90);
+        wait_traj_end(END_TRAJ);
+        trajectory_d_rel(&robot.traj, -600);
+
+        wait_traj_end(END_TRAJ);
+        trajectory_a_abs(&robot.traj, 0);
+
+        wait_traj_end(END_TRAJ);
+        trajectory_d_rel(&robot.traj, -300);
+    }
+    wait_traj_end(END_TRAJ);
+}
+
+
 /** An array of all the commands. */
 command_t commands_list[] = {
     COMMAND("test_argv",test_func),
     COMMAND("arm_shutdown",cmd_arm_shutdown),
-    COMMAND("reset", cmd_reset),
+//    COMMAND("reset", cmd_reset),
     COMMAND("start",cmd_start),
     COMMAND("pid", cmd_pid), 
     COMMAND("pwm", cmd_pwm),
@@ -180,6 +225,9 @@ command_t commands_list[] = {
     COMMAND("help", cmd_help),
     COMMAND("turn", cmd_turn),
     COMMAND("rs", cmd_rs),
+    COMMAND("goto", cmd_goto),
+    COMMAND("demo", cmd_demo),
+    COMMAND("mode", cmd_mode),
     COMMAND("none",NULL), /* must be last. */
 };
 
