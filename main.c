@@ -101,7 +101,7 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
     error_register_error(mylog);
     error_register_warning(mylog);
     error_register_notice(mylog);
-    error_register_debug(mylog);
+    //error_register_debug(mylog);
  
 	/* Step 2 : Init de la librairie math de Mathieu. */
     /**FIXME @todo Est-ce qu'on a encore besoin de fast_math_init() dans la version finale ? */

@@ -2,6 +2,7 @@
 #include <string.h>
 #include "cvra_cs.h"
 #include <uptime.h>
+#include <cvra_dc.h>
 
 /** Prints all args, then exits. */
 void test_func(int argc, char **argv) {
@@ -108,9 +109,15 @@ void cmd_position(int argc, char **argv) {
 /** Sets or gets right wheel gain. */
 void cmd_right_gain(int argc, char **argv) {
     /** @todo We should be more cautious when handling user input. */
-    if(argc == 2)
-        robot.rs.right_ext_gain = atof(argv[1]);
-    printf("Right wheel gain = %.4f\n", robot.rs.right_ext_gain);
+    if(argc >= 3) {  
+        double a, b;
+        a = atof(argv[1]);
+        b = atof(argv[2]);
+        rs_set_right_ext_encoder(&robot.rs, cvra_dc_get_encoder5, HEXMOTORCONTROLLER_BASE, -a);
+        rs_set_left_ext_encoder(&robot.rs, cvra_dc_get_encoder0, HEXMOTORCONTROLLER_BASE, b);
+    }
+    
+    printf("Right = %.4f Left = %.4f\n", robot.rs.right_ext_gain, robot.rs.left_ext_gain);
 }
 
 /** Lists all available commands. */
@@ -183,29 +190,14 @@ void cmd_mode(int argc, char **argv) {
 }
 
 void cmd_demo(void) {
-    trajectory_goto_forward_xy_abs(&robot.traj, 300, 300);
+    trajectory_d_rel(&robot.traj, 1300);
     wait_traj_end(END_TRAJ);
-    trajectory_goto_forward_xy_abs(&robot.traj, 300, 600);
+    trajectory_a_rel(&robot.traj, 180);
     wait_traj_end(END_TRAJ);
-    getchar();
-    if(uptime_get() % 2) {
-        trajectory_goto_backward_xy_abs(&robot.traj, 0, 0);
-        wait_traj_end(END_TRAJ);
 
-        trajectory_a_abs(&robot.traj, 0);
-    }
-    else {
-        trajectory_a_abs(&robot.traj, 90);
-        wait_traj_end(END_TRAJ);
-        trajectory_d_rel(&robot.traj, -600);
-
-        wait_traj_end(END_TRAJ);
-        trajectory_a_abs(&robot.traj, 0);
-
-        wait_traj_end(END_TRAJ);
-        trajectory_d_rel(&robot.traj, -300);
-    }
+    trajectory_d_rel(&robot.traj, 1300);
     wait_traj_end(END_TRAJ);
+    trajectory_a_rel(&robot.traj, -180);
 }
 
 
@@ -220,7 +212,7 @@ command_t commands_list[] = {
     COMMAND("encoders", cmd_encoders),
     COMMAND("position", cmd_position),
     COMMAND("forward", cmd_forward),
-    COMMAND("right_gain", cmd_right_gain),
+    COMMAND("correction", cmd_right_gain),
     COMMAND("error", cmd_error_dump),
     COMMAND("help", cmd_help),
     COMMAND("turn", cmd_turn),
