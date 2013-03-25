@@ -48,12 +48,13 @@ void cvra_cs_init(void) {
 	/*--------------------------------------------------------------------------*/
 	/*                                Motor                                     */
 	/*--------------------------------------------------------------------------*/
+#ifdef COMPILE_ON_ROBOT
     int i;
-
     for(i=0;i<6;i++) {
         cvra_dc_set_encoder(HEXMOTORCONTROLLER_BASE, i, 0);
         cvra_dc_set_pwm(HEXMOTORCONTROLLER_BASE, i, 0);
     }
+#endif
 
 	/****************************************************************************/
 	/*                             Robot system                                 */
@@ -64,10 +65,12 @@ void cvra_cs_init(void) {
 	/*************************f***************************************************/
 	/*                         Encoders & PWMs                                  */
 	/****************************************************************************/
+#ifdef COMPILE_ON_ROBOT
 	rs_set_left_pwm(&robot.rs, cvra_dc_set_pwm0, HEXMOTORCONTROLLER_BASE);
 	rs_set_right_pwm(&robot.rs, cvra_dc_set_pwm5, HEXMOTORCONTROLLER_BASE);
 	rs_set_left_ext_encoder(&robot.rs, cvra_dc_get_encoder0, HEXMOTORCONTROLLER_BASE, 0.999981348555308);
 	rs_set_right_ext_encoder(&robot.rs, cvra_dc_get_encoder5, HEXMOTORCONTROLLER_BASE, -1.00001865144469);
+#endif
 
 	/****************************************************************************/
 	/*                          Position manager                                */
