@@ -28,6 +28,15 @@
 #include <aversive.h>
 #include "arm.h"
 
+#define ADC_DISTANCE_LEFT 0
+#define ADC_DISTANCE_RIGHT 1
+#define ADC_PUMP_CURRENT_RIGHT 3
+#define ADC_PUMP_CURRENT_LEFT 2
+#define ADC_STARTER 4
+#define ADC_OBSTACLE_LEFT 5
+#define ADC_OBSTACLE_RIGHT 6
+#define ADC_NOT_CONNECTED 7
+
 /** @typedef pump_mode_t
  * Holds the state (enabled and direction) of a pump.
  */
@@ -64,7 +73,7 @@ void cvra_electroaimant_back_off(void);
  *
  * @author Antoine Albertelli, CVRA
  * @param [in] uart_adress The base adress of the altera UART module.
- * @param [in] baudrate	The desired baudrate
+ * @param [in] baudrate The desired baudrate
  */
 void cvra_set_uart_speed(int32_t *uart_adress, int baudrate);
 
