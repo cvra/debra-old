@@ -117,12 +117,8 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
 
 	/* Step 5 : Init la regulation et l'odometrie. */
 	cvra_cs_init();  // Desactive depuis la casse du moteur.
-	
-	/* Init les bras.  */
-    arm_init(&robot.left_arm);
-    robot.left_arm.offset_xy.x = 20.;
-    robot.left_arm.offset_xy.y = 10.;
-    robot.left_arm.offset_rotation = 1.5707;
+
+    arm_highlevel_init();    
 
 	/* Step 7 : Init tout les parametres propres a une certaine edition ainsi que l'evitement d'obstacle. */
     /** FIXME @todo Init des parametres robot a refaire au propre. */

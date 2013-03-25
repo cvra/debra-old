@@ -7,6 +7,7 @@
 #include <cvra_dc.h>
 #include <aversive/error.h>
 #include "cvra_cs.h"
+#include <scheduler.h>
 
 #include "adresses.h"
 
@@ -46,6 +47,11 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, int z, float
 static int check_for_obstacle_collision(arm_t *arm, point_t p1, point_t p2, int z); 
 
 void arm_highlevel_init(void) {
+    int i;
+    for(i=0;i<6;i++) {
+        cvra_dc_set_pwm(ARMSMOTORCONTROLLER_BASE, i, 0);
+        cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, i, 0);
+    }
     arm_init(&robot.left_arm);
     arm_init(&robot.right_arm);
 
@@ -57,25 +63,25 @@ void arm_highlevel_init(void) {
 
     arm_connect_io(&robot.left_arm,
             /* Z */
-            cvra_dc_set_pwm0, ARMSMOTORCONTROLLER_BASE,
-            cvra_dc_get_encoder0, ARMSMOTORCONTROLLER_BASE,
-            /* Shoulder */
             cvra_dc_set_pwm1, ARMSMOTORCONTROLLER_BASE,
             cvra_dc_get_encoder1, ARMSMOTORCONTROLLER_BASE,
+            /* Shoulder */
+            cvra_dc_set_pwm0, ARMSMOTORCONTROLLER_BASE,
+            cvra_dc_get_encoder0, ARMSMOTORCONTROLLER_BASE,
             /* Elbow */
             cvra_dc_set_pwm2, ARMSMOTORCONTROLLER_BASE,
             cvra_dc_get_encoder2, ARMSMOTORCONTROLLER_BASE);
 
     arm_connect_io(&robot.right_arm, 
             /* Z */
-            cvra_dc_set_pwm3, ARMSMOTORCONTROLLER_BASE,
-            cvra_dc_get_encoder3, ARMSMOTORCONTROLLER_BASE,
-            /* Shoulder */
-            cvra_dc_set_pwm4, ARMSMOTORCONTROLLER_BASE,
-            cvra_dc_get_encoder4, ARMSMOTORCONTROLLER_BASE,
-            /* Elbow */
             cvra_dc_set_pwm5, ARMSMOTORCONTROLLER_BASE,
-            cvra_dc_get_encoder5, ARMSMOTORCONTROLLER_BASE);
+            cvra_dc_get_encoder5, ARMSMOTORCONTROLLER_BASE,
+            /* Shoulder */
+            cvra_dc_set_pwm5, ARMSMOTORCONTROLLER_BASE,
+            cvra_dc_get_encoder5, ARMSMOTORCONTROLLER_BASE,
+            /* Elbow */
+            cvra_dc_set_pwm3, ARMSMOTORCONTROLLER_BASE,
+            cvra_dc_get_encoder3, ARMSMOTORCONTROLLER_BASE);
 }
 
 void arm_init(arm_t *arm) {
@@ -100,17 +106,19 @@ void arm_init(arm_t *arm) {
     arm->length[0] = 135; /* mm */
     arm->length[1] = 136;
 
-    pid_set_gains(&arm->z_axis_pid, -1000, -40, -100);
-    pid_set_gains(&arm->elbow_pid, 100, 2, 80); 
-    pid_set_gains(&arm->shoulder_pid, 100, 2, 80); 
+    pid_set_gains(&arm->z_axis_pid, 100, 0, 0);
+    pid_set_gains(&arm->elbow_pid, 100, 0, 0); 
+    pid_set_gains(&arm->shoulder_pid, 200, 0, 0); 
 
     arm->z_axis_imp_per_mm = 655*4;
-    arm->shoulder_imp_per_rad = 77785;
-    arm->elbow_imp_per_rad = 56571;
+    arm->shoulder_imp_per_rad = -77785;
+    arm->elbow_imp_per_rad = -56571;
 
     /* Distance entre les vis a billes : 158 mm. */
-
     arm->last_loop = uptime_get();
+
+    scheduler_add_periodical_event(arm_manage_cs, (void *)arm, 1000 / SCHEDULER_UNIT);
+    scheduler_add_periodical_event(arm_manage, (void *)arm, 10000 / SCHEDULER_UNIT);
 }
 
 void arm_connect_io(arm_t *arm, 
@@ -161,7 +169,8 @@ void arm_manage(void *a) {
     int32_t compensated_date = 2*current_date - arm->last_loop;
 
     /* If we dont have a trajectory data, disabled everything. */
-    if(arm->trajectory.frame_count != 0) {
+    //if(arm->trajectory.frame_count != 0) {
+    if(1) {
         cs_enable(&arm->z_axis_cs);
         cs_enable(&arm->shoulder_cs);
         cs_enable(&arm->elbow_cs);
@@ -211,6 +220,10 @@ void arm_manage(void *a) {
             position[2] += (1 - t) * arm->trajectory.frames[i-1].position[2];
         }
 
+        position[0] = 200;
+        position[1] = 100;
+        position[2] = 0;
+
         /* Computes the inverse cinematics and send the consign to the control systems. */
         if(compute_inverse_cinematics(arm, position[0], position[1], position[2], &alpha, &beta) == 0) {
             cs_set_consign(&arm->z_axis_cs, position[2] * arm->z_axis_imp_per_mm);
@@ -237,6 +250,8 @@ void arm_manage(void *a) {
 
 
 void arm_manage_cs(void *a) {
+ //   static int i=0;
+//    if(i++%2000 == 0) NOTICE(0, "Science again bitch !!");
     arm_t *arm = (arm_t *)a;
 
     cs_manage(&arm->z_axis_cs);
@@ -277,6 +292,11 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, int z, float
     c2.r = arm->length[1];
     
     int nbPos = circle_intersect(&c1, &c2, &p1, &p2);
+
+    *alpha = atan2(p1.y, p1.x);
+    *beta = atan2(y-p1.y, x-p1.x);
+    *beta = *beta - *alpha;
+    return 0;
 
     if(nbPos == 0) {
         /* It means there is no way to find an intersection... */

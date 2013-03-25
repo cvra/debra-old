@@ -6,6 +6,7 @@
 #include "cvra_cs.h"
 #include <uptime.h>
 #include <cvra_dc.h>
+#include "arm.h"
 
 /** Prints all args, then exits. */
 void test_func(int argc, char **argv) {
@@ -47,7 +48,7 @@ void cmd_pwm(int argc, char **argv) {
     if(argc == 3) {
         printf("Putting channel %d = %d\n", atoi(argv[1]), atoi(argv[2]));
 #ifdef COMPILE_ON_ROBOT
-        cvra_dc_set_pwm(HEXMOTORCONTROLLER_BASE, atoi(argv[1]), atoi(argv[2]));
+        cvra_dc_set_pwm(ARMSMOTORCONTROLLER_BASE, atoi(argv[1]), atoi(argv[2]));
 #endif
     }
 }
@@ -210,11 +211,62 @@ void cmd_demo(void) {
     trajectory_a_rel(&robot.traj, -180);
 }
 
+void cmd_arm_pos(int argc, char **argv) {
+    int i;
+    for(i=0;i<6;i++)
+        printf("%d ", cvra_dc_get_encoder(ARMSMOTORCONTROLLER_BASE, i));
+
+    printf("\n");
+}
+
+void cmd_arm_pid(int argc, char **argv) {
+    if(argc < 6) return;
+
+    arm_t *arm;
+    struct pid_filter *pid;
+    
+
+    if(!strcmp("left", argv[1])) arm = &robot.left_arm;
+    if(!strcmp("right", argv[1])) arm = &robot.right_arm;
+
+    if(!strcmp("shoulder", argv[2])) pid = &arm->shoulder_pid;
+    if(!strcmp("elbow", argv[2])) pid = &arm->elbow_pid;
+    if(!strcmp("z_axis", argv[2])) pid = &arm->shoulder_pid;
+
+    pid_set_gains(pid, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]));
+
+    printf("Left arm :\n");
+    printf("Z axis : %d %d %d\n", 
+            pid_get_gain_P(&robot.left_arm.z_axis_pid),
+            pid_get_gain_I(&robot.left_arm.z_axis_pid), 
+            pid_get_gain_D(&robot.left_arm.z_axis_pid));
+    printf("Shoulder : %d %d %d\n", pid_get_gain_P(&robot.left_arm.shoulder_pid), 
+            pid_get_gain_I(&robot.left_arm.shoulder_pid), 
+            pid_get_gain_D(&robot.left_arm.z_axis_pid));
+    printf("Elbow : %d %d %d\n", pid_get_gain_P(&robot.left_arm.elbow_pid),
+            pid_get_gain_I(&robot.left_arm.shoulder_pid), 
+            pid_get_gain_D(&robot.left_arm.z_axis_pid));
+
+
+    printf("Right arm :\n");
+    printf("Z axis : %d %d %d\n", 
+            pid_get_gain_P(&robot.right_arm.z_axis_pid),
+            pid_get_gain_I(&robot.right_arm.z_axis_pid), 
+            pid_get_gain_D(&robot.right_arm.z_axis_pid));
+    printf("Shoulder : %d %d %d\n", pid_get_gain_P(&robot.right_arm.shoulder_pid),
+            pid_get_gain_I(&robot.right_arm.shoulder_pid), 
+            pid_get_gain_D(&robot.right_arm.z_axis_pid));
+    printf("Elbow : %d %d %d\n", pid_get_gain_P(&robot.right_arm.elbow_pid),
+            pid_get_gain_I(&robot.right_arm.shoulder_pid), 
+            pid_get_gain_D(&robot.right_arm.z_axis_pid));
+}
+
 
 /** An array of all the commands. */
 command_t commands_list[] = {
     COMMAND("test_argv",test_func),
     COMMAND("arm_shutdown",cmd_arm_shutdown),
+    COMMAND("arm_pid", cmd_arm_pid),
 //    COMMAND("reset", cmd_reset),
     COMMAND("start",cmd_start),
     COMMAND("pid", cmd_pid), 
@@ -230,6 +282,7 @@ command_t commands_list[] = {
     COMMAND("goto", cmd_goto),
     COMMAND("demo", cmd_demo),
     COMMAND("mode", cmd_mode),
+    COMMAND("arm_pos", cmd_arm_pos),
     COMMAND("none",NULL), /* must be last. */
 };
  
