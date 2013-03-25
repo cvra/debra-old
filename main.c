@@ -16,7 +16,9 @@
 #include <stdarg.h>
 #include <uptime.h>
 #include <string.h>
-#include "commandline.h"
+#include <cvra_servo.h>
+
+#include <commandline.h>
 
 /* nios2.h contient toutes les fonctions dont nous avons besoin pour dialoguer
  * avec le nios alt_irq_register, IORD, etc... */
@@ -26,6 +28,8 @@
 
 #include "hardware.h"
 #include "cvra_cs.h"
+
+extern command_t commands_list[];
 
 /** Logs an event.
  *
@@ -96,14 +100,8 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
     error_register_error(mylog);
     error_register_warning(mylog);
     error_register_notice(mylog);
-    error_register_debug(mylog);
-
-#ifdef COMPILE_ON_ROBOT
-	cvra_set_uart_speed(COMPC_BASE, 57600); 
-#endif
-    //commandline_init();
-    //for(;;) commandline_input_char(getchar());
-
+    //error_register_debug(mylog);
+ 
 	/* Step 2 : Init de la librairie math de Mathieu. */
     /**FIXME @todo Est-ce qu'on a encore besoin de fast_math_init() dans la version finale ? */
     fast_math_init();
@@ -115,11 +113,10 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
 #ifdef COMPILE_ON_ROBOT
 	/* Step 3 (suite) : Si on est sur le robot on inscrit le tick dans la table des interrupts. */
 	alt_ic_isr_register(0, TICK_IRQ, main_timer_interrupt, NULL, 0);
-	sei(); /** FIXME @todo sei() Necessaire ? */
 #endif
 
 	/* Step 5 : Init la regulation et l'odometrie. */
-	//cvra_cs_init();  // Desactive depuis la casse du moteur.
+	cvra_cs_init();  // Desactive depuis la casse du moteur.
 	
 	/* Init les bras.  */
     arm_init(&robot.left_arm);
@@ -131,8 +128,7 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
     /** FIXME @todo Init des parametres robot a refaire au propre. */
 
 
-	/* Step 8 : Demarre la comm avec le PC, pas de retour de cette fonction. */
-    commandline_init();
+    commandline_init(commands_list);
     for(;;) commandline_input_char(getchar());
     	
 	return 0;
