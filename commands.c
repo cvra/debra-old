@@ -6,6 +6,8 @@
 #include "cvra_cs.h"
 #include <uptime.h>
 #include <cvra_dc.h>
+#include "arm_interpolators.h"
+#include <aversive/error.h>
 #include "arm.h"
 
 /** Prints all args, then exits. */
@@ -219,13 +221,31 @@ void cmd_arm_pos(int argc, char **argv) {
     printf("\n");
 }
 
+void cmd_arm_goto(int argc, char **argv) {
+    arm_trajectory_t traj;
+
+    float start[3], end[3];
+    if(argc < 5) return;
+
+    start[0] = (float)atoi(argv[1]);
+    start[1] = (float)atoi(argv[2]);
+    start[2] = 0;
+
+    end[0] = (float)atoi(argv[3]);
+    end[1] = (float)atoi(argv[4]);
+    end[2] = 0;
+
+    arm_interpolator_linear_motion(&traj, start, end, 10.);
+    arm_execute_movement(&robot.left_arm, &traj);
+
+}
+
 void cmd_arm_pid(int argc, char **argv) {
     if(argc < 6) return;
 
     arm_t *arm;
     struct pid_filter *pid;
     
-
     if(!strcmp("left", argv[1])) arm = &robot.left_arm;
     if(!strcmp("right", argv[1])) arm = &robot.right_arm;
 
@@ -280,6 +300,7 @@ command_t commands_list[] = {
     COMMAND("turn", cmd_turn),
     COMMAND("rs", cmd_rs),
     COMMAND("goto", cmd_goto),
+    COMMAND("arm_goto", cmd_arm_goto),
     COMMAND("demo", cmd_demo),
     COMMAND("mode", cmd_mode),
     COMMAND("arm_pos", cmd_arm_pos),

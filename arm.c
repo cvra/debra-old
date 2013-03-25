@@ -104,7 +104,7 @@ void arm_init(arm_t *arm) {
 
     /* Physical constants, not magic numbers. */ 
     arm->length[0] = 135; /* mm */
-    arm->length[1] = 136;
+    arm->length[1] = 100;//136;
 
     pid_set_gains(&arm->z_axis_pid, 100, 0, 0);
     pid_set_gains(&arm->elbow_pid, 100, 0, 0); 
@@ -146,11 +146,15 @@ void arm_execute_movement(arm_t *arm, arm_trajectory_t *traj) {
     /* Step 2 : Allocates requested memory for our copy of the trajectory. */
     arm->trajectory.frames = malloc(traj->frame_count * sizeof(arm_keyframe_t));
 
+    NOTICE(0, "old size:%d", arm->trajectory.frame_count);
+
     if(arm->trajectory.frames == NULL)
         panic();
 
     /* Step 3 : Copy the trajectory data. */
     arm->trajectory.frame_count = traj->frame_count;
+
+    NOTICE(0, "new size:%d", arm->trajectory.frame_count);
     memcpy(arm->trajectory.frames, traj->frames, sizeof(arm_keyframe_t) * traj->frame_count);
 } 
 
@@ -169,8 +173,7 @@ void arm_manage(void *a) {
     int32_t compensated_date = 2*current_date - arm->last_loop;
 
     /* If we dont have a trajectory data, disabled everything. */
-    //if(arm->trajectory.frame_count != 0) {
-    if(1) {
+    if(arm->trajectory.frame_count != 0) {
         cs_enable(&arm->z_axis_cs);
         cs_enable(&arm->shoulder_cs);
         cs_enable(&arm->elbow_cs);
@@ -180,6 +183,7 @@ void arm_manage(void *a) {
             arm_change_coordinate_system(arm, arm->trajectory.frames[0].position[0], arm->trajectory.frames[0].position[1],
                                          arm->trajectory.frames[0].coordinate_type, &position[0], &position[1]);
             position[2] = arm->trajectory.frames[0].position[2];
+            printf("A\n");
         }
         /* Are we past the last frame ? */
         else if(compensated_date > arm->trajectory.frames[arm->trajectory.frame_count-1].date) {
@@ -210,19 +214,16 @@ void arm_manage(void *a) {
                                          arm->trajectory.frames[i].coordinate_type,
                                          &next_frame_xy[0], &next_frame_xy[1]);
 
-
             /* Linear interpolation between the 2 frames. */
-            position[0] = t * previous_frame_xy[0];
-            position[1] = t * previous_frame_xy[1];
-            position[2] = t * arm->trajectory.frames[i].position[2];
-            position[0] += (1 - t) * next_frame_xy[0]; 
-            position[1] += (1 - t) * next_frame_xy[1]; 
-            position[2] += (1 - t) * arm->trajectory.frames[i-1].position[2];
+            position[0] = (1 - t) * previous_frame_xy[0];
+            position[1] = (1 - t) * previous_frame_xy[1];
+            position[2] = (1 - t) * arm->trajectory.frames[i].position[2];
+            position[0] += t * next_frame_xy[0]; 
+            position[1] += t * next_frame_xy[1]; 
+            position[2] += t * arm->trajectory.frames[i-1].position[2];
         }
 
-        position[0] = 200;
-        position[1] = 100;
-        position[2] = 0;
+       // printf("%d;%d\n", (int)position[0], (int)position[1]);
 
         /* Computes the inverse cinematics and send the consign to the control systems. */
         if(compute_inverse_cinematics(arm, position[0], position[1], position[2], &alpha, &beta) == 0) {
