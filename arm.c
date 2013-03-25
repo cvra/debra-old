@@ -294,11 +294,6 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, int z, float
     
     int nbPos = circle_intersect(&c1, &c2, &p1, &p2);
 
-    *alpha = atan2(p1.y, p1.x);
-    *beta = atan2(y-p1.y, x-p1.x);
-    *beta = *beta - *alpha;
-    return 0;
-
     if(nbPos == 0) {
         /* It means there is no way to find an intersection... */
     	return -1;
@@ -306,18 +301,7 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, int z, float
 
     /* Checks if one of the two possibilities crosses an obstacle. */
     else if(nbPos == 2) {
-        point_t hand = {.x = x, .y=y};
-        if(check_for_obstacle_collision(arm, p1, hand, z)) { 
-            if(check_for_obstacle_collision(arm, p2, hand, z)) {
-                return -1;
-            }
-            else {
-                chosen=p2; 
-            }
-        } 
-        else {
-            chosen = p1;
-        }
+        chosen = p2;
     }
     else {
         chosen = p1;
@@ -325,6 +309,7 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, int z, float
 
     *alpha = atan2(chosen.y, chosen.x);
     *beta = atan2(y-chosen.y, x-chosen.x);
+    *beta = *beta - *alpha;
     return 0;
 }
 

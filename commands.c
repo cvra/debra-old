@@ -235,7 +235,7 @@ void cmd_arm_goto(int argc, char **argv) {
     end[1] = (float)atoi(argv[4]);
     end[2] = 0;
 
-    arm_interpolator_linear_motion(&traj, start, end, 10.);
+    arm_interpolator_linear_motion(&traj, start, end, 0.5);
     arm_execute_movement(&robot.left_arm, &traj);
 
 }
