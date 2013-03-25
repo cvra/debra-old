@@ -1,3 +1,5 @@
+#include <aversive.h>
+#include "adresses.h"
 #include <commandline.h>
 #include <string.h>
 #include "cvra_cs.h"
