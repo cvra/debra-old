@@ -135,13 +135,17 @@ void cmd_help(void) {
 }
 
 /** Dumps an error curve. */
-void cmd_error_dump(void) {
-//    trajectory_d_rel(&robot.traj, 200);
-    while(!trajectory_finished(&robot.traj)) {
+void cmd_error_dump(int argc, char **argv) {
+    if(argc < 2) return;
+    trajectory_d_rel(&robot.traj, atoi(argv[1]));
+
+    int32_t start_time = uptime_get();
+    int32_t time;
+    /* Print it for 5s. */
+    while((time = uptime_get()) < start_time + 5* 1000000) { 
         /* Dumps every 10 ms. */
-        if(uptime_get() % 10000 == 0) {
-            printf("%d;%d\n", uptime_get() / 1000, cs_get_error(&robot.distance_cs));
-        }
+        printf("%d;%d\n", uptime_get() / 1000, cs_get_error(&robot.distance_cs));
+        while(uptime_get() < time + 10000);
     }
 }
 

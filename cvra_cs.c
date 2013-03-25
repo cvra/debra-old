@@ -123,7 +123,7 @@ void cvra_cs_init(void) {
 	trajectory_set_cs(&robot.traj, &robot.distance_cs, &robot.angle_cs);
 	trajectory_set_robot_params(&robot.traj, &robot.rs, &robot.pos);
 	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 700), speed_rd2imp(&robot.traj, 2*M_PI) ); /* distance, angle */
-	trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 280), acc_rd2imp(&robot.traj, 0.4*M_PI));
+	trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 1000), acc_rd2imp(&robot.traj, 4*M_PI));
 	/* distance window, angle window, angle start */
 	trajectory_set_windows(&robot.traj, 30., 1.0, 45.); // Prod
 
