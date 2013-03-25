@@ -33,11 +33,8 @@
  *
  * @author Antoine Albertelli, CVRA
  * @param [in] uart_adress The base adress of the altera UART module.
- * @param [in] baudrate	The desired baudrate
+ * @param [in] baudrate The desired baudrate
  */
 void cvra_set_uart_speed(int32_t *uart_adress, int baudrate);
-
-
-
 
 #endif
