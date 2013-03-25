@@ -24,7 +24,7 @@ file(GLOB_RECURSE
 file(GLOB_RECURSE
 	debra_source
 	debra/arm.c
-	debra/armFunc.c
+    debra/arm_interpolators.c
 	debra/com_balises.c
 	debra/comm_pc.c
 	debra/cvra_cs.c

@@ -32,7 +32,7 @@
  * @todo We need an algorithm to choose between the 2 positions in case there
  * are multiple possibilities. 
  */
-static int compute_inverse_cinematics(arm_t *arm, float x, float y, int z, float *alpha, float *beta);
+static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha, float *beta);
 
 /** Checks if an arm crosses an obstacle.
  *
@@ -44,7 +44,7 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, int z, float
  * @returns 1 if this arm position crosses an obstacle.
  * @todo Implements conversion of obstacles coordinates.
  */
-static int check_for_obstacle_collision(arm_t *arm, point_t p1, point_t p2, int z); 
+int check_for_obstacle_collision(arm_t *arm, point_t p1, point_t p2, int z); 
 
 void arm_highlevel_init(void) {
     int i;
@@ -226,7 +226,7 @@ void arm_manage(void *a) {
        // printf("%d;%d\n", (int)position[0], (int)position[1]);
 
         /* Computes the inverse cinematics and send the consign to the control systems. */
-        if(compute_inverse_cinematics(arm, position[0], position[1], position[2], &alpha, &beta) == 0) {
+        if(compute_inverse_cinematics(arm, position[0], position[1], &alpha, &beta) == 0) {
             cs_set_consign(&arm->z_axis_cs, position[2] * arm->z_axis_imp_per_mm);
             cs_set_consign(&arm->shoulder_cs, alpha * arm->shoulder_imp_per_rad);
             cs_set_consign(&arm->elbow_cs, beta * arm->elbow_imp_per_rad);
@@ -281,7 +281,7 @@ void arm_shutdown(arm_t *arm) {
 }
 
 
-static int compute_inverse_cinematics(arm_t *arm, float x, float y, int z, float *alpha, float *beta) {
+static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha, float *beta) {
     circle_t c1, c2;
     point_t p1, p2, chosen;
     
@@ -366,7 +366,7 @@ arm_obstacle_t *arm_create_obstacle(arm_t *arm, int points_count) {
     return &arm->obstacles[arm->obstacle_count-1]; 
 }
 
-static int check_for_obstacle_collision(arm_t *arm, point_t p1, point_t p2, int z) {
+int check_for_obstacle_collision(arm_t *arm, point_t p1, point_t p2, int z) {
     /* XXX Implement obstacle coordinates converstion. */
     int i;
     point_t intersect_point;
