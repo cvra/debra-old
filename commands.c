@@ -186,7 +186,10 @@ void cmd_mode(int argc, char **argv) {
 
     if(!strcmp("angle", argv[1])) robot.mode = BOARD_MODE_ANGLE_ONLY;
     if(!strcmp("distance", argv[1])) robot.mode = BOARD_MODE_DISTANCE_ONLY;
+    if(!strcmp("off", argv[1])) robot.mode = BOARD_MODE_FREE;
     if(!strcmp("all", argv[1])) robot.mode = BOARD_MODE_ANGLE_DISTANCE;
+
+    trajectory_hardstop(&robot.traj);
 }
 
 void cmd_demo(void) {
