@@ -251,17 +251,17 @@ void cmd_arm_goto(int argc, char **argv) {
     arm_trajectory_t traj;
 
     float start[3], end[3];
-    if(argc < 5) return;
+    if(argc < 7) return;
 
     start[0] = (float)atoi(argv[1]);
     start[1] = (float)atoi(argv[2]);
-    start[2] = 0;
+    start[2] = (float)atoi(argv[3]);
 
-    end[0] = (float)atoi(argv[3]);
-    end[1] = (float)atoi(argv[4]);
-    end[2] = 0;
+    end[0] = (float)atoi(argv[4]);
+    end[1] = (float)atoi(argv[5]);
+    end[2] = (float)atoi(argv[6]);
 
-    arm_interpolator_linear_motion(&traj, start, end, 0.5);
+    arm_interpolator_linear_motion(&traj, start, end, 3.);
     arm_execute_movement(&robot.left_arm, &traj);
 
 }

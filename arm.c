@@ -61,6 +61,9 @@ void arm_highlevel_init(void) {
     robot.left_arm.offset_rotation = M_PI / 2;
     robot.right_arm.offset_rotation = -M_PI / 2;
 
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 1, 265 * robot.left_arm.z_axis_imp_per_mm);
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 5, 265 * robot.right_arm.z_axis_imp_per_mm);
+
     arm_connect_io(&robot.left_arm,
             /* Z */
             cvra_dc_set_pwm1, ARMSMOTORCONTROLLER_BASE,
@@ -107,8 +110,8 @@ void arm_init(arm_t *arm) {
     arm->length[1] = 100;//136;
 
     pid_set_gains(&arm->z_axis_pid, 100, 0, 0);
-    pid_set_gains(&arm->elbow_pid, 100, 0, 0); 
-    pid_set_gains(&arm->shoulder_pid, 200, 0, 0); 
+    pid_set_gains(&arm->elbow_pid, 10, 0, 0);
+    pid_set_gains(&arm->shoulder_pid, 10, 0, 0);
 
     arm->z_axis_imp_per_mm = 655*4;
     arm->shoulder_imp_per_rad = -77785;
@@ -119,6 +122,8 @@ void arm_init(arm_t *arm) {
 
     scheduler_add_periodical_event(arm_manage_cs, (void *)arm, 1000 / SCHEDULER_UNIT);
     scheduler_add_periodical_event(arm_manage, (void *)arm, 10000 / SCHEDULER_UNIT);
+
+    arm->shoulder_mode = SHOULDER_BACK;
 }
 
 void arm_connect_io(arm_t *arm, 
@@ -217,10 +222,10 @@ void arm_manage(void *a) {
             /* Linear interpolation between the 2 frames. */
             position[0] = (1 - t) * previous_frame_xy[0];
             position[1] = (1 - t) * previous_frame_xy[1];
-            position[2] = (1 - t) * arm->trajectory.frames[i].position[2];
+            position[2] = (1 - t) * arm->trajectory.frames[i-1].position[2];
             position[0] += t * next_frame_xy[0]; 
             position[1] += t * next_frame_xy[1]; 
-            position[2] += t * arm->trajectory.frames[i-1].position[2];
+            position[2] += t * arm->trajectory.frames[i].position[2];
         }
 
        // printf("%d;%d\n", (int)position[0], (int)position[1]);
@@ -285,6 +290,11 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
     circle_t c1, c2;
     point_t p1, p2, chosen;
     
+    if(y > 0)
+    	y += 0.5;
+    else
+    	y -= 0.5;
+
     c1.x = c1.y = 0;
     c1.r = arm->length[0];
     
@@ -301,11 +311,35 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
 
     /* Checks if one of the two possibilities crosses an obstacle. */
     else if(nbPos == 2) {
-        chosen = p2;
+    	if(x < 0) {
+
+    		if(p1.x > p2.x)
+    			chosen = p1;
+    		else
+    			chosen = p2;
+    	}
+    	else {
+    		if(arm->shoulder_mode == SHOULDER_FRONT) {
+    			/* TODO the left arm is mirrored when compared to the right arm. */
+    			if(p2.y > p1.y)
+    				chosen = p2;
+    			else
+    				chosen = p1;
+    		}
+    		else {
+    			/* TODO the left arm is mirrored when compared to the right arm. */
+    			if(p2.y < p1.y)
+    				chosen = p2;
+    			else
+    				chosen = p1;
+    		}
+    	}
     }
     else {
         chosen = p1;
     }
+
+    printf("%d;%d;%d;%d;%d;%d\n", (int)x, (int)y, (int)p1.x, (int)p1.y, (int)p2.x, (int)p2.y);
 
     *alpha = atan2(chosen.y, chosen.x);
     *beta = atan2(y-chosen.y, x-chosen.x);
@@ -317,8 +351,8 @@ void arm_change_coordinate_system(arm_t *arm, float x, float y,
              arm_coordinate_t system, float *arm_x, float *arm_y) {
 
     if(system == COORDINATE_ARM) {
-         *arm_x = x;
-         *arm_y = y;
+        *arm_x = x;
+        *arm_y = y;
     }
     else if(system == COORDINATE_ROBOT) {
         vect2_cart target;
@@ -333,21 +367,18 @@ void arm_change_coordinate_system(arm_t *arm, float x, float y,
         *arm_y = target.y; 
     }
     else {
-       x -= position_get_x_float(&robot.pos);
-       y -= position_get_y_float(&robot.pos);
-       vect2_cart target;
-       target.x = x;
-       target.y = y;
-       vect2_pol target_pol;
-       vect2_cart2pol(&target, &target_pol);
-       /* XXX Not sure if it is -= or += here. */
-       target_pol.theta -= position_get_a_rad_float(&robot.pos);
-       vect2_pol2cart(&target_pol, &target);
+        vect2_cart target;
+        vect2_pol target_pol;
+        target.x = x - position_get_x_float(&robot.pos);
+        target.y = y - position_get_y_float(&robot.pos);
+        vect2_cart2pol(&target, &target_pol);
+        /* XXX Not sure if it is -= or += here. */
+        target_pol.theta -= position_get_a_rad_float(&robot.pos);
+        vect2_pol2cart(&target_pol, &target);
 
-       /* Coordinate are now in robot coordinate. */
-       arm_change_coordinate_system(arm, target.x, target.y, COORDINATE_ROBOT,
-               arm_x, arm_y);
-
+        /* Coordinate are now in robot coordinate. */
+        arm_change_coordinate_system(arm, target.x, target.y, COORDINATE_ROBOT,
+            arm_x, arm_y);
     }
 }
 

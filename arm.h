@@ -27,6 +27,16 @@ typedef struct {
     int height;  /**< The height of the polygon, in mm. */
 } arm_obstacle_t;
 
+/** @brief The shoulder position.
+ *
+ * This enum is used to define a shoulder mode for the robot, as in "The shoulder
+ * should be in front of the hand or behind it ?".
+ */
+typedef enum {
+	SHOULDER_FRONT,
+	SHOULDER_BACK,
+} shoulder_mode_t;
+
 /** Struct holding everything that is related to a single arm.  
  * \image html arm_change_coordinate.png "The offset_* parameters."
  * @todo Are the blocking managers really useful ? To be tested.
@@ -61,6 +71,7 @@ typedef struct {
     /* Obstacles */ 
     arm_obstacle_t *obstacles;       /**< All the obstacle to watch for. */
     int obstacle_count;              /**< The number of obstacles. */
+    shoulder_mode_t shoulder_mode;
 } arm_t;
 
 /** @brief Highlevel init of the arm.
