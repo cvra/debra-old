@@ -108,6 +108,22 @@ void cmd_position(int argc, char **argv) {
     }
 }
 
+
+/** Show PID error. */
+void cmd_error_calibrate(int argc, char **argv) {
+	int32_t start_time = uptime_get();
+	int32_t time = uptime_get();
+	if(argc < 2) return;
+
+	trajectory_a_rel(&robot.traj, atof(argv[1]));
+
+	while(!trajectory_finished(&robot.traj)) {
+		time = uptime_get();
+		printf("%d;%d\n", (time-start_time)/1000, cs_get_error(&robot.angle_cs));
+		while(uptime_get() < time + 10000);
+	}
+}
+
 /** Sets or gets right wheel gain. */
 void cmd_right_gain(int argc, char **argv) {
     /** @todo We should be more cautious when handling user input. */
@@ -228,6 +244,7 @@ command_t commands_list[] = {
     COMMAND("start",cmd_start),
     COMMAND("pid", cmd_pid), 
     COMMAND("pwm", cmd_pwm),
+    COMMAND("choc", cmd_error_calibrate),
     COMMAND("encoders", cmd_encoders),
     COMMAND("position", cmd_position),
     COMMAND("forward", cmd_forward),
