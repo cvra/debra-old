@@ -137,16 +137,26 @@ void cmd_help(void) {
 /** Dumps an error curve. */
 void cmd_error_dump(int argc, char **argv) {
     if(argc < 2) return;
-    trajectory_d_rel(&robot.traj, atoi(argv[1]));
+    trajectory_a_rel(&robot.traj, atoi(argv[1]));
 
     int32_t start_time = uptime_get();
     int32_t time;
+    int32_t previous_pos = rs_get_angle(&robot.rs);
+    int left_current_max =0 , right_current_max = 0;
     /* Print it for 5s. */
-    while((time = uptime_get()) < start_time + 5* 1000000) { 
+    while((time = uptime_get()) < start_time + 3* 1000000) {
         /* Dumps every 10 ms. */
-        printf("%d;%d\n", uptime_get() / 1000, cs_get_error(&robot.distance_cs));
+        printf("%d;%d;%d\n", (uptime_get() - start_time) / 1000, (int)robot.angle_qr.previous_var, (int)rs_get_ext_angle(&robot.rs)-previous_pos);
+        previous_pos = rs_get_ext_angle(&robot.rs);
+        if(cvra_dc_get_current(HEXMOTORCONTROLLER_BASE, 4) > left_current_max)
+        	left_current_max = cvra_dc_get_current(HEXMOTORCONTROLLER_BASE, 4);
+
+        if(cvra_dc_get_current(HEXMOTORCONTROLLER_BASE, 2) > right_current_max)
+        	right_current_max = cvra_dc_get_current(HEXMOTORCONTROLLER_BASE, 2);
         while(uptime_get() < time + 10000);
     }
+
+    printf("max current = %d;%d\n", left_current_max, right_current_max);
 }
 
 /** Goes forward by a given distance. */

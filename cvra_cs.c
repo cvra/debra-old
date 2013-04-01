@@ -105,7 +105,7 @@ void cvra_cs_init(void) {
 	/****************************************************************************/
 
 	pid_init(&robot.distance_pid); /* Initialise le PID. */
-	pid_set_gains(&robot.distance_pid, 200, 0, 500); /* Regles les gains du PID. */
+	pid_set_gains(&robot.distance_pid, 600, 0, 600); /* Regles les gains du PID. */
 	pid_set_maximums(&robot.distance_pid, 0, 5000, 30000); /* pas de max sur l'entree, integral limite a 5000, sortie limitee a 4095 (PWM 12 bits). */
 	pid_set_out_shift(&robot.distance_pid, 10); /* Divise la sortie par 1024. */
 
@@ -126,7 +126,7 @@ void cvra_cs_init(void) {
 	trajectory_set_cs(&robot.traj, &robot.distance_cs, &robot.angle_cs);
 	trajectory_set_robot_params(&robot.traj, &robot.rs, &robot.pos);
 	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 700), speed_rd2imp(&robot.traj, 2*M_PI) ); /* distance, angle */
-	trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 1000), acc_rd2imp(&robot.traj, 4*M_PI));
+	trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 800), acc_rd2imp(&robot.traj, 2*M_PI));
 	/* distance window, angle window, angle start */
 	trajectory_set_windows(&robot.traj, 30., 1.0, 45.); // Prod
 
