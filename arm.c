@@ -123,7 +123,7 @@ void arm_init(arm_t *arm) {
     scheduler_add_periodical_event(arm_manage_cs, (void *)arm, 1000 / SCHEDULER_UNIT);
     scheduler_add_periodical_event(arm_manage, (void *)arm, 10000 / SCHEDULER_UNIT);
 
-    arm->shoulder_mode = SHOULDER_FRONT;
+    arm->shoulder_mode = SHOULDER_BACK;
 }
 
 void arm_connect_io(arm_t *arm, 
@@ -344,15 +344,15 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
 
     *alpha = atan2(chosen.y, chosen.x);
     *beta = atan2(y-chosen.y, x-chosen.x);
+
+
     *beta = *beta - *alpha;
 
-    /* XXX Not sure about that, still needs some debug. */ 
     if(*beta < -M_PI)
-        *beta = M_PI +*beta;
-
+        *beta = 2*M_PI + *beta;
+    
     if(*beta > M_PI)
-        *beta = M_PI -*beta;
-        
+        *beta = -2*M_PI + *beta; 
 
     return 0;
 }

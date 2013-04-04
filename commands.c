@@ -1,5 +1,6 @@
 /** Registers all the command in a single file. */
 #include <aversive.h>
+#include <cvra_servo.h>
 #include "adresses.h"
 #include <commandline.h>
 #include <string.h>
@@ -304,6 +305,21 @@ void cmd_arm_pos(int argc, char **argv) {
     printf("\n");
 }
 
+void cmd_servo(int argc, char **argv) {
+    if(argc < 3) {
+        printf("usage : %s channel value\n", argv[0]);
+        return;
+    }
+
+    printf("Setting %d to %d\n", atoi(argv[1]), atoi(argv[2]));
+
+    IOWR(SERVOS_BASE, 0, atoi(argv[2]));
+    IOWR(SERVOS_BASE, 1, atoi(argv[2]));
+    IOWR(SERVOS_BASE, 2, atoi(argv[2]));
+    IOWR(SERVOS_BASE, 3, atoi(argv[2]));
+
+}
+
 void cmd_arm_goto(int argc, char **argv) {
     arm_trajectory_t traj;
 
@@ -380,6 +396,7 @@ command_t commands_list[] = {
     COMMAND("grab", cmd_grab),
     COMMAND("shoulder_mode", cmd_arm_shoulder_mode),
     COMMAND("forward", cmd_forward),
+    COMMAND("servo", cmd_servo),
     COMMAND("correction", cmd_right_gain),
     COMMAND("error", cmd_error_dump),
     COMMAND("help", cmd_help),
