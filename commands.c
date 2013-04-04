@@ -45,12 +45,53 @@ void cmd_start() {
     printf("Match done. Hope you enjoyed it !\n");
 }
 
+/** Grabs a glass. */
+void cmd_grab(int argc, char **argv) {
+
+    arm_trajectory_t traj;
+    if(argc < 3)
+        return;
+
+    float start[3], end[3];
+
+    start[0] = (float)atoi(argv[1]);
+    start[1] = (float)atoi(argv[2]);
+    start[2] = 265.;
+
+    end[0] = (float)atoi(argv[1]);
+    end[1] = (float)atoi(argv[2]);
+    end[2] = 100.;
+
+    /* Descend. */
+    arm_interpolator_linear_motion(&traj, start, end, 3.);
+    arm_execute_movement(&robot.left_arm, &traj);
+    while(!arm_trajectory_finished(&robot.left_arm)); 
+
+//    cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, 400);
+
+    /* Remonte */
+    arm_interpolator_linear_motion(&traj, end, start, 3.);
+    arm_execute_movement(&robot.left_arm, &traj);
+    while(!arm_trajectory_finished(&robot.left_arm)); 
+
+    /* Bouge vers l'arriere. */
+    end[0]  = 55;
+    end[1] = 55;
+    end[2] = 265.;
+
+    arm_interpolator_linear_motion(&traj, start, end, 3.);
+    arm_execute_movement(&robot.left_arm, &traj);
+    while(!arm_trajectory_finished(&robot.left_arm)); 
+//    cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, 0);
+
+}
+
 /** Writes to a specific PWM. */
 void cmd_pwm(int argc, char **argv) {
     if(argc == 3) {
         printf("Putting channel %d = %d\n", atoi(argv[1]), atoi(argv[2]));
 #ifdef COMPILE_ON_ROBOT
-        cvra_dc_set_pwm(ARMSMOTORCONTROLLER_BASE, atoi(argv[1]), atoi(argv[2]));
+        cvra_dc_set_pwm(HEXMOTORCONTROLLER_BASE, atoi(argv[1]), atoi(argv[2]));
 #endif
     }
 }
@@ -126,6 +167,22 @@ void cmd_error_calibrate(int argc, char **argv) {
 		printf("%d;%d\n", (time-start_time)/1000, cs_get_error(&robot.angle_cs));
 		while(uptime_get() < time + 10000);
 	}
+}
+
+/** Setups arm shoulder mode. */
+void cmd_arm_shoulder_mode(int argc, char **argv) {
+    if(argc < 2)
+        return;
+
+    if(!strcmp("front", argv[1])) {
+        robot.left_arm.shoulder_mode = SHOULDER_FRONT;
+        robot.right_arm.shoulder_mode = SHOULDER_FRONT;
+    }
+    else {
+        robot.left_arm.shoulder_mode = SHOULDER_BACK;
+        robot.right_arm.shoulder_mode = SHOULDER_BACK;
+    }
+
 }
 
 /** Sets or gets right wheel gain. */
@@ -320,6 +377,8 @@ command_t commands_list[] = {
     COMMAND("choc", cmd_error_calibrate),
     COMMAND("encoders", cmd_encoders),
     COMMAND("position", cmd_position),
+    COMMAND("grab", cmd_grab),
+    COMMAND("shoulder_mode", cmd_arm_shoulder_mode),
     COMMAND("forward", cmd_forward),
     COMMAND("correction", cmd_right_gain),
     COMMAND("error", cmd_error_dump),

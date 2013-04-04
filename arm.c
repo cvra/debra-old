@@ -123,7 +123,7 @@ void arm_init(arm_t *arm) {
     scheduler_add_periodical_event(arm_manage_cs, (void *)arm, 1000 / SCHEDULER_UNIT);
     scheduler_add_periodical_event(arm_manage, (void *)arm, 10000 / SCHEDULER_UNIT);
 
-    arm->shoulder_mode = SHOULDER_BACK;
+    arm->shoulder_mode = SHOULDER_FRONT;
 }
 
 void arm_connect_io(arm_t *arm, 
@@ -312,14 +312,15 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
     /* Checks if one of the two possibilities crosses an obstacle. */
     else if(nbPos == 2) {
     	if(x < 0) {
-
-    		if(p1.x > p2.x)
-    			chosen = p1;
-    		else
-    			chosen = p2;
+            if(p1.x > 0)
+                chosen = p1;
+            else if(p2.x > 0)
+                chosen = p2;
+            else
+                chosen = p1;
     	}
     	else {
-    		if(arm->shoulder_mode == SHOULDER_FRONT) {
+    		if(arm->shoulder_mode == SHOULDER_BACK) {
     			/* TODO the left arm is mirrored when compared to the right arm. */
     			if(p2.y > p1.y)
     				chosen = p2;
@@ -339,11 +340,20 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
         chosen = p1;
     }
 
-    printf("%d;%d;%d;%d;%d;%d\n", (int)x, (int)y, (int)p1.x, (int)p1.y, (int)p2.x, (int)p2.y);
+    //printf("%d;%d;%d;%d;%d;%d\n", (int)x, (int)y, (int)p1.x, (int)p1.y, (int)p2.x, (int)p2.y);
 
     *alpha = atan2(chosen.y, chosen.x);
     *beta = atan2(y-chosen.y, x-chosen.x);
     *beta = *beta - *alpha;
+
+    /* XXX Not sure about that, still needs some debug. */ 
+    if(*beta < -M_PI)
+        *beta = M_PI +*beta;
+
+    if(*beta > M_PI)
+        *beta = M_PI -*beta;
+        
+
     return 0;
 }
 
