@@ -47,11 +47,16 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
 int check_for_obstacle_collision(arm_t *arm, point_t p1, point_t p2, int z); 
 
 void arm_highlevel_init(void) {
+#ifdef COMPILE_ON_ROBOT
     int i;
     for(i=0;i<6;i++) {
         cvra_dc_set_pwm(ARMSMOTORCONTROLLER_BASE, i, 0);
         cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, i, 0);
     }
+
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 1, 265 * robot.left_arm.z_axis_imp_per_mm);
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 4, 265 * robot.right_arm.z_axis_imp_per_mm);
+#endif
     arm_init(&robot.left_arm);
     arm_init(&robot.right_arm);
 
@@ -61,8 +66,6 @@ void arm_highlevel_init(void) {
     robot.left_arm.offset_rotation = M_PI / 2;
     robot.right_arm.offset_rotation = -M_PI / 2;
 
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 1, 265 * robot.left_arm.z_axis_imp_per_mm);
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 4, 265 * robot.right_arm.z_axis_imp_per_mm);
 
     arm_connect_io(&robot.left_arm,
             /* Z */
@@ -346,8 +349,6 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
 
     *alpha = atan2(chosen.y, chosen.x);
     *beta = atan2(y-chosen.y, x-chosen.x);
-
-
     *beta = *beta - *alpha;
 
 
