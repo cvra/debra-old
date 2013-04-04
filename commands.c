@@ -321,21 +321,31 @@ void cmd_servo(int argc, char **argv) {
 }
 
 void cmd_arm_goto(int argc, char **argv) {
+    arm_t *arm;
     arm_trajectory_t traj;
 
     float start[3], end[3];
-    if(argc < 7) return;
+    if(argc < 5) {
+        printf("usage : %s [left#right] x y z\n", argv[0]);
+        return;
+    }
 
-    start[0] = (float)atoi(argv[1]);
-    start[1] = (float)atoi(argv[2]);
-    start[2] = (float)atoi(argv[3]);
+    if(!strcmp("left", argv[1]))
+        arm = &robot.left_arm;
+    else
+        arm = &robot.right_arm;
 
-    end[0] = (float)atoi(argv[4]);
-    end[1] = (float)atoi(argv[5]);
-    end[2] = (float)atoi(argv[6]);
+
+    start[0] = (float)atoi(argv[2]);
+    start[1] = (float)atoi(argv[3]);
+    start[2] = (float)atoi(argv[4]);
+
+    end[0] = (float)atoi(argv[2]);
+    end[1] = (float)atoi(argv[3]);
+    end[2] = (float)atoi(argv[4]);
 
     arm_interpolator_linear_motion(&traj, start, end, 3.);
-    arm_execute_movement(&robot.left_arm, &traj);
+    arm_execute_movement(arm, &traj);
 
 }
 

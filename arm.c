@@ -56,13 +56,13 @@ void arm_highlevel_init(void) {
     arm_init(&robot.right_arm);
 
     robot.left_arm.offset_xy.x = 0; robot.left_arm.offset_xy.y = 79;
-    robot.right_arm.offset_xy.x = 0; robot.right_arm.offset_xy.y = -79;
+    robot.right_arm.offset_xy.x = 0; robot.right_arm.offset_xy.y = 79;
 
     robot.left_arm.offset_rotation = M_PI / 2;
     robot.right_arm.offset_rotation = -M_PI / 2;
 
     cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 1, 265 * robot.left_arm.z_axis_imp_per_mm);
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 5, 265 * robot.right_arm.z_axis_imp_per_mm);
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 4, 265 * robot.right_arm.z_axis_imp_per_mm);
 
     arm_connect_io(&robot.left_arm,
             /* Z */
@@ -77,8 +77,8 @@ void arm_highlevel_init(void) {
 
     arm_connect_io(&robot.right_arm, 
             /* Z */
-            cvra_dc_set_pwm5, ARMSMOTORCONTROLLER_BASE,
-            cvra_dc_get_encoder5, ARMSMOTORCONTROLLER_BASE,
+            cvra_dc_set_pwm4, ARMSMOTORCONTROLLER_BASE,
+            cvra_dc_get_encoder4, ARMSMOTORCONTROLLER_BASE,
             /* Shoulder */
             cvra_dc_set_pwm5, ARMSMOTORCONTROLLER_BASE,
             cvra_dc_get_encoder5, ARMSMOTORCONTROLLER_BASE,
@@ -295,6 +295,8 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
     else
     	y -= 0.5;
 
+
+    //printf("x:%.1f y:%.1f\n", x, y);
     c1.x = c1.y = 0;
     c1.r = arm->length[0];
     
@@ -347,6 +349,7 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
 
 
     *beta = *beta - *alpha;
+
 
     if(*beta < -M_PI)
         *beta = 2*M_PI + *beta;
