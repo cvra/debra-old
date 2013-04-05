@@ -313,11 +313,7 @@ void cmd_servo(int argc, char **argv) {
 
     printf("Setting %d to %d\n", atoi(argv[1]), atoi(argv[2]));
 
-    IOWR(SERVOS_BASE, 0, atoi(argv[2]));
-    IOWR(SERVOS_BASE, 1, atoi(argv[2]));
-    IOWR(SERVOS_BASE, 2, atoi(argv[2]));
-    IOWR(SERVOS_BASE, 3, atoi(argv[2]));
-
+    IOWR(SERVOS_BASE, atoi(argv[1]), atoi(argv[2]));
 }
 
 void cmd_arm_goto(int argc, char **argv) {

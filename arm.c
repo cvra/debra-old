@@ -61,7 +61,7 @@ void arm_highlevel_init(void) {
     arm_init(&robot.right_arm);
 
     robot.left_arm.offset_xy.x = 0; robot.left_arm.offset_xy.y = 79;
-    robot.right_arm.offset_xy.x = 0; robot.right_arm.offset_xy.y = 79;
+    robot.right_arm.offset_xy.x = 0; robot.right_arm.offset_xy.y = -79;
 
     robot.left_arm.offset_rotation = M_PI / 2;
     robot.right_arm.offset_rotation = -M_PI / 2;
@@ -112,7 +112,7 @@ void arm_init(arm_t *arm) {
     arm->length[0] = 135; /* mm */
     arm->length[1] = 100;//136;
 
-    pid_set_gains(&arm->z_axis_pid, 100, 0, 0);
+    pid_set_gains(&arm->z_axis_pid, 0, 0, 0);
     pid_set_gains(&arm->elbow_pid, 10, 0, 0);
     pid_set_gains(&arm->shoulder_pid, 10, 0, 0);
 
@@ -298,8 +298,6 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
     else
     	y -= 0.5;
 
-
-    //printf("x:%.1f y:%.1f\n", x, y);
     c1.x = c1.y = 0;
     c1.r = arm->length[0];
     
@@ -325,21 +323,39 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
                 chosen = p1;
     	}
     	else {
-    		if(arm->shoulder_mode == SHOULDER_BACK) {
-    			/* TODO the left arm is mirrored when compared to the right arm. */
-    			if(p2.y > p1.y)
-    				chosen = p2;
-    			else
-    				chosen = p1;
-    		}
-    		else {
-    			/* TODO the left arm is mirrored when compared to the right arm. */
-    			if(p2.y < p1.y)
-    				chosen = p2;
-    			else
-    				chosen = p1;
-    		}
-    	}
+            if(arm->offset_rotation > 0) { 
+                if(arm->shoulder_mode == SHOULDER_BACK) {
+                    /* TODO the left arm is mirrored when compared to the right arm. */
+                    if(p2.y > p1.y)
+                        chosen = p2;
+                    else
+                        chosen = p1;
+                }
+                else {
+                    /* TODO the left arm is mirrored when compared to the right arm. */
+                    if(p2.y < p1.y)
+                        chosen = p2;
+                    else
+                        chosen = p1;
+                }
+            }
+            else {
+                if(arm->shoulder_mode == SHOULDER_FRONT) {
+                    /* TODO the left arm is mirrored when compared to the right arm. */
+                    if(p2.y > p1.y)
+                        chosen = p2;
+                    else
+                        chosen = p1;
+                }
+                else {
+                    /* TODO the left arm is mirrored when compared to the right arm. */
+                    if(p2.y < p1.y)
+                        chosen = p2;
+                    else
+                        chosen = p1;
+                }
+            }
+        }
     }
     else {
         chosen = p1;
