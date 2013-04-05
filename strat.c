@@ -63,24 +63,18 @@ void strat_begin(void) {
 
 void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 
-	/* On fait un backup des reglages de l'asservissement. */
+	/* On fait un backup des reglagebd de l'asservissement. */
 	struct blocking_detection backup_bd;
 	struct quadramp_filter backup_qr;
 
-
-	memcpy(&backup_bd, &robot.distance_bd, sizeof(backup_bd));
-	memcpy(&backup_qr, &robot.distance_qr, sizeof(backup_qr));
 
 	robot.is_aligning = 1;
 
 	// Pour se recaler, on met le robot en regulation angulaire, on reduit la vitesse et l'acceleration
 	// On diminue la sensibilite on augmente la constante de temps de detection du bloquage
 
-	bd_set_thresholds(&robot.distance_bd, 2000, 2);
+	bd_set_thresholds(&robot.distance_bd,  2000, 2);
 
-	quadramp_set_1st_order_vars(&robot.distance_qr, 1, 1);
-
-	quadramp_set_2nd_order_vars(&robot.distance_qr, 1, 1);
 	trajectory_set_speed(&robot.traj, 100, 100);
 	robot.mode = BOARD_MODE_DISTANCE_ONLY;
 
@@ -108,8 +102,12 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 	trajectory_d_rel(&robot.traj, (double) -2000);
 	while(!bd_get(&robot.distance_bd));
 
+	bd_reset(&robot.distance_bd);
+	bd_reset(&robot.angle_bd);
+
 	/* On reregle la position. */
-	position_set(&robot.pos, position_get_x_s16(&robot.pos), COLOR_Y(epaisseurRobot), COLOR_A(90));
+    /* XXX ze + 100 is a hotfix for 2013. */
+	position_set(&robot.pos, position_get_x_s16(&robot.pos), COLOR_Y(epaisseurRobot+100), COLOR_A(90));
 
 	/* On se met en place a la position demandee. */
 	trajectory_d_rel(&robot.traj, (double) (y - epaisseurRobot));
@@ -122,14 +120,15 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 	/* On remet le robot dans son etat initial. */
 	robot.mode = BOARD_MODE_ANGLE_DISTANCE;
 
-	memcpy(&robot.distance_bd, &backup_bd, sizeof(backup_bd));
-	memcpy(&robot.distance_qr, &backup_qr, sizeof(backup_qr));
-	bd_reset(&robot.distance_bd);
-	bd_reset(&robot.angle_bd);
+
+	//bd_reset(&robot.distance_bd);
+	//bd_reset(&robot.angle_bd);
+    //
 
 	robot.is_aligning = 0;
 
-	trajectory_hardstop(&robot.traj);
+//	trajectory_hardstop(&robot.traj);
+
 }
 
 

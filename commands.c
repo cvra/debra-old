@@ -46,6 +46,25 @@ void cmd_start() {
     printf("Match done. Hope you enjoyed it !\n");
 }
 
+/** Positions the robot at the beginning of a match. */
+void cmd_autopos(int argc, char **argv) {
+    if(argc < 2) {
+        printf("usage : %s [blue|red]\n", argv[0]);
+        return;
+    }
+
+    if(!strcmp("red", argv[1])) strat.color = RED;
+    if(!strcmp("blue", argv[1])) strat.color = BLUE;
+
+    strat_autopos(200, 150, COLOR_A(45), 119);
+
+	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 700), speed_rd2imp(&robot.traj, 2*M_PI)); 
+
+	bd_set_thresholds(&robot.distance_bd,  1200, 1);
+	bd_set_thresholds(&robot.angle_bd,  1200, 1);
+}
+
+
 /** Grabs a glass. */
 void cmd_grab(int argc, char **argv) {
 
@@ -210,6 +229,12 @@ void cmd_help(void) {
             printf("\n");
     }
     printf("\n");
+}
+
+/** Gets error. */
+void cmd_error_get(void) {
+    printf("angle %d\n distance %d\n", cs_get_error(&robot.angle_cs), cs_get_error(&robot.distance_cs));
+
 }
 
 /** Dumps an error curve. */
@@ -394,8 +419,10 @@ command_t commands_list[] = {
     COMMAND("arm_pid", cmd_arm_pid),
 //    COMMAND("reset", cmd_reset),
     COMMAND("start",cmd_start),
+    COMMAND("autopos", cmd_autopos),
     COMMAND("pid", cmd_pid), 
     COMMAND("pwm", cmd_pwm),
+    COMMAND("get_error", cmd_error_get),
     COMMAND("choc", cmd_error_calibrate),
     COMMAND("encoders", cmd_encoders),
     COMMAND("position", cmd_position),

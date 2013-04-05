@@ -132,11 +132,11 @@ void cvra_cs_init(void) {
 
 	// Angle BDM
 	bd_init(&robot.angle_bd, &robot.angle_cs);
-	bd_set_thresholds(&robot.angle_bd, 1000, 1); /* thresold, duration. */
+	bd_set_thresholds(&robot.angle_bd, 1200, 1); /* thresold, duration. */
 
 	// Distance BDM
 	bd_init(&robot.distance_bd, &robot.distance_cs);
-	bd_set_thresholds(&robot.distance_bd, 1000, 1); /* thresold, duration. */
+	bd_set_thresholds(&robot.distance_bd, 1200, 1); /* thresold, duration. */
 
 	robot.is_aligning = 0;
 
@@ -161,8 +161,6 @@ static void dump_error(void) {
 }
 
 void cvra_cs_manage(__attribute__((unused)) void * dummy) {
-	//NOTICE(ERROR_CS, __FUNCTION__);
-
 	/* Gestion de la position. */
 	rs_update(&robot.rs);
 	position_manage(&robot.pos);
@@ -188,6 +186,7 @@ void cvra_cs_manage(__attribute__((unused)) void * dummy) {
 	/* Gestion du blocage */
 	bd_manage(&robot.angle_bd);
 	bd_manage(&robot.distance_bd);
+
 
 	if(bd_get(&robot.distance_bd)) {
 		WARNING(0, "Error choc distance !");
