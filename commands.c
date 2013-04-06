@@ -325,10 +325,15 @@ void cmd_demo(void) {
 }
 
 void cmd_arm_pos() {
-    int i;
-    for(i=0;i<6;i++)
-        printf("%d ", cvra_dc_get_encoder(ARMSMOTORCONTROLLER_BASE, i));
+    printf("Left : %.1f mm %.1f deg %.1f deg\n",  
+            (double)cvra_dc_get_encoder(ARMSMOTORCONTROLLER_BASE, 1) / robot.left_arm.z_axis_imp_per_mm,
+            (double)cvra_dc_get_encoder(ARMSMOTORCONTROLLER_BASE, 0) / robot.left_arm.shoulder_imp_per_rad * 180./M_PI ,
+            (double)cvra_dc_get_encoder(ARMSMOTORCONTROLLER_BASE, 2) / robot.left_arm.elbow_imp_per_rad * 180./M_PI);
 
+    printf("right : %.1f mm %.1f deg %.1f deg\n",  
+            (double)cvra_dc_get_encoder(ARMSMOTORCONTROLLER_BASE, 4) / robot.right_arm.z_axis_imp_per_mm,
+            (double)cvra_dc_get_encoder(ARMSMOTORCONTROLLER_BASE, 5) / robot.right_arm.shoulder_imp_per_rad * 180./M_PI ,
+            (double)cvra_dc_get_encoder(ARMSMOTORCONTROLLER_BASE, 3) / robot.right_arm.elbow_imp_per_rad * 180./M_PI);
     printf("\n");
 }
 
@@ -413,6 +418,13 @@ void cmd_arm_pid(int argc, char **argv) {
             pid_get_gain_D(&robot.right_arm.z_axis_pid));
 }
 
+void cmd_calibrate_arm() {
+    printf("Place the arms in position, then press a key\n");
+    getchar();
+
+    arm_calibrate();
+}
+
 
 /** An array of all the commands. */
 command_t commands_list[] = {
@@ -440,6 +452,7 @@ command_t commands_list[] = {
     COMMAND("goto", cmd_goto),
     COMMAND("arm_goto", cmd_arm_goto),
     COMMAND("demo", cmd_demo),
+    COMMAND("calibrate_arm", cmd_calibrate_arm),
     COMMAND("mode", cmd_mode),
     COMMAND("arm_pos", cmd_arm_pos),
     COMMAND("none",NULL), /* must be last. */

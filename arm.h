@@ -219,5 +219,8 @@ void arm_change_coordinate_system(arm_t *arm, float x, float y,
  */
 arm_obstacle_t *arm_create_obstacle(arm_t *arm, int points_count);
 
+/** Tells the arms to assume they are at a known position. */
+void arm_calibrate(void);
+
 
 #endif

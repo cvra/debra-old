@@ -450,3 +450,19 @@ int check_for_obstacle_collision(arm_t *arm, point_t p1, point_t p2, int z) {
     }
     return 0;
 } 
+
+void arm_calibrate(void) {
+    /* Z axis. */
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 1, 197.5 * robot.left_arm.z_axis_imp_per_mm);
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 4, 197.5 * robot.left_arm.z_axis_imp_per_mm);
+
+    /* Shoulders. */
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 0, (M_PI * -55.42 / 180.) * robot.left_arm.shoulder_imp_per_rad); 
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 5, (M_PI * 55.42 / 180.) * robot.right_arm.shoulder_imp_per_rad); 
+
+    
+    /* Elbows. */
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 2, (M_PI * -156.36 / 180.) * robot.left_arm.elbow_imp_per_rad); 
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 3, (M_PI * 156.36 / 180.) * robot.right_arm.elbow_imp_per_rad); 
+
+}
