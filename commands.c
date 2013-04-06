@@ -1,14 +1,16 @@
 /** Registers all the command in a single file. */
 #include <aversive.h>
 #include <cvra_servo.h>
-#include "adresses.h"
-#include <commandline.h>
+#include <aversive/error.h>
+#include <2wheels/trajectory_manager_utils.h>
 #include <string.h>
-#include "cvra_cs.h"
 #include <uptime.h>
 #include <cvra_dc.h>
+#include <commandline.h>
+
+#include "adresses.h"
+#include "cvra_cs.h"
 #include "arm_interpolators.h"
-#include <aversive/error.h>
 #include "arm.h"
 
 /** Prints all args, then exits. */
@@ -322,7 +324,7 @@ void cmd_demo(void) {
     trajectory_a_rel(&robot.traj, -180);
 }
 
-void cmd_arm_pos(int argc, char **argv) {
+void cmd_arm_pos() {
     int i;
     for(i=0;i<6;i++)
         printf("%d ", cvra_dc_get_encoder(ARMSMOTORCONTROLLER_BASE, i));

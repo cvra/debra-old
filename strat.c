@@ -63,11 +63,6 @@ void strat_begin(void) {
 
 void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 
-	/* On fait un backup des reglagebd de l'asservissement. */
-	struct blocking_detection backup_bd;
-	struct quadramp_filter backup_qr;
-
-
 	robot.is_aligning = 1;
 
 	// Pour se recaler, on met le robot en regulation angulaire, on reduit la vitesse et l'acceleration
@@ -119,16 +114,7 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 
 	/* On remet le robot dans son etat initial. */
 	robot.mode = BOARD_MODE_ANGLE_DISTANCE;
-
-
-	//bd_reset(&robot.distance_bd);
-	//bd_reset(&robot.angle_bd);
-    //
-
 	robot.is_aligning = 0;
-
-//	trajectory_hardstop(&robot.traj);
-
 }
 
 
