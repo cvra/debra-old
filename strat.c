@@ -7,6 +7,28 @@
 
 struct strat_info strat;
 
+void strat_open_servo(enum servo_e servo) {
+    if(servo == RIGHT)
+        cvra_servo_set(SERVOS_BASE, 1, 21000);
+    else
+        cvra_servo_set(SERVOS_BASE, 0, 9000); 
+}
+
+
+void strat_close_servo(enum servo_e servo) {
+    if(servo == RIGHT)
+        cvra_servo_set(SERVOS_BASE, 1, 17500);
+    else
+        cvra_servo_set(SERVOS_BASE, 0, 11500); 
+}
+
+void strat_release_servo(enum servo_e servo) {
+    if(servo == RIGHT)
+        cvra_servo_set(SERVOS_BASE, 1, 15000);
+    else
+        cvra_servo_set(SERVOS_BASE, 0, 15000); 
+}
+
 /** Increments the match timer, called every second. */
 static void increment_timer(__attribute__((unused))void *data) {
     strat.time++;
@@ -18,7 +40,36 @@ static void increment_timer(__attribute__((unused))void *data) {
  * @todo Test the starting coordinates.
  */
 static void strat_do_first_glasses(void) {
-    DEBUG(E_STRAT, "Doing first glasses."); 
+    WARNING(E_STRAT, "Doing first glasses."); 
+
+    strat_open_servo(LEFT);
+    strat_open_servo(RIGHT);
+
+    trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[2].pos.x, COLOR_Y(strat.glasses[2].pos.y)-50);
+    wait_traj_end(TRAJ_FLAGS_NEAR);
+
+    strat_close_servo(LEFT);
+
+
+    trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[5].pos.x, COLOR_Y(strat.glasses[5].pos.y)+50);
+    wait_traj_end(TRAJ_FLAGS_NEAR);
+    strat_close_servo(RIGHT);
+
+    trajectory_a_abs(&robot.traj, -180);
+    wait_traj_end(TRAJ_FLAGS_STD);
+
+    trajectory_d_rel(&robot.traj, 1000);
+
+    wait_traj_end(TRAJ_FLAGS_NEAR);
+    strat_open_servo(LEFT);
+    strat_open_servo(RIGHT);
+
+    trajectory_d_rel(&robot.traj, -100);
+
+    wait_traj_end(TRAJ_FLAGS_STD);
+
+    strat_release_servo(LEFT);
+    strat_release_servo(RIGHT);
 }
 
 void strat_set_objects(void) {
@@ -32,20 +83,20 @@ void strat_set_objects(void) {
     strat.gifts[3].x = 2325;
 
     /* Init glasses positions. */
-    strat.glasses[0].pos.x = 900; strat.glasses[0].pos.y = COLOR_Y(1550);
-    strat.glasses[1].pos.x = 900; strat.glasses[1].pos.y = COLOR_Y(1050);
-    strat.glasses[2].pos.x = 1050; strat.glasses[2].pos.y = COLOR_Y(1300);
+    strat.glasses[0].pos.x = 900; strat.glasses[0].pos.y = (1550);
+    strat.glasses[1].pos.x = 900; strat.glasses[1].pos.y = (1050);
+    strat.glasses[2].pos.x = 1050; strat.glasses[2].pos.y = (1200);
 
     /*XXX Not sure about coordinates of 3 and 4. */
-    strat.glasses[3].pos.x = 1200; strat.glasses[3].pos.y = COLOR_Y(1550);
-    strat.glasses[4].pos.x = 1200; strat.glasses[4].pos.y = COLOR_Y(1050);
-    strat.glasses[5].pos.x = 1350; strat.glasses[5].pos.y = COLOR_Y(1300);
-    strat.glasses[6].pos.x = 1650; strat.glasses[6].pos.y = COLOR_Y(1300);
-    strat.glasses[7].pos.x = 1800; strat.glasses[7].pos.y = COLOR_Y(1550);
-    strat.glasses[8].pos.x = 1800; strat.glasses[8].pos.y = COLOR_Y(1050);
-    strat.glasses[9].pos.x = 1950; strat.glasses[9].pos.y = COLOR_Y(1300);
-    strat.glasses[10].pos.x = 2100; strat.glasses[10].pos.y = COLOR_Y(1550);
-    strat.glasses[11].pos.x = 2100; strat.glasses[11].pos.y = COLOR_Y(1050);
+    strat.glasses[3].pos.x = 1200; strat.glasses[3].pos.y = (1550);
+    strat.glasses[4].pos.x = 1200; strat.glasses[4].pos.y = (1050);
+    strat.glasses[5].pos.x = 1350; strat.glasses[5].pos.y = (1200);
+    strat.glasses[6].pos.x = 1650; strat.glasses[6].pos.y = (1300);
+    strat.glasses[7].pos.x = 1800; strat.glasses[7].pos.y = (1550);
+    strat.glasses[8].pos.x = 1800; strat.glasses[8].pos.y = (1050);
+    strat.glasses[9].pos.x = 1950; strat.glasses[9].pos.y = (1300);
+    strat.glasses[10].pos.x = 2100; strat.glasses[10].pos.y = (1550);
+    strat.glasses[11].pos.x = 2100; strat.glasses[11].pos.y = (1050);
 }
 
 void strat_begin(void) {
@@ -102,14 +153,14 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 
 	/* On reregle la position. */
     /* XXX ze + 100 is a hotfix for 2013. */
-	position_set(&robot.pos, position_get_x_s16(&robot.pos), COLOR_Y(epaisseurRobot+100), COLOR_A(90));
+	position_set(&robot.pos, position_get_x_s16(&robot.pos), COLOR_Y((epaisseurRobot+100)), COLOR_A(90));
 
 	/* On se met en place a la position demandee. */
 	trajectory_d_rel(&robot.traj, (double) (y - epaisseurRobot));
 	while(!trajectory_finished(&robot.traj));
 
 	/* Pour finir on s'occuppe de l'angle. */
-	trajectory_a_abs(&robot.traj, (double) COLOR_A(a));
+	trajectory_a_abs(&robot.traj, (double)a);
 	while(!trajectory_finished(&robot.traj));
 
 	/* On remet le robot dans son etat initial. */

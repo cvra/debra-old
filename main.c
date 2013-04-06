@@ -120,6 +120,10 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
 
     arm_highlevel_init();    
 
+    strat_release_servo(LEFT);
+
+    strat_release_servo(RIGHT);
+
 	/* Step 7 : Init tout les parametres propres a une certaine edition ainsi que l'evitement d'obstacle. */
     /** FIXME @todo Init des parametres robot a refaire au propre. */
 

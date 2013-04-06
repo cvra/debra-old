@@ -58,11 +58,11 @@ void cmd_autopos(int argc, char **argv) {
     if(!strcmp("red", argv[1])) strat.color = RED;
     if(!strcmp("blue", argv[1])) strat.color = BLUE;
 
-    strat_autopos(200, 150, COLOR_A(45), 119);
+    strat_autopos(230, 1255, COLOR_A(-10), 119);
 
 	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 700), speed_rd2imp(&robot.traj, 2*M_PI)); 
 
-	bd_set_thresholds(&robot.distance_bd,  1200, 1);
+	bd_set_thresholds(&robot.distance_bd,  3000, 1);
 	bd_set_thresholds(&robot.angle_bd,  1200, 1);
 }
 
@@ -298,7 +298,7 @@ void cmd_goto(int argc, char **argv) {
         printf("Usage %s x y\n", argv[0]);
         return;
     }
-    trajectory_goto_forward_xy_abs(&robot.traj, atoi(argv[1]), atoi(argv[2]));
+    trajectory_goto_forward_xy_abs(&robot.traj, atoi(argv[1]), COLOR_Y(atoi(argv[2])));
 }
 
 /** Puts the robot to a certain mode. */

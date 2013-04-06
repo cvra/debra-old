@@ -50,7 +50,7 @@
 typedef enum {BLUE, RED} strat_color_t;
 
 /** Computes the symmetrical position depending on color. */ 
-#define COLOR_Y(x) (strat.color == RED ? (x) : 2100 - (x))
+#define COLOR_Y(x) (strat.color == RED ? (x) : 2000 - (x))
 
 /** Computes the symmetrical angle depending on color. */
 #define COLOR_A(x) (strat.color == RED ? (x) : -(x))
@@ -64,6 +64,20 @@ typedef struct {
     point_t pos; /**< Position of the glass on the playing field. */
     int taken; /**< =1 if this glass was already taken. */
 } glass_t;
+
+enum servo_e {
+    LEFT,
+    RIGHT
+}; 
+
+/** Opens the given servo motor. */
+void strat_open_servo(enum servo_e servo);
+
+/** Closes the given servo motor. */
+void strat_open_servo(enum servo_e servo);
+
+/** Releases a servo pressure. */
+void strat_release_servo(enum servo_e servo);
 
 /** 
  * A gift on the side of the table.
