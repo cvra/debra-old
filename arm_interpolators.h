@@ -1,4 +1,5 @@
 #ifndef _ARM_INTERPOLATOR_H_
+
 #include "keyframe.h"
 /** Creates a simple linear trajectory with a constant speed.
  * @param [out] traj The trajectory structure to fill.
@@ -13,5 +14,17 @@
  */
 void arm_interpolator_linear_motion(arm_trajectory_t *traj, const float start[3], const float end[3], 
                                     const float duration);
+
+/** Adds a point to a given trajectory.
+ * @param [in, out] traj The trajectory structure to add the point to.
+ * @param [in] point The point to add.
+ * @param [in] system The coordinate system of the point.
+ * @param [in] duration The time between this point and the previous one.
+ *
+ * @note This function tests if the given trajectory is empty, and if it is, it assumes the first point
+ * date is now.
+ */
+void arm_interpolater_append_point(arm_trajectory_t *traj, const float pont, arm_coordinate_t system,
+                                   const float duration);
 
 #endif

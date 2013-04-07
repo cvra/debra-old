@@ -33,3 +33,8 @@ void arm_interpolator_linear_motion(arm_trajectory_t *traj, const float start[3]
 
     traj->frames[1].date = time+(int)(duration * 1e6); 
 }
+
+void arm_interpolater_append_point(arm_trajectory_t *traj, const float pont, arm_coordinate_t system,
+                                   const float duration) {
+
+}

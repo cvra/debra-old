@@ -49,7 +49,7 @@ typedef struct {
     struct cs z_axis_cs;    /**< Control System of Z axis. */
     struct cs shoulder_cs;  /**< Control System of the soulder. */ 
     struct cs elbow_cs;     /**< Control System of the elbow */
-    
+ 
     struct pid_filter z_axis_pid;   /**< Z axis PID */
     struct pid_filter shoulder_pid; /**< Shoulder PID. */ 
     struct pid_filter elbow_pid;    /**< Elbow PID. */

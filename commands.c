@@ -364,16 +364,25 @@ void cmd_arm_goto(int argc, char **argv) {
         arm = &robot.right_arm;
 
 
-    start[0] = (float)atoi(argv[2]);
-    start[1] = (float)atoi(argv[3]);
-    start[2] = (float)atoi(argv[4]);
+    arm_get_position(arm, &start[0],&start[1],&start[2]);
+
+    printf("start %.1f %.1f %.1f\n", start[0], start[1],start[2]);
 
     end[0] = (float)atoi(argv[2]);
     end[1] = (float)atoi(argv[3]);
     end[2] = (float)atoi(argv[4]);
 
-    arm_interpolator_linear_motion(&traj, start, end, 3.);
+    arm_interpolator_linear_motion(&traj, start, end, 1.5);
     arm_execute_movement(arm, &traj);
+
+    int32_t time = uptime_get();
+    int32_t start_time = time;
+
+    while(uptime_get() < start_time + 2 * 1000000) {
+        time = uptime_get();
+        printf("%d;%d;%d;%d\n", (time-start_time)/1000, cs_get_filtered_feedback(&arm->z_axis_cs), cs_get_filtered_consign(&arm->z_axis_cs), cvra_dc_get_current(ARMSMOTORCONTROLLER_BASE, 1)); 
+        while(uptime_get() < time + 10000);
+    }
 
 }
 
@@ -388,7 +397,7 @@ void cmd_arm_pid(int argc, char **argv) {
 
     if(!strcmp("shoulder", argv[2])) pid = &arm->shoulder_pid;
     if(!strcmp("elbow", argv[2])) pid = &arm->elbow_pid;
-    if(!strcmp("z_axis", argv[2])) pid = &arm->shoulder_pid;
+    if(!strcmp("z_axis", argv[2])) pid = &arm->z_axis_pid;
 
     pid_set_gains(pid, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]));
 
@@ -425,6 +434,13 @@ void cmd_calibrate_arm() {
     arm_calibrate();
 }
 
+void cmd_show_currents() {
+    int i=0;
+    for(i=0;i<6;i++)
+        printf("%d : %d\n", i, cvra_dc_get_current(ARMSMOTORCONTROLLER_BASE, i));
+
+}
+
 
 /** An array of all the commands. */
 command_t commands_list[] = {
@@ -434,6 +450,8 @@ command_t commands_list[] = {
 //    COMMAND("reset", cmd_reset),
     COMMAND("start",cmd_start),
     COMMAND("autopos", cmd_autopos),
+
+    COMMAND("currents", cmd_show_currents),
     COMMAND("pid", cmd_pid), 
     COMMAND("pwm", cmd_pwm),
     COMMAND("get_error", cmd_error_get),

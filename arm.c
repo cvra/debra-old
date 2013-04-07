@@ -46,6 +46,12 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
  */
 int check_for_obstacle_collision(arm_t *arm, point_t p1, point_t p2, int z); 
 
+inline float smoothstep(float t) {
+	if(t < 0.) return 0.;
+	if(t > 1.) return 1.;
+	return t*t*t*(t*(6*t-15)+10);
+}
+
 void arm_highlevel_init(void) {
 #ifdef COMPILE_ON_ROBOT
     int i;
@@ -112,7 +118,8 @@ void arm_init(arm_t *arm) {
     arm->length[0] = 135; /* mm */
     arm->length[1] = 100;//136;
 
-    pid_set_gains(&arm->z_axis_pid, 0, 0, 0);
+    pid_set_gains(&arm->z_axis_pid, 1000, 0, 100);
+
     pid_set_gains(&arm->elbow_pid, 10, 0, 0);
     pid_set_gains(&arm->shoulder_pid, 10, 0, 0);
 
@@ -222,7 +229,10 @@ void arm_manage(void *a) {
                                          arm->trajectory.frames[i].coordinate_type,
                                          &next_frame_xy[0], &next_frame_xy[1]);
 
-            /* Linear interpolation between the 2 frames. */
+
+
+            /* Smoothstep interpolation between the 2 frames. */
+            t = smoothstep(t);
             position[0] = (1 - t) * previous_frame_xy[0];
             position[1] = (1 - t) * previous_frame_xy[1];
             position[2] = (1 - t) * arm->trajectory.frames[i-1].position[2];
@@ -267,6 +277,25 @@ void arm_manage_cs(void *a) {
     cs_manage(&arm->shoulder_cs);
     cs_manage(&arm->elbow_cs);
     /* XXX Insert the blocking managers. */
+}
+
+
+void arm_get_position(arm_t *arm, float *x, float *y, float *z) {
+    float alpha, beta;
+    alpha = (float)(arm->shoulder_cs.process_out(arm->shoulder_cs.process_out_params)) / arm->shoulder_imp_per_rad;
+
+    beta = (float)(arm->elbow_cs.process_out(arm->elbow_cs.process_out_params)) / arm->elbow_imp_per_rad;
+
+
+    if(x)
+        *x = arm->length[0] * cos(alpha) + arm->length[1] * cos(alpha + beta);
+
+    if(y)
+        *y = arm->length[0] * sin(alpha) + arm->length[1] * sin(alpha + beta);
+
+    if(z)
+        *z = (float)(arm->z_axis_cs.process_out(arm->shoulder_cs.process_out_params)) / arm->z_axis_imp_per_mm;
+
 }
 
 int arm_trajectory_finished(arm_t *arm) {
