@@ -12,8 +12,7 @@
  * @warning The movement created by this function is expected to be launched right away by 
  * arm_execute_movement. If this is not the case, sudden movement can happen.
  */
-void arm_interpolator_linear_motion(arm_trajectory_t *traj, const float start[3], const float end[3], 
-                                    const float duration);
+void arm_interpolator_linear_motion(arm_trajectory_t *traj, const float start[3], const float end[3], arm_coordinate_t system,  const float duration);
 
 /** Adds a point to a given trajectory.
  * @param [in, out] traj The trajectory structure to add the point to.

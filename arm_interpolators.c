@@ -5,7 +5,7 @@
 
 
 void arm_interpolator_linear_motion(arm_trajectory_t *traj, const float start[3], const float end[3], 
-                                    const float duration) {
+                                    arm_coordinate_t system, const float duration) {
 
     int32_t time = uptime_get();
 
@@ -26,7 +26,7 @@ void arm_interpolator_linear_motion(arm_trajectory_t *traj, const float start[3]
 
 
 
-    traj->frames[1].coordinate_type = COORDINATE_ARM;
+    traj->frames[1].coordinate_type = system;
     traj->frames[1].position[0] = end[0]; 
     traj->frames[1].position[1] = end[1];
     traj->frames[1].position[2] = end[2];

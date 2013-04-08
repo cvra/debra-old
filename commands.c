@@ -85,14 +85,14 @@ void cmd_grab(int argc, char **argv) {
     end[2] = 100.;
 
     /* Descend. */
-    arm_interpolator_linear_motion(&traj, start, end, 3.);
-    arm_execute_movement(&robot.left_arm, &traj);
+    //arm_interpolator_linear_motion(&traj, start, end, 3.);
+    //arm_execute_movement(&robot.left_arm, &traj);
     while(!arm_trajectory_finished(&robot.left_arm)); 
 
 //    cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, 400);
 
     /* Remonte */
-    arm_interpolator_linear_motion(&traj, end, start, 3.);
+//    arm_interpolator_linear_motion(&traj, end, start, 3.);
     arm_execute_movement(&robot.left_arm, &traj);
     while(!arm_trajectory_finished(&robot.left_arm)); 
 
@@ -101,7 +101,7 @@ void cmd_grab(int argc, char **argv) {
     end[1] = 55;
     end[2] = 265.;
 
-    arm_interpolator_linear_motion(&traj, start, end, 3.);
+ //   arm_interpolator_linear_motion(&traj, start, end, 3.);
     arm_execute_movement(&robot.left_arm, &traj);
     while(!arm_trajectory_finished(&robot.left_arm)); 
 //    cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, 0);
@@ -353,8 +353,8 @@ void cmd_arm_goto(int argc, char **argv) {
     arm_trajectory_t traj;
 
     float start[3], end[3];
-    if(argc < 5) {
-        printf("usage : %s [left#right] x y z\n", argv[0]);
+    if(argc < 6) {
+        printf("usage : %s [left#right] [arm#robot#table] x y z\n", argv[0]);
         return;
     }
 
@@ -368,11 +368,16 @@ void cmd_arm_goto(int argc, char **argv) {
 
     printf("start %.1f %.1f %.1f\n", start[0], start[1],start[2]);
 
-    end[0] = (float)atoi(argv[2]);
-    end[1] = (float)atoi(argv[3]);
-    end[2] = (float)atoi(argv[4]);
+    arm_coordinate_t system; 
+    if(!strcmp("arm", argv[2])) system = COORDINATE_ARM;
+    if(!strcmp("table", argv[2])) system = COORDINATE_TABLE;
+    if(!strcmp("robot", argv[2])) system = COORDINATE_ROBOT;
 
-    arm_interpolator_linear_motion(&traj, start, end, 1.5);
+    end[0] = (float)atoi(argv[3]);
+    end[1] = (float)atoi(argv[4]);
+    end[2] = (float)atoi(argv[5]);
+
+    arm_interpolator_linear_motion(&traj, start, end, system, 1.5);
     arm_execute_movement(arm, &traj);
 
     int32_t time = uptime_get();
