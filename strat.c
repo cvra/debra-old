@@ -4,10 +4,29 @@
 #include <2wheels/trajectory_manager_utils.h>
 #include <scheduler.h>
 #include <aversive/error.h>
+#include "arm.h"
+#include "arm_interpolators.h"
 
 struct strat_info strat;
 
+
+void left_pump(int status) {
+    if(status)
+        cvra_dc_set_pwm4(HEXMOTORCONTROLLER_BASE, 400);
+    else
+        cvra_dc_set_pwm4(HEXMOTORCONTROLLER_BASE, 0);
+}
+
+void right_pump(int status) {
+    if(status)
+        cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, -400);
+    else
+        cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, 0);
+}
+
+
 void strat_open_servo(enum servo_e servo) {
+    return;
     if(servo == RIGHT)
         cvra_servo_set(SERVOS_BASE, 1, 21000);
     else
@@ -16,6 +35,7 @@ void strat_open_servo(enum servo_e servo) {
 
 
 void strat_close_servo(enum servo_e servo) {
+    return;
     if(servo == RIGHT)
         cvra_servo_set(SERVOS_BASE, 1, 17500);
     else
@@ -23,6 +43,7 @@ void strat_close_servo(enum servo_e servo) {
 }
 
 void strat_release_servo(enum servo_e servo) {
+    return;
     if(servo == RIGHT)
         cvra_servo_set(SERVOS_BASE, 1, 15000);
     else
@@ -40,13 +61,44 @@ static void increment_timer(__attribute__((unused))void *data) {
  * @todo Test the starting coordinates.
  */
 static void strat_do_first_glasses(void) {
+    arm_trajectory_t traj;
+    float x, y, z;
     WARNING(E_STRAT, "Doing first glasses."); 
 
     strat_open_servo(LEFT);
     strat_open_servo(RIGHT);
 
-    trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[2].pos.x, COLOR_Y(strat.glasses[2].pos.y)-50);
-    wait_traj_end(TRAJ_FLAGS_NEAR);
+    trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[1].pos.x-50, COLOR_Y(strat.glasses[2].pos.y)-50);
+
+    arm_get_position(&robot.left_arm, &x, &y, &z);
+
+    arm_trajectory_init(&traj); 
+    arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 9.); // duration not used 
+    arm_interpolator_append_point_with_length(&traj, strat.glasses[1].pos.x,
+                                        COLOR_Y(strat.glasses[2].pos.y), 197, COORDINATE_TABLE, 5., 135, 155);
+
+    arm_interpolator_append_point_with_length(&traj, strat.glasses[1].pos.x,
+                                        COLOR_Y(strat.glasses[1].pos.y), 15, COORDINATE_TABLE, 5., 135, 155);
+
+    arm_interpolator_append_point(&traj, strat.glasses[1].pos.x, COLOR_Y(strat.glasses[1].pos.y), 15, COORDINATE_TABLE, 5.);
+
+    arm_interpolator_append_point(&traj, 150, -150, 197, COORDINATE_ARM, 5.);
+
+
+    int i;
+    for(i=0;i<traj.frame_count;i++)
+        printf("frame %d :%d\n", i, traj.frames[i].date);
+
+    robot.left_arm.shoulder_mode = SHOULDER_BACK;
+    left_pump(1);
+
+
+    arm_execute_movement(&robot.left_arm, &traj);
+
+
+    wait_traj_end(TRAJ_FLAGS_STD);
+
+    /*
 
     strat_close_servo(LEFT);
 
@@ -69,7 +121,10 @@ static void strat_do_first_glasses(void) {
     wait_traj_end(TRAJ_FLAGS_STD);
 
     strat_release_servo(LEFT);
-    strat_release_servo(RIGHT);
+    strat_release_servo(RIGHT); 
+    */
+
+
 }
 
 void strat_set_objects(void) {
@@ -84,7 +139,7 @@ void strat_set_objects(void) {
 
     /* Init glasses positions. */
     strat.glasses[0].pos.x = 900; strat.glasses[0].pos.y = (1550);
-    strat.glasses[1].pos.x = 900; strat.glasses[1].pos.y = (1050);
+    strat.glasses[1].pos.x = 900; strat.glasses[1].pos.y = (950);
     strat.glasses[2].pos.x = 1050; strat.glasses[2].pos.y = (1200);
 
     /*XXX Not sure about coordinates of 3 and 4. */

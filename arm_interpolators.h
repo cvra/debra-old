@@ -23,12 +23,17 @@ void arm_interpolator_linear_motion(arm_trajectory_t *traj, const float start[3]
  * @note This function tests if the given trajectory is empty, and if it is, it assumes the first point
  * date is now.
  */
-void arm_interpolater_append_point(arm_trajectory_t *traj, const float x, const float y, const float z,
+void arm_interpolator_append_point(arm_trajectory_t *traj, const float x, const float y, const float z,
                                    arm_coordinate_t system, const float duration);
 
 /** Zeroes an arm_trajectory_t structure to avoid problems.
  * @param traj The trajectory to zero.
  */
 void arm_trajectory_init(arm_trajectory_t *traj);
+
+
+/** same as arm_interpolator_append_point but with a custom length. */
+void arm_interpolator_append_point_with_length(arm_trajectory_t *traj, const float x, const float y, const float z,
+                                   arm_coordinate_t system, const float duration, const float l1, const float l2);
 
 #endif

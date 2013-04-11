@@ -8,6 +8,7 @@
 #include <aversive/error.h>
 #include "cvra_cs.h"
 #include <scheduler.h>
+#include <aversive/error.h>
 
 #include "adresses.h"
 
@@ -32,7 +33,7 @@
  * @todo We need an algorithm to choose between the 2 positions in case there
  * are multiple possibilities. 
  */
-static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha, float *beta);
+static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha, float *beta, const float l1, const float l2);
 
 /** Checks if an arm crosses an obstacle.
  *
@@ -161,15 +162,15 @@ void arm_execute_movement(arm_t *arm, arm_trajectory_t *traj) {
     /* Step 2 : Allocates requested memory for our copy of the trajectory. */
     arm->trajectory.frames = malloc(traj->frame_count * sizeof(arm_keyframe_t));
 
-    NOTICE(0, "old size:%d", arm->trajectory.frame_count);
+    printf("frame cnt %d\n", traj->frame_count);
 
     if(arm->trajectory.frames == NULL)
         panic();
+    
 
     /* Step 3 : Copy the trajectory data. */
     arm->trajectory.frame_count = traj->frame_count;
 
-    NOTICE(0, "new size:%d", arm->trajectory.frame_count);
     memcpy(arm->trajectory.frames, traj->frames, sizeof(arm_keyframe_t) * traj->frame_count);
 } 
 
@@ -178,6 +179,8 @@ void arm_manage(void *a) {
     arm_t *arm = (arm_t *) a;
     int32_t current_date = uptime_get(); 
     float position[3];
+
+    float length[2];
     
     /* The coordinates of the previous frames in arm coordinates.
      * This allows us to mix different coordinate systems in a single trajectory. */
@@ -198,14 +201,21 @@ void arm_manage(void *a) {
             arm_change_coordinate_system(arm, arm->trajectory.frames[0].position[0], arm->trajectory.frames[0].position[1],
                                          arm->trajectory.frames[0].coordinate_type, &position[0], &position[1]);
             position[2] = arm->trajectory.frames[0].position[2];
-            printf("A\n");
+
+            length[0] = arm->trajectory.frames[0].length[0];
+            length[1] = arm->trajectory.frames[0].length[1];
         }
         /* Are we past the last frame ? */
         else if(compensated_date > arm->trajectory.frames[arm->trajectory.frame_count-1].date) {
             int f = arm->trajectory.frame_count-1;
+            //printf("f = %d\n", f);
             arm_change_coordinate_system(arm, arm->trajectory.frames[f].position[0], arm->trajectory.frames[f].position[1],
                                          arm->trajectory.frames[f].coordinate_type, &position[0], &position[1]);
             position[2] = arm->trajectory.frames[f].position[2];
+
+
+            length[0] = arm->trajectory.frames[f].length[0];
+            length[1] = arm->trajectory.frames[f].length[1];
         }
         else {
             float t; /* interpolation factor, between 0 and 1 */
@@ -213,6 +223,7 @@ void arm_manage(void *a) {
             /* We are between frame i-1 et i. i > 1 */
             while(arm->trajectory.frames[i].date < compensated_date)
                 i++;
+
 
             t = compensated_date - arm->trajectory.frames[i-1].date;
             t = t / (float)(arm->trajectory.frames[i].date - arm->trajectory.frames[i-1].date);
@@ -236,15 +247,19 @@ void arm_manage(void *a) {
             position[0] = (1 - t) * previous_frame_xy[0];
             position[1] = (1 - t) * previous_frame_xy[1];
             position[2] = (1 - t) * arm->trajectory.frames[i-1].position[2];
+            length[0] = (1 - t) * arm->trajectory.frames[i-1].length[0];
+            length[1] = (1 - t) * arm->trajectory.frames[i-1].length[1];
+
             position[0] += t * next_frame_xy[0]; 
             position[1] += t * next_frame_xy[1]; 
             position[2] += t * arm->trajectory.frames[i].position[2];
+            length[0] += t * arm->trajectory.frames[i].length[0];
+            length[1] += t * arm->trajectory.frames[i].length[1];
         }
 
-       // printf("%d;%d\n", (int)position[0], (int)position[1]);
 
         /* Computes the inverse cinematics and send the consign to the control systems. */
-        if(compute_inverse_cinematics(arm, position[0], position[1], &alpha, &beta) == 0) {
+        if(compute_inverse_cinematics(arm, position[0], position[1], &alpha, &beta, length[0], length[1]) == 0) {
             cs_set_consign(&arm->z_axis_cs, position[2] * arm->z_axis_imp_per_mm);
             cs_set_consign(&arm->shoulder_cs, alpha * arm->shoulder_imp_per_rad);
             cs_set_consign(&arm->elbow_cs, beta * arm->elbow_imp_per_rad);
@@ -318,7 +333,7 @@ void arm_shutdown(arm_t *arm) {
 }
 
 
-static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha, float *beta) {
+static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha, float *beta, const float l1, const float l2) {
     circle_t c1, c2;
     point_t p1, p2, chosen;
     
@@ -328,11 +343,11 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
     	y -= 0.5;
 
     c1.x = c1.y = 0;
-    c1.r = arm->length[0];
+    c1.r = l1;
     
     c2.x = x;
     c2.y = y;
-    c2.r = arm->length[1];
+    c2.r = l2;
     
     int nbPos = circle_intersect(&c1, &c2, &p1, &p2);
 

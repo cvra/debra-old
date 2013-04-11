@@ -64,6 +64,41 @@ void cmd_autopos(int argc, char **argv) {
 
 	bd_set_thresholds(&robot.distance_bd,  3000, 1);
 	bd_set_thresholds(&robot.angle_bd,  1200, 1);
+
+    // XXX
+    return;
+    arm_trajectory_t left_traj, right_traj;
+    float x, y,z ;
+
+    arm_get_position(&robot.left_arm, &x, &y, &z);
+
+    arm_trajectory_init(&left_traj);
+    arm_interpolator_append_point(&left_traj, x, y, z, COORDINATE_ARM, 9.); // duration not used 
+    arm_interpolator_append_point(&left_traj, 100., -100., 197, COORDINATE_ARM, 1.);
+    arm_interpolator_append_point(&left_traj, 100., -100., 100, COORDINATE_ARM, 2.);
+
+    arm_trajectory_init(&right_traj);
+    arm_get_position(&robot.right_arm, &x, &y, &z);
+
+    arm_interpolator_append_point(&right_traj, x, y, z, COORDINATE_ARM, 9.); // duration not used 
+    arm_interpolator_append_point(&right_traj, 100., 100., 197, COORDINATE_ARM, 1.); 
+    arm_interpolator_append_point(&right_traj, 100., -100., 197, COORDINATE_ARM, 1.);
+//    arm_interpolator_append_point(&right_traj, -150., -50., 197, COORDINATE_ARM, 1.);
+    
+    printf("length : %d\n", (int)right_traj.frame_count);
+
+    int i;
+    printf("now = %d\n", (int)uptime_get());
+    for(i=0;i<right_traj.frame_count;i++) {
+        printf("frame %d\t (%.1f;%.1f;%.1f)\t date = %d\n", i, right_traj.frames[i].position[0],right_traj.frames[i].position[1],right_traj.frames[i].position[2], (int)right_traj.frames[i].date);
+
+    } 
+
+    printf("God bless this poor robot... executing trajectory.\n");
+   // arm_execute_movement(&robot.left_arm, &left_traj);
+   //
+   // robot.right_arm.shoulder_mode = SHOULDER_FRONT;
+   // arm_execute_movement(&robot.right_arm, &right_traj);
 }
 
 
@@ -377,8 +412,12 @@ void cmd_arm_goto(int argc, char **argv) {
     end[1] = (float)atoi(argv[4]);
     end[2] = (float)atoi(argv[5]);
 
-    arm_interpolator_linear_motion(&traj, start, end, system, 1.5);
+    arm_trajectory_init(&traj);
+    arm_interpolator_append_point(&traj, start[0], start[1], start[2], COORDINATE_ARM, 9.);
+    arm_interpolator_append_point(&traj, end[0], end[1], end[2], system, 9.);
     arm_execute_movement(arm, &traj);
+
+    return;
 
     int32_t time = uptime_get();
     int32_t start_time = time;

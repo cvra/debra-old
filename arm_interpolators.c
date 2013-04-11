@@ -29,6 +29,9 @@ void arm_interpolator_linear_motion(arm_trajectory_t *traj, const float start[3]
 
     traj->frames[0].date = time; 
 
+    traj->frames[0].length[0] = 135;
+    traj->frames[0].length[1] = 100;
+
 
 
     traj->frames[1].coordinate_type = system;
@@ -37,9 +40,13 @@ void arm_interpolator_linear_motion(arm_trajectory_t *traj, const float start[3]
     traj->frames[1].position[2] = end[2];
 
     traj->frames[1].date = time+(int)(duration * 1e6); 
+
+
+    traj->frames[1].length[0] = 135;
+    traj->frames[1].length[1] = 100;
 }
 
-void arm_interpolater_append_point(arm_trajectory_t *traj, const float x, const float y, const float z,
+void arm_interpolator_append_point(arm_trajectory_t *traj, const float x, const float y, const float z,
                                    arm_coordinate_t system, const float duration) {
 
     if(traj->frame_count == 0) {
@@ -50,6 +57,10 @@ void arm_interpolater_append_point(arm_trajectory_t *traj, const float x, const 
         traj->frames[0].position[2] = z;
         traj->frames[0].date = uptime_get();
         traj->frames[0].coordinate_type = system;
+
+        traj->frames[0].length[0] = 135.5;
+        traj->frames[0].length[1] = 136;
+
 
     }
     else {
@@ -62,5 +73,17 @@ void arm_interpolater_append_point(arm_trajectory_t *traj, const float x, const 
         traj->frames[traj->frame_count-1].coordinate_type = system;
         traj->frames[traj->frame_count-1].date = traj->frames[traj->frame_count-2].date+1000000*duration;
 
+        traj->frames[traj->frame_count-1].length[0] = 135;
+        traj->frames[traj->frame_count-1].length[1] = 100;
     }
 }
+
+void arm_interpolator_append_point_with_length(arm_trajectory_t *traj, const float x, const float y, const float z,
+                                   arm_coordinate_t system, const float duration, const float l1, const float l2) {
+    arm_interpolator_append_point(traj, x, y, z, system, duration);
+
+    traj->frames[traj->frame_count-1].length[0] = l1;
+    traj->frames[traj->frame_count-1].length[1] = l2;
+}
+
+
