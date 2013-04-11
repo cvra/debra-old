@@ -16,14 +16,19 @@ void arm_interpolator_linear_motion(arm_trajectory_t *traj, const float start[3]
 
 /** Adds a point to a given trajectory.
  * @param [in, out] traj The trajectory structure to add the point to.
- * @param [in] point The point to add.
+ * @param [in] x,y,z The point to add.
  * @param [in] system The coordinate system of the point.
- * @param [in] duration The time between this point and the previous one.
+ * @param [in] duration The time between this point and the previous one in second.
  *
  * @note This function tests if the given trajectory is empty, and if it is, it assumes the first point
  * date is now.
  */
-void arm_interpolater_append_point(arm_trajectory_t *traj, const float pont, arm_coordinate_t system,
-                                   const float duration);
+void arm_interpolater_append_point(arm_trajectory_t *traj, const float x, const float y, const float z,
+                                   arm_coordinate_t system, const float duration);
+
+/** Zeroes an arm_trajectory_t structure to avoid problems.
+ * @param traj The trajectory to zero.
+ */
+void arm_trajectory_init(arm_trajectory_t *traj);
 
 #endif
