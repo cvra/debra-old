@@ -127,6 +127,8 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
 	/* Step 7 : Init tout les parametres propres a une certaine edition ainsi que l'evitement d'obstacle. */
     /** FIXME @todo Init des parametres robot a refaire au propre. */
 
+    IOWR(PIO_BASE, 0, 0xffff); // according to Rouven, this is necessary to prevent a burn.
+
 
     commandline_init(commands_list);
     for(;;) commandline_input_char(getchar());
