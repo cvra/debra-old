@@ -489,11 +489,11 @@ void cmd_show_currents() {
 /** An array of all the commands. */
 command_t commands_list[] = {
     COMMAND("test_argv",test_func),
+    COMMAND("autopos", cmd_autopos),
     COMMAND("arm_shutdown",cmd_arm_shutdown),
     COMMAND("arm_pid", cmd_arm_pid),
 //    COMMAND("reset", cmd_reset),
     COMMAND("start",cmd_start),
-    COMMAND("autopos", cmd_autopos),
 
     COMMAND("currents", cmd_show_currents),
     COMMAND("pid", cmd_pid), 

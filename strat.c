@@ -20,8 +20,10 @@ void left_pump(int status) {
 }
 
 void right_pump(int status) {
-    if(status)
-        cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, -400);
+    if(status > 0)
+        cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, -475);
+    else if(status < 0)
+        cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, 475);
     else
         cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, 0);
 }
@@ -49,9 +51,63 @@ void strat_release_servo(enum servo_e servo) {
         cvra_servo_set(SERVOS_BASE, 0, 15000); 
 }
 
+void strat_left_take_glass(int glass_index) {
+
+}
+
 /** Increments the match timer, called every second. */
 static void increment_timer(__attribute__((unused))void *data) {
     strat.time++;
+}
+
+void left_arm_take_glass(int glass_index) {
+    arm_trajectory_t traj;
+    float x, y, z;
+
+    arm_get_position(&robot.left_arm, &x, &y, &z);
+    arm_trajectory_init(&traj); 
+    arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 9.); // duration not used 
+    arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
+                                        COLOR_Y(strat.glasses[glass_index].pos.y), 197, COORDINATE_TABLE, 2., 135, 155);
+
+    arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
+                                        COLOR_Y(strat.glasses[glass_index].pos.y), 15, COORDINATE_TABLE, 2., 135, 155);
+
+    arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x, 
+                                        COLOR_Y(strat.glasses[glass_index].pos.y), 15, COORDINATE_TABLE, .8, 135, 100);
+
+    arm_interpolator_append_point(&traj, 150, -150, 197, COORDINATE_ARM, 3.);
+
+    arm_interpolator_append_point(&traj, -28, -66, 207, COORDINATE_ARM, 3.);
+    arm_interpolator_append_point(&traj, -28, -66, 192, COORDINATE_ARM, 1.);
+
+
+    arm_execute_movement(&robot.left_arm, &traj);
+}
+
+
+void right_arm_take_glass(int glass_index) {
+    arm_trajectory_t traj;
+    float x, y, z;
+
+    arm_get_position(&robot.right_arm, &x, &y, &z);
+    arm_trajectory_init(&traj); 
+    arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 9.); // duration not used 
+    arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
+                                        COLOR_Y(strat.glasses[glass_index].pos.y), 197, COORDINATE_TABLE, 5., 135, 155);
+
+    arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
+                                        COLOR_Y(strat.glasses[glass_index].pos.y), 15, COORDINATE_TABLE, 5., 135, 155);
+
+    arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x, 
+                                        COLOR_Y(strat.glasses[glass_index].pos.y), 15, COORDINATE_TABLE, .8, 135, 100);
+
+    arm_interpolator_append_point(&traj, 150, 150, 197, COORDINATE_ARM, 5.);
+    arm_interpolator_append_point(&traj, -28, 66, 207, COORDINATE_ARM, 4.);
+    arm_interpolator_append_point(&traj, -28, 66, 192, COORDINATE_ARM, 1.);
+
+
+    arm_execute_movement(&robot.right_arm, &traj);
 }
 
 /** @brief Take the first two glasses.
@@ -60,8 +116,6 @@ static void increment_timer(__attribute__((unused))void *data) {
  * @todo Test the starting coordinates.
  */
 static void strat_do_first_glasses(void) {
-    arm_trajectory_t traj;
-    float x, y, z;
     WARNING(E_STRAT, "Doing first glasses."); 
 
     robot.left_arm.shoulder_mode = SHOULDER_BACK;
@@ -69,39 +123,23 @@ static void strat_do_first_glasses(void) {
     strat_open_servo(LEFT);
     strat_open_servo(RIGHT);
 
-    trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[1].pos.x-50, COLOR_Y(strat.glasses[2].pos.y));
-
-    arm_get_position(&robot.left_arm, &x, &y, &z);
-
-    arm_trajectory_init(&traj); 
-    arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 9.); // duration not used 
-    arm_interpolator_append_point_with_length(&traj, strat.glasses[1].pos.x,
-                                        COLOR_Y(strat.glasses[1].pos.y), 197, COORDINATE_TABLE, 2., 135, 155);
-
-    arm_interpolator_append_point_with_length(&traj, strat.glasses[1].pos.x,
-                                        COLOR_Y(strat.glasses[1].pos.y), 15, COORDINATE_TABLE, 2., 135, 155);
-
-    arm_interpolator_append_point_with_length(&traj, strat.glasses[1].pos.x, 
-                                        COLOR_Y(strat.glasses[1].pos.y), 15, COORDINATE_TABLE, .1, 135, 100);
-
-    arm_interpolator_append_point(&traj, 150, -150, 197, COORDINATE_ARM, 3.);
-
-    arm_interpolator_append_point(&traj, -28, -66, 207, COORDINATE_ARM, 3.);
-    arm_interpolator_append_point(&traj, -28, -66, 192, COORDINATE_ARM, 1.);
+    // yes, taking X from glass 1 and Y from glass 2 is normal
+    trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[1].pos.x-75, COLOR_Y(strat.glasses[2].pos.y));
 
 
 
     left_pump(1);
+    right_pump(1);
 
-
-    arm_execute_movement(&robot.left_arm, &traj);
+    left_arm_take_glass(1);
+    right_arm_take_glass(0);
 
     wait_traj_end(TRAJ_FLAGS_STD);
-
     strat_close_servo(LEFT);
 
-    while(!arm_trajectory_finished(&robot.left_arm));
+    while(!arm_trajectory_finished(&robot.right_arm));
     left_pump(-1); 
+    right_pump(-1);
 
     return;
 
@@ -140,7 +178,7 @@ void strat_set_objects(void) {
     strat.gifts[3].x = 2325;
 
     /* Init glasses positions. */
-    strat.glasses[0].pos.x = 900; strat.glasses[0].pos.y = (1550);
+    strat.glasses[0].pos.x = 900; strat.glasses[0].pos.y = (1450);
     strat.glasses[1].pos.x = 900; strat.glasses[1].pos.y = (950);
     strat.glasses[2].pos.x = 1050; strat.glasses[2].pos.y = (1200);
 
