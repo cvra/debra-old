@@ -73,8 +73,8 @@ void arm_interpolator_append_point(arm_trajectory_t *traj, const float x, const 
         traj->frames[traj->frame_count-1].coordinate_type = system;
         traj->frames[traj->frame_count-1].date = traj->frames[traj->frame_count-2].date+1000000*duration;
 
-        traj->frames[traj->frame_count-1].length[0] = 135;
-        traj->frames[traj->frame_count-1].length[1] = 100;
+        traj->frames[traj->frame_count-1].length[0] = 135.5;
+        traj->frames[traj->frame_count-1].length[1] = 136;
     }
 }
 
