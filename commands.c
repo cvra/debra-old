@@ -491,6 +491,20 @@ void cmd_pio_read(void) {
 
 }
 
+void cmd_beacon(void) {
+    printf("==Beacon==\n");
+    printf("period = %u\n", (unsigned int)robot.beacon.period);
+    printf("firstedge = %u\n", (unsigned int)robot.beacon.firstedge);
+    printf("lastindex = %u\n", (unsigned int)robot.beacon.lastindex);
+
+    for(;;)
+        printf("angle : %d\n",(int)(robot.beacon.firstedge - robot.beacon.lastindex)/10000); 
+
+
+    
+
+}
+
 
 
 /** An array of all the commands. */
@@ -502,7 +516,7 @@ command_t commands_list[] = {
 //    COMMAND("reset", cmd_reset),
     COMMAND("start",cmd_start),
     COMMAND("pio_read", cmd_pio_read),
-
+    COMMAND("beacon", cmd_beacon),
     COMMAND("currents", cmd_show_currents),
     COMMAND("pid", cmd_pid), 
     COMMAND("pwm", cmd_pwm),

@@ -14,6 +14,7 @@
 #include <2wheels/robot_system.h>
 #include <2wheels/position_manager.h>
 #include <control_system_manager.h>
+#include <cvra_beacon.h>
 #include <pid.h>
 #include <quadramp.h>
 #include <blocking_detection_manager.h>
@@ -96,6 +97,8 @@ struct _rob {
     struct trajectory traj;                 ///< Trivial trajectory manager.
     struct blocking_detection angle_bd;     ///< Angle blocking detection manager.
     struct blocking_detection distance_bd;  ///< Distance blocking detection manager.
+
+    volatile cvra_beacon_t beacon;
         
     enum board_mode_t mode;                 ///< The current board mode. @deprecated
  
