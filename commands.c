@@ -7,6 +7,7 @@
 #include <uptime.h>
 #include <cvra_dc.h>
 #include <commandline.h>
+#include <cvra_pio.h>
 
 #include "adresses.h"
 #include "cvra_cs.h"
@@ -42,8 +43,8 @@ void cmd_reset(void) {
 
 /** starts the strategy. */
 void cmd_start() {
-    printf("Press a key to start the robot.\n");
-    getchar();
+    printf("Pull starter to start the robot.");
+    while((IORD(PIO_BASE, 0) & 0x1000) == 0);
     strat_begin();
     printf("Match done. Hope you enjoyed it !\n");
 }
@@ -485,6 +486,12 @@ void cmd_show_currents() {
 
 }
 
+void cmd_pio_read(void) {
+    printf("starter : %d\n", (IORD(PIO_BASE, 0) & 0x1000) > 0);
+
+}
+
+
 
 /** An array of all the commands. */
 command_t commands_list[] = {
@@ -494,6 +501,7 @@ command_t commands_list[] = {
     COMMAND("arm_pid", cmd_arm_pid),
 //    COMMAND("reset", cmd_reset),
     COMMAND("start",cmd_start),
+    COMMAND("pio_read", cmd_pio_read),
 
     COMMAND("currents", cmd_show_currents),
     COMMAND("pid", cmd_pid), 
