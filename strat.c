@@ -93,17 +93,18 @@ void right_arm_take_glass(int glass_index) {
     arm_get_position(&robot.right_arm, &x, &y, &z);
     arm_trajectory_init(&traj); 
     arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 9.); // duration not used 
-    arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
-                                        COLOR_Y(strat.glasses[glass_index].pos.y), 197, COORDINATE_TABLE, 5., 135, 155);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
-                                        COLOR_Y(strat.glasses[glass_index].pos.y), 15, COORDINATE_TABLE, 5., 135, 155);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y), 197, COORDINATE_TABLE, 2., 135, 155);
+
+    arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
+                                        COLOR_Y(strat.glasses[glass_index].pos.y), 15, COORDINATE_TABLE, 2., 135, 155);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x, 
                                         COLOR_Y(strat.glasses[glass_index].pos.y), 15, COORDINATE_TABLE, .8, 135, 100);
 
-    arm_interpolator_append_point(&traj, 150, 150, 197, COORDINATE_ARM, 5.);
-    arm_interpolator_append_point(&traj, -28, 66, 207, COORDINATE_ARM, 4.);
+    arm_interpolator_append_point(&traj, 150, 150, 197, COORDINATE_ARM, 3.);
+    arm_interpolator_append_point(&traj, -28, 66, 207, COORDINATE_ARM, 3.);
     arm_interpolator_append_point(&traj, -28, 66, 192, COORDINATE_ARM, 1.);
 
 
@@ -124,7 +125,7 @@ static void strat_do_first_glasses(void) {
     strat_open_servo(RIGHT);
 
     // yes, taking X from glass 1 and Y from glass 2 is normal
-    trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[1].pos.x-75, COLOR_Y(strat.glasses[2].pos.y));
+    trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[1].pos.x-105, COLOR_Y(strat.glasses[2].pos.y));
 
 
 

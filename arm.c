@@ -116,8 +116,8 @@ void arm_init(arm_t *arm) {
     cs_set_correct_filter(&arm->elbow_cs, pid_do_filter, &arm->elbow_pid);
 
     /* Physical constants, not magic numbers. */ 
-    arm->length[0] = 135; /* mm */
-    arm->length[1] = 100;//136;
+    arm->length[0] = 135.5; /* mm */
+    arm->length[1] = 136;
 
     pid_set_gains(&arm->z_axis_pid, 1000, 0, 100);
 
@@ -502,7 +502,7 @@ void arm_calibrate(void) {
 
     /* Shoulders. */
     cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 0, (M_PI * -55.42 / 180.) * robot.left_arm.shoulder_imp_per_rad); 
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 5, (M_PI * 55.42 / 180.) * robot.right_arm.shoulder_imp_per_rad); 
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 5, (M_PI * 60.42 / 180.) * robot.right_arm.shoulder_imp_per_rad); 
 
     
     /* Elbows. */
