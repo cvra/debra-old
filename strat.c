@@ -229,7 +229,6 @@ retrydrop:
 
     if(!(TRAJ_SUCCESS(ret))) {
         if(ret == END_OBSTACLE) {
-
             goto retrydrop;
         }
         else

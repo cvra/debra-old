@@ -496,6 +496,7 @@ void cmd_beacon(void) {
     printf("period = %u\n", (unsigned int)robot.beacon.period);
     printf("firstedge = %u\n", (unsigned int)robot.beacon.firstedge);
     printf("lastindex = %u\n", (unsigned int)robot.beacon.lastindex);
+    printf("nbedge = %d\n", (int)robot.beacon.nb_edges);
 
 /*    for(;;)
         printf("angle : %d\n",(int)(robot.beacon.firstedge - robot.beacon.lastindex)/10000);  */
