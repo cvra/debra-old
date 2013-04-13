@@ -132,10 +132,10 @@ void strat_do_far_glasses(void) {
     robot.right_arm.shoulder_mode = SHOULDER_BACK;
 
 
-    trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[5].pos.x, COLOR_Y(strat.glasses[5].pos.y));
+    trajectory_goto_backward_xy_abs(&robot.traj, strat.glasses[5].pos.x, COLOR_Y(strat.glasses[5].pos.y));
     wait_traj_end(TRAJ_FLAGS_STD);
 
-    trajectory_a_abs(&robot.traj, 180);
+    trajectory_a_abs(&robot.traj, 0);
     wait_traj_end(TRAJ_FLAGS_STD);
 
     left_arm_take_glass(4);
@@ -192,6 +192,21 @@ void strat_set_objects(void) {
     strat.glasses[11].pos.x = 2100; strat.glasses[11].pos.y = (1050);
 }
 
+void strat_drop(void) {
+    WARNING(0, "Drop it like it is hot !!!");
+    trajectory_goto_forward_xy_abs(&robot.traj, 300, COLOR_Y(1400));
+    wait_traj_end(TRAJ_FLAGS_STD);
+    strat_open_servo(LEFT);
+    strat_open_servo(RIGHT);
+
+    trajectory_d_rel(&robot.traj, -100);
+    wait_traj_end(TRAJ_FLAGS_STD);
+
+    strat_release_servo(LEFT);
+    strat_release_servo(RIGHT);
+
+}
+
 void strat_begin(void) {
     /* Starts the game timer. */
     strat.time = 0;
@@ -203,9 +218,11 @@ void strat_begin(void) {
     /* Do the two central glasses. */
     strat_do_first_glasses();
 
+    strat_drop();
+
     /* Pickup this shit. */
-    strat_do_far_glasses();
-    strat_do_near_glasses();
+/*    strat_do_far_glasses();
+    strat_do_near_glasses(); */
 
 }
 

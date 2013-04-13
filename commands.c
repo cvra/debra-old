@@ -497,8 +497,8 @@ void cmd_beacon(void) {
     printf("firstedge = %u\n", (unsigned int)robot.beacon.firstedge);
     printf("lastindex = %u\n", (unsigned int)robot.beacon.lastindex);
 
-    for(;;)
-        printf("angle : %d\n",(int)(robot.beacon.firstedge - robot.beacon.lastindex)/10000); 
+/*    for(;;)
+        printf("angle : %d\n",(int)(robot.beacon.firstedge - robot.beacon.lastindex)/10000);  */
 
 
     

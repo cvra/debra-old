@@ -32,6 +32,10 @@
 
 extern command_t commands_list[];
 
+void do_nothing(int32_t val) {
+
+}
+
 /** Logs an event.
  *
  * This function is never called directly, but instead, the error
