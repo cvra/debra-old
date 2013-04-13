@@ -47,7 +47,7 @@
 #define TRAJ_FLAGS_NEAR (TRAJ_FLAGS_STD|END_NEAR)
 
 /** This enum is used for specifying a team color. */
-typedef enum {BLUE, RED} strat_color_t;
+typedef enum {RED, BLUE} strat_color_t;
 
 /** Computes the symmetrical position depending on color. */ 
 #define COLOR_Y(x) (strat.color == RED ? (x) : 2100 - (x))
