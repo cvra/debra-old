@@ -6,6 +6,7 @@
 #include <aversive/error.h>
 #include "arm.h"
 #include "arm_interpolators.h"
+#include <cvra_beacon.h>
 
 struct strat_info strat;
 
@@ -149,20 +150,46 @@ void strat_do_far_glasses(void) {
  * This function takes the first two glasses on the correct side.
  * @todo Test the starting coordinates.
  */
-static void strat_do_first_glasses(void) {
+static int strat_do_first_glasses(void) {
     WARNING(E_STRAT, "Doing first glasses."); 
+
+    int ret;
 
     strat_open_servo(LEFT);
     strat_open_servo(RIGHT);
 
+
+retry1:
     trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[2].pos.x, COLOR_Y(strat.glasses[2].pos.y)-50);
 
-    wait_traj_end(TRAJ_FLAGS_NEAR);
+    ret = wait_traj_end(TRAJ_FLAGS_NEAR);
+
+    if(!(TRAJ_SUCCESS(ret))) {
+        if(ret == END_OBSTACLE) {
+            goto retry1;
+        }
+        else
+            return ret;
+    }
+
+
     strat_close_servo(LEFT);
 
+retry2:
     trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[5].pos.x, COLOR_Y(strat.glasses[5].pos.y)+50);
-    wait_traj_end(TRAJ_FLAGS_STD);
+    ret = wait_traj_end(TRAJ_FLAGS_STD);
+
+
+    if(!(TRAJ_SUCCESS(ret))) {
+        if(ret == END_OBSTACLE) {
+            goto retry2;
+        }
+        else
+            return ret;
+    }
     strat_close_servo(RIGHT);
+
+    return END_TRAJ;
 }
 
 void strat_set_objects(void) {
@@ -193,32 +220,54 @@ void strat_set_objects(void) {
 }
 
 void strat_drop(void) {
+    int ret;
     WARNING(0, "Drop it like it is hot !!!");
+
+retrydrop:
     trajectory_goto_forward_xy_abs(&robot.traj, 300, COLOR_Y(1400));
-    wait_traj_end(TRAJ_FLAGS_STD);
+    ret = wait_traj_end(TRAJ_FLAGS_STD);
+
+    if(!(TRAJ_SUCCESS(ret))) {
+        if(ret == END_OBSTACLE) {
+
+            goto retrydrop;
+        }
+        else
+            return ret;
+    }
+
     strat_open_servo(LEFT);
     strat_open_servo(RIGHT);
 
     trajectory_d_rel(&robot.traj, -100);
-    wait_traj_end(TRAJ_FLAGS_STD);
+    ret = wait_traj_end(TRAJ_FLAGS_STD);
+
+    if(!TRAJ_SUCCESS(ret))
+        return;
 
     strat_release_servo(LEFT);
     strat_release_servo(RIGHT);
 
+    robot.mode = BOARD_MODE_FREE;
+
 }
 
 void strat_begin(void) {
+    int ret;
     /* Starts the game timer. */
     strat.time = 0;
+
+    cvra_beacon_init(&robot.beacon, AVOIDING_BASE, AVOIDING_IRQ);
     scheduler_add_periodical_event(increment_timer, NULL, 1000000/SCHEDULER_UNIT);
 
     /* Prepares the object DB. */
     strat_set_objects();
 
     /* Do the two central glasses. */
-    strat_do_first_glasses();
+    ret = strat_do_first_glasses();
 
-    strat_drop();
+    if(TRAJ_SUCCESS(ret))
+        strat_drop();
 
     /* Pickup this shit. */
 /*    strat_do_far_glasses();
@@ -294,14 +343,19 @@ int test_traj_end(int why) {
 			return END_NEAR;
     }
 
+    if((why & END_OBSTACLE) && robot.beacon.nb_edges != 0) {
+        trajectory_hardstop(&robot.traj);
+        return END_OBSTACLE;
+    }
+
     if((why & END_BLOCKING) && bd_get(&robot.distance_bd)) {
         trajectory_hardstop(&robot.traj);
-        return END_TRAJ;
+        return END_BLOCKING;
     }
 
     if((why & END_BLOCKING) && bd_get(&robot.angle_bd)) {
         trajectory_hardstop(&robot.traj);
-        return END_TRAJ;
+        return END_BLOCKING;
     }
 
     /* XXX Implement END_OBSTACLE when we got our beacons. */

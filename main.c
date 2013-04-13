@@ -131,9 +131,11 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
 
 	/* Step 7 : Init tout les parametres propres a une certaine edition ainsi que l'evitement d'obstacle. */
     /** FIXME @todo Init des parametres robot a refaire au propre. */
-    cvra_beacon_init(&robot.beacon, AVOIDING_BASE, AVOIDING_IRQ);
+   // cvra_beacon_init(&robot.beacon, AVOIDING_BASE, AVOIDING_IRQ);
+   //
+   
 
-
+    IOWR(AVOIDING_BASE, 3, 127);
 
     commandline_init(commands_list);
     for(;;) commandline_input_char(getchar());

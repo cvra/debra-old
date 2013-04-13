@@ -188,7 +188,7 @@ void cvra_cs_manage(__attribute__((unused)) void * dummy) {
 	bd_manage(&robot.distance_bd);
 
 
-	if(bd_get(&robot.distance_bd)) {
+/*	if(bd_get(&robot.distance_bd)) {
 		WARNING(0, "Error choc distance !");
 		trajectory_hardstop(&robot.traj);
 	}
@@ -196,5 +196,5 @@ void cvra_cs_manage(__attribute__((unused)) void * dummy) {
 	if(bd_get(&robot.angle_bd)) {
 		WARNING(0, "Error choc angle !");
 		trajectory_hardstop(&robot.traj);
-	}
+	} */
 }
