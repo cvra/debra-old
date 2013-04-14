@@ -76,7 +76,7 @@ void left_arm_take_glass(int glass_index) {
                                         COLOR_Y(strat.glasses[glass_index].pos.y), 15, COORDINATE_TABLE, 2., 135, 155);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x, 
-                                        COLOR_Y(strat.glasses[glass_index].pos.y), 15, COORDINATE_TABLE, .8, 135, 100);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y), 15, COORDINATE_TABLE, .3, 135, 100);
 
     arm_interpolator_append_point(&traj, 150, -150, 197, COORDINATE_ARM, 3.);
     arm_interpolator_append_point(&traj, -28, -66, 207, COORDINATE_ARM, 3.);
@@ -101,7 +101,7 @@ void right_arm_take_glass(int glass_index) {
                                         COLOR_Y(strat.glasses[glass_index].pos.y), 15, COORDINATE_TABLE, 2., 135, 155);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x, 
-                                        COLOR_Y(strat.glasses[glass_index].pos.y), 15, COORDINATE_TABLE, .8, 135, 100);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y), 15, COORDINATE_TABLE, .3, 135, 100);
 
     
     arm_interpolator_append_point(&traj, 150, 150, 197, COORDINATE_ARM, 3.);
@@ -138,6 +138,10 @@ int strat_do_near_glasses(void) {
 
     if(!TRAJ_SUCCESS(ret))
         return ret;
+
+
+    trajectory_a_abs(&robot.traj, 190);
+    ret = wait_traj_end(TRAJ_FLAGS_STD);
 
 
     left_pump(1);
@@ -184,7 +188,7 @@ void strat_do_far_glasses(void) {
     if(!TRAJ_SUCCESS(ret))
         return ret;
 
-    trajectory_a_abs(&robot.traj, 180);
+    trajectory_a_abs(&robot.traj, 190);
     wait_traj_end(TRAJ_FLAGS_STD);
 
 
@@ -201,7 +205,7 @@ void strat_do_far_glasses(void) {
         right_arm_take_glass(3);
     }
 
-    while(!arm_trajectory_finished(&robot.left_arm) || !arm_trajectory_finished(&robot.left_arm));
+    while(!arm_trajectory_finished(&robot.right_arm) || !arm_trajectory_finished(&robot.left_arm));
 
 
     left_pump(-1);
@@ -256,6 +260,7 @@ retry2:
 
 
     trajectory_d_rel(&robot.traj, 100);
+    wait_traj_end(TRAJ_FLAGS_STD | END_OBSTACLE);
     strat_close_servo(LEFT);
     strat_close_servo(RIGHT);
 
@@ -308,7 +313,7 @@ retrydrop:
     strat_open_servo(LEFT);
     strat_open_servo(RIGHT);
 
-    trajectory_d_rel(&robot.traj, -100);
+    trajectory_d_rel(&robot.traj, -150);
     ret = wait_traj_end(TRAJ_FLAGS_STD);
 
     if(!TRAJ_SUCCESS(ret))
