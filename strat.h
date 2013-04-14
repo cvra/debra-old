@@ -39,7 +39,7 @@
 #define TRAJ_SUCCESS(f) ((f) & (END_TRAJ|END_NEAR))
 
 /** Flags for "standard" trajectories. */
-#define TRAJ_FLAGS_STD (END_TRAJ|END_BLOCKING|END_OBSTACLE|END_TIMER|END_ERROR)
+#define TRAJ_FLAGS_STD (END_TRAJ|END_BLOCKING|END_TIMER|END_ERROR)
 
 /** Flags for "cutting corners" trajectories.
  * @warning Using this type of trajectories lowers the precision.

@@ -349,6 +349,36 @@ void cmd_mode(int argc, char **argv) {
     trajectory_hardstop(&robot.traj);
 }
 
+/** Places the arm. */
+void cmd_place_arms(int argc, char **argv) {
+    if(argc != 2) {
+        printf("usage : %s [blue|red]\n", argv[0]);
+        return;
+    }
+    arm_trajectory_t traj;
+    float x, y, z;
+
+    arm_get_position(&robot.left_arm, &x, &y, &z);
+    arm_trajectory_init(&traj); 
+    arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 9.); // duration not used 
+    arm_interpolator_append_point(&traj, 0, -200, 197, COORDINATE_ARM, 3.);
+    arm_interpolator_append_point(&traj, 200, 10, 197, COORDINATE_ARM, 3.);
+//    arm_interpolator_append_point(&traj, 200, 10, 60, COORDINATE_ARM, 3.);
+    arm_execute_movement(&robot.left_arm, &traj);
+
+
+    arm_get_position(&robot.right_arm, &x, &y, &z);
+    arm_trajectory_init(&traj); 
+    arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 9.); // duration not used 
+    arm_interpolator_append_point(&traj, 0, 200, 197, COORDINATE_ARM, 3.);
+    arm_interpolator_append_point(&traj, 200, 10, 197, COORDINATE_ARM, 3.);
+    arm_execute_movement(&robot.right_arm, &traj);
+
+    while(!arm_trajectory_finished(&robot.left_arm) && !arm_trajectory_finished(&robot.right_arm));
+
+
+}
+
 void cmd_demo(void) {
     trajectory_d_rel(&robot.traj, 1300);
     wait_traj_end(END_TRAJ);
@@ -508,8 +538,10 @@ void cmd_beacon(void) {
 
 
 
-/** An array of all the commands. */
+/** An array of all the commands. Sort them by order of completion. */
 command_t commands_list[] = {
+
+    COMMAND("place_arms", cmd_place_arms),
     COMMAND("test_argv",test_func),
     COMMAND("autopos", cmd_autopos),
     COMMAND("arm_shutdown",cmd_arm_shutdown),

@@ -111,12 +111,29 @@ void right_arm_take_glass(int glass_index) {
     arm_execute_movement(&robot.right_arm, &traj);
 }
 
+void strat_degage_bras(void) {
+    arm_trajectory_t traj;
+    float x, y, z;
+
+    arm_get_position(&robot.right_arm, &x, &y, &z);
+    arm_trajectory_init(&traj); 
+    arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 9.); // duration not used     
+    arm_interpolator_append_point(&traj, 0, 66, 192, COORDINATE_ARM, .5);
+    arm_execute_movement(&robot.right_arm, &traj);
+
+    arm_get_position(&robot.left_arm, &x, &y, &z);
+    arm_trajectory_init(&traj); 
+    arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 9.); // duration not used     
+    arm_interpolator_append_point(&traj, 0, -66, 192, COORDINATE_ARM, .5);
+    arm_execute_movement(&robot.left_arm, &traj);
+}
+
 int strat_do_near_glasses(void) {
     int ret;
     robot.left_arm.shoulder_mode = SHOULDER_BACK;
     robot.right_arm.shoulder_mode = SHOULDER_BACK;
 
-    trajectory_goto_backward_xy_abs(&robot.traj, strat.glasses[1].pos.x+95, COLOR_Y(strat.glasses[2].pos.y));
+    trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[1].pos.x+95, COLOR_Y(strat.glasses[2].pos.y));
     ret = wait_traj_end(TRAJ_FLAGS_STD);
 
     if(!TRAJ_SUCCESS(ret))
@@ -126,17 +143,26 @@ int strat_do_near_glasses(void) {
     left_pump(1);
     right_pump(1);
 
-    trajectory_a_abs(&robot.traj, 180);
-    wait_traj_end(TRAJ_FLAGS_STD);
+   // trajectory_a_abs(&robot.traj, 180);
+    //wait_traj_end(TRAJ_FLAGS_STD);
 
-    left_arm_take_glass(0);
-    right_arm_take_glass(1);
+    if(strat.color == BLUE) {
+     //   left_arm_take_glass(0);
+        right_arm_take_glass(1);
+    }
+    else {
+      //  left_arm_take_glass(1);
+        right_arm_take_glass(0);
+    }
 
-    while(!arm_trajectory_finished(&robot.left_arm) && !arm_trajectory_finished(&robot.right_arm));
+    while(!arm_trajectory_finished(&robot.left_arm) || !arm_trajectory_finished(&robot.right_arm));
 
 
     left_pump(-1);
     right_pump(-1);
+
+
+   // strat_degage_bras();
 
     return END_TRAJ;
 }
@@ -165,14 +191,23 @@ void strat_do_far_glasses(void) {
     left_pump(1);
     right_pump(1);
 
-    left_arm_take_glass(3);
-    right_arm_take_glass(4);
 
-    while(!arm_trajectory_finished(&robot.left_arm) && !arm_trajectory_finished(&robot.right_arm));
+    if(strat.color == BLUE) {
+      //  left_arm_take_glass(3);
+        right_arm_take_glass(4);
+    }
+    else {
+       // left_arm_take_glass(4);
+        right_arm_take_glass(3);
+    }
+
+    while(!arm_trajectory_finished(&robot.left_arm) || !arm_trajectory_finished(&robot.left_arm));
 
 
     left_pump(-1);
     right_pump(-1);
+
+   // strat_degage_bras();
 
     return END_TRAJ;
 }
@@ -194,7 +229,7 @@ static int strat_do_first_glasses(void) {
 retry1:
     trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[2].pos.x, COLOR_Y(strat.glasses[2].pos.y)-50);
 
-    ret = wait_traj_end(TRAJ_FLAGS_NEAR);
+    ret = wait_traj_end(TRAJ_FLAGS_NEAR | END_OBSTACLE);
 
     if(!(TRAJ_SUCCESS(ret))) {
         if(ret == END_OBSTACLE) {
@@ -208,7 +243,7 @@ retry1:
 
 retry2:
     trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[5].pos.x, COLOR_Y(strat.glasses[5].pos.y)+50);
-    ret = wait_traj_end(TRAJ_FLAGS_STD);
+    ret = wait_traj_end(TRAJ_FLAGS_STD | END_OBSTACLE);
 
 
     if(!(TRAJ_SUCCESS(ret))) {
@@ -220,7 +255,7 @@ retry2:
     }
 
 
-    trajectory_d_rel(&robot.traj, 50);
+    trajectory_d_rel(&robot.traj, 100);
     strat_close_servo(LEFT);
     strat_close_servo(RIGHT);
 
@@ -304,7 +339,7 @@ void strat_begin(void) {
 
         strat_do_far_glasses();
         ret = strat_do_near_glasses();
-       // if(TRAJ_SUCCESS(ret)) 
+        if(TRAJ_SUCCESS(ret)) 
             strat_drop();
     }
 
