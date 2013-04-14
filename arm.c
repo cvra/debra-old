@@ -412,11 +412,17 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
     *beta = *beta - *alpha;
 
 
-    if(*beta < -M_PI)
+    if(*beta < -M_PI) {
         *beta = 2*M_PI + *beta;
+        if(arm == &robot.left_arm) putchar('a');
+    }
     
-    if(*beta > M_PI)
+    if(*beta > M_PI) {
         *beta = -2*M_PI + *beta; 
+        if(arm == &robot.left_arm) putchar('b');
+    }
+
+//    printf("%.1f;%.1f\n", *alpha*180./M_PI, *beta*180./M_PI);
 
     return 0;
 }

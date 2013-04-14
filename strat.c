@@ -29,7 +29,6 @@ void right_pump(int status) {
         cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, 0);
 }
 
-
 void strat_open_servo(enum servo_e servo) {
     if(servo == RIGHT)
         cvra_servo_set(SERVOS_BASE, 1, 21000);
@@ -82,6 +81,7 @@ void left_arm_take_glass(int glass_index) {
     arm_interpolator_append_point(&traj, 150, -150, 197, COORDINATE_ARM, 3.);
     arm_interpolator_append_point(&traj, -28, -66, 207, COORDINATE_ARM, 3.);
     arm_interpolator_append_point(&traj, -28, -66, 192, COORDINATE_ARM, 1.);
+    
 
     arm_execute_movement(&robot.left_arm, &traj);
 }
@@ -103,46 +103,78 @@ void right_arm_take_glass(int glass_index) {
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x, 
                                         COLOR_Y(strat.glasses[glass_index].pos.y), 15, COORDINATE_TABLE, .8, 135, 100);
 
+    
     arm_interpolator_append_point(&traj, 150, 150, 197, COORDINATE_ARM, 3.);
     arm_interpolator_append_point(&traj, -28, 66, 207, COORDINATE_ARM, 3.);
-    arm_interpolator_append_point(&traj, -28, 66, 192, COORDINATE_ARM, 1.);
-
+    arm_interpolator_append_point(&traj, -28, 66, 192, COORDINATE_ARM, 1.); 
 
     arm_execute_movement(&robot.right_arm, &traj);
 }
 
-void strat_do_near_glasses(void) {
+int strat_do_near_glasses(void) {
+    int ret;
     robot.left_arm.shoulder_mode = SHOULDER_BACK;
     robot.right_arm.shoulder_mode = SHOULDER_BACK;
 
-    trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[2].pos.x, COLOR_Y(strat.glasses[2].pos.y));
-    wait_traj_end(TRAJ_FLAGS_STD);
+    trajectory_goto_backward_xy_abs(&robot.traj, strat.glasses[1].pos.x+95, COLOR_Y(strat.glasses[2].pos.y));
+    ret = wait_traj_end(TRAJ_FLAGS_STD);
+
+    if(!TRAJ_SUCCESS(ret))
+        return ret;
+
+
+    left_pump(1);
+    right_pump(1);
 
     trajectory_a_abs(&robot.traj, 180);
     wait_traj_end(TRAJ_FLAGS_STD);
 
-    left_arm_take_glass(1);
-    right_arm_take_glass(0);
+    left_arm_take_glass(0);
+    right_arm_take_glass(1);
 
     while(!arm_trajectory_finished(&robot.left_arm) && !arm_trajectory_finished(&robot.right_arm));
+
+
+    left_pump(-1);
+    right_pump(-1);
+
+    return END_TRAJ;
+}
+
+void strat_wait_ms(int ms) {
+    int32_t time = uptime_get();
+    while(uptime_get() < time + ms*1000);
 }
 
 
 void strat_do_far_glasses(void) {
+    int ret;
     robot.left_arm.shoulder_mode = SHOULDER_BACK;
     robot.right_arm.shoulder_mode = SHOULDER_BACK;
 
+    trajectory_goto_backward_xy_abs(&robot.traj, strat.glasses[3].pos.x+95, COLOR_Y(strat.glasses[2].pos.y));
+    ret = wait_traj_end(TRAJ_FLAGS_STD);
 
-    trajectory_goto_backward_xy_abs(&robot.traj, strat.glasses[5].pos.x, COLOR_Y(strat.glasses[5].pos.y));
+    if(!TRAJ_SUCCESS(ret))
+        return ret;
+
+    trajectory_a_abs(&robot.traj, 180);
     wait_traj_end(TRAJ_FLAGS_STD);
 
-    trajectory_a_abs(&robot.traj, 0);
-    wait_traj_end(TRAJ_FLAGS_STD);
 
-    left_arm_take_glass(4);
-    right_arm_take_glass(3);
+    left_pump(1);
+    right_pump(1);
+
+    left_arm_take_glass(3);
+    right_arm_take_glass(4);
 
     while(!arm_trajectory_finished(&robot.left_arm) && !arm_trajectory_finished(&robot.right_arm));
+
+
+    left_pump(-1);
+    right_pump(-1);
+
+    return END_TRAJ;
 }
 
 /** @brief Take the first two glasses.
@@ -173,7 +205,6 @@ retry1:
     }
 
 
-    strat_close_servo(LEFT);
 
 retry2:
     trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[5].pos.x, COLOR_Y(strat.glasses[5].pos.y)+50);
@@ -187,6 +218,10 @@ retry2:
         else
             return ret;
     }
+
+
+    trajectory_d_rel(&robot.traj, 50);
+    strat_close_servo(LEFT);
     strat_close_servo(RIGHT);
 
     return END_TRAJ;
@@ -208,8 +243,8 @@ void strat_set_objects(void) {
     strat.glasses[2].pos.x = 1050; strat.glasses[2].pos.y = (1200);
 
     /*XXX Not sure about coordinates of 3 and 4. */
-    strat.glasses[3].pos.x = 1200; strat.glasses[3].pos.y = (1550);
-    strat.glasses[4].pos.x = 1200; strat.glasses[4].pos.y = (1050);
+    strat.glasses[3].pos.x = 1200; strat.glasses[3].pos.y = (1450);
+    strat.glasses[4].pos.x = 1200; strat.glasses[4].pos.y = (950);
     strat.glasses[5].pos.x = 1350; strat.glasses[5].pos.y = (1200);
     strat.glasses[6].pos.x = 1650; strat.glasses[6].pos.y = (1300);
     strat.glasses[7].pos.x = 1800; strat.glasses[7].pos.y = (1550);
@@ -219,7 +254,7 @@ void strat_set_objects(void) {
     strat.glasses[11].pos.x = 2100; strat.glasses[11].pos.y = (1050);
 }
 
-void strat_drop(void) {
+int strat_drop(void) {
     int ret;
     WARNING(0, "Drop it like it is hot !!!");
 
@@ -265,8 +300,16 @@ void strat_begin(void) {
     /* Do the two central glasses. */
     ret = strat_do_first_glasses();
 
-    if(TRAJ_SUCCESS(ret))
-        strat_drop();
+    if(TRAJ_SUCCESS(ret)) {
+
+        strat_do_far_glasses();
+        ret = strat_do_near_glasses();
+       // if(TRAJ_SUCCESS(ret)) 
+            strat_drop();
+    }
+
+    left_pump(0);
+    right_pump(0);
 
     /* Pickup this shit. */
 /*    strat_do_far_glasses();
