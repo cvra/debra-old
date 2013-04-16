@@ -267,6 +267,82 @@ retry2:
     return END_TRAJ;
 }
 
+int strat_do_gifts(void) {
+    int ret;
+    arm_t *arm;
+    float x, y, z;
+
+    arm_trajectory_t traj;
+
+    const float height = 100; // height of attack
+    const float depth = 50; // the length to go out of the table
+    int i;
+
+
+    if(strat.color == BLUE)
+        arm = &robot.left_arm;
+    else
+        arm = &robot.right_arm;
+
+    
+    arm_get_position(arm, &x, &y, &z);
+    arm_trajectory_init(&traj); 
+    arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 1.); // duration not used 
+    arm_interpolator_append_point(&traj, x, y, 197, COORDINATE_ARM, .5); 
+    arm_interpolator_append_point(&traj, 150, 0, 197, COORDINATE_ARM, .5); 
+    arm_interpolator_append_point(&traj, 150, 0, height, COORDINATE_ARM, .5); 
+    arm_execute_movement(arm, &traj);
+
+    trajectory_goto_backward_xy_abs(&robot.traj, strat.gifts[0].x, COLOR_Y(2000-300));
+    ret = wait_traj_end(TRAJ_FLAGS_STD);
+
+    while(!arm_trajectory_finished(arm));
+
+    if(!TRAJ_SUCCESS(ret))
+        return ret;
+
+    arm_trajectory_init(&traj);
+    arm_interpolator_append_point(&traj, 150, 0, height, COORDINATE_ARM, .5);
+    arm_interpolator_append_point(&traj, strat.gifts[0].x, 
+                                  COLOR_Y(2000+depth), height, COORDINATE_TABLE, .5); 
+    arm_interpolator_append_point(&traj, 150, 0, height, COORDINATE_ARM, .5); 
+    arm_execute_movement(arm, &traj);
+
+
+    /* We do the first gift without moving. */
+    while(!arm_trajectory_finished(arm));
+    strat.gifts[0].done = 1;
+
+    /* start moving. */
+    trajectory_goto_backward_xy_abs(&robot.traj, strat.gifts[3].x, COLOR_Y(2000-300));
+
+    while((ret = test_traj_end(TRAJ_FLAGS_STD)) == 0) {
+        for(i=1;i<4;i++) {
+            /* XXX test if 200 is enough. */
+            if(position_get_x_s16(&robot.pos) > strat.gifts[i].x - 200) {
+                if(!arm_trajectory_finished(arm)) {
+                    ERROR(0, "Arm is moving too slowly !!");
+                    trajectory_stop(&robot.traj);
+                    return END_ERROR;
+                }
+
+                arm_trajectory_init(&traj);
+                arm_interpolator_append_point(&traj, 150, 0, height, COORDINATE_ARM, .5);
+                arm_interpolator_append_point(&traj, strat.gifts[i].x, 
+                        COLOR_Y(2000+depth), height, COORDINATE_TABLE, .5); 
+                arm_interpolator_append_point(&traj, 150, 0, height, COORDINATE_ARM, .5); 
+                arm_execute_movement(arm, &traj);
+                strat.gifts[i].done = 1;
+            }
+        }
+    }
+
+    /* Wait for the arm to be complete. */
+    while(!arm_trajectory_finished(arm));
+
+    return ret;
+}
+
 void strat_set_objects(void) {
     memset(&strat.glasses, 0, sizeof(glass_t)*12);
     memset(&strat.gifts, 0, sizeof(gift_t)*4);
@@ -313,7 +389,7 @@ retrydrop:
     strat_open_servo(LEFT);
     strat_open_servo(RIGHT);
 
-    trajectory_d_rel(&robot.traj, -150);
+    trajectory_d_rel(&robot.traj, -300);
     ret = wait_traj_end(TRAJ_FLAGS_STD);
 
     if(!TRAJ_SUCCESS(ret))
@@ -338,15 +414,14 @@ void strat_begin(void) {
     strat_set_objects();
 
     /* Do the two central glasses. */
-    ret = strat_do_first_glasses();
+    strat_do_first_glasses();
 
-    if(TRAJ_SUCCESS(ret)) {
 
-        strat_do_far_glasses();
-        ret = strat_do_near_glasses();
-        if(TRAJ_SUCCESS(ret)) 
-            strat_drop();
-    }
+    strat_do_far_glasses();
+    strat_do_near_glasses();
+    strat_drop();
+    strat_do_gifts();
+
 
     left_pump(0);
     right_pump(0);
@@ -425,10 +500,11 @@ int test_traj_end(int why) {
 			return END_NEAR;
     }
 
-    if((why & END_OBSTACLE) && robot.beacon.nb_edges != 0) {
+    /* TODO when rouven has fixed this fucking beacon. */
+    /*if((why & END_OBSTACLE) && robot.beacon.nb_edges != 0) {
         trajectory_hardstop(&robot.traj);
         return END_OBSTACLE;
-    }
+    }*/
 
     if((why & END_BLOCKING) && bd_get(&robot.distance_bd)) {
         trajectory_hardstop(&robot.traj);
