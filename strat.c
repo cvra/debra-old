@@ -284,6 +284,9 @@ int strat_do_gifts(void) {
     else
         arm = &robot.right_arm;
 
+    for(i=0;i<4;i++)
+        strat.gifts[i].last_try_time = strat.time;
+
     
     arm_get_position(arm, &x, &y, &z);
     arm_trajectory_init(&traj); 
@@ -319,7 +322,7 @@ int strat_do_gifts(void) {
     while((ret = test_traj_end(TRAJ_FLAGS_STD)) == 0) {
         for(i=1;i<4;i++) {
             /* XXX test if 200 is enough. */
-            if(position_get_x_s16(&robot.pos) > strat.gifts[i].x - 200) {
+            if(position_get_x_s16(&robot.pos) > strat.gifts[i].x - 200 && !strat.gifts[i].done) {
                 if(!arm_trajectory_finished(arm)) {
                     ERROR(0, "Arm is moving too slowly !!");
                     trajectory_stop(&robot.traj);
@@ -393,7 +396,7 @@ retrydrop:
     ret = wait_traj_end(TRAJ_FLAGS_STD);
 
     if(!TRAJ_SUCCESS(ret))
-        return;
+        return ret;
 
     strat_release_servo(LEFT);
     strat_release_servo(RIGHT);
@@ -471,7 +474,7 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 	bd_reset(&robot.angle_bd);
 
 	/* On reregle la position. */
-    /* XXX ze + 100 is a hotfix for 2013. */
+    /* XXX ze + 100 is just for 2013. */
 	position_set(&robot.pos, position_get_x_s16(&robot.pos), COLOR_Y((epaisseurRobot+100)), COLOR_A(90));
 
 	/* On se met en place a la position demandee. */
