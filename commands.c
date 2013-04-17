@@ -13,6 +13,7 @@
 #include "cvra_cs.h"
 #include "arm_interpolators.h"
 #include "arm.h"
+#include "strat_utils.h"
 
 /** Prints all args, then exits. */
 void test_func(int argc, char **argv) {
