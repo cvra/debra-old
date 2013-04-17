@@ -1,9 +1,9 @@
 #include <aversive.h>
 #include <aversive/error.h>
-#include "cvra_cs.h"
 #include <2wheels/trajectory_manager_utils.h>
-
 #include <cvra_beacon.h>
+#include "strat_utils.h"
+#include "cvra_cs.h"
 
 void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 
@@ -106,4 +106,44 @@ int wait_traj_end(int why) {
     } while(ret==0); 
 
     return ret;
+}
+
+
+void left_pump(int status) {
+    if(status > 0)
+        cvra_dc_set_pwm4(HEXMOTORCONTROLLER_BASE, 475);
+    else if(status < 0)
+        cvra_dc_set_pwm4(HEXMOTORCONTROLLER_BASE, -475);
+    else
+        cvra_dc_set_pwm4(HEXMOTORCONTROLLER_BASE, 0);
+}
+
+void right_pump(int status) {
+    if(status > 0)
+        cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, -475);
+    else if(status < 0)
+        cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, 475);
+    else
+        cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, 0);
+}
+
+void strat_open_servo(enum servo_e servo) {
+    if(servo == RIGHT)
+        cvra_servo_set(SERVOS_BASE, 1, 21000);
+    else
+        cvra_servo_set(SERVOS_BASE, 0, 9000); 
+}
+
+void strat_close_servo(enum servo_e servo) {
+    if(servo == RIGHT)
+        cvra_servo_set(SERVOS_BASE, 1, 17500);
+    else
+        cvra_servo_set(SERVOS_BASE, 0, 11500); 
+}
+
+void strat_release_servo(enum servo_e servo) {
+    if(servo == RIGHT)
+        cvra_servo_set(SERVOS_BASE, 1, 15000);
+    else
+        cvra_servo_set(SERVOS_BASE, 0, 15000); 
 }

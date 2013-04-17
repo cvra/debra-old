@@ -13,45 +13,6 @@
 struct strat_info strat;
 
 
-void left_pump(int status) {
-    if(status > 0)
-        cvra_dc_set_pwm4(HEXMOTORCONTROLLER_BASE, 475);
-    else if(status < 0)
-        cvra_dc_set_pwm4(HEXMOTORCONTROLLER_BASE, -475);
-    else
-        cvra_dc_set_pwm4(HEXMOTORCONTROLLER_BASE, 0);
-}
-
-void right_pump(int status) {
-    if(status > 0)
-        cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, -475);
-    else if(status < 0)
-        cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, 475);
-    else
-        cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, 0);
-}
-
-void strat_open_servo(enum servo_e servo) {
-    if(servo == RIGHT)
-        cvra_servo_set(SERVOS_BASE, 1, 21000);
-    else
-        cvra_servo_set(SERVOS_BASE, 0, 9000); 
-}
-
-
-void strat_close_servo(enum servo_e servo) {
-    if(servo == RIGHT)
-        cvra_servo_set(SERVOS_BASE, 1, 17500);
-    else
-        cvra_servo_set(SERVOS_BASE, 0, 11500); 
-}
-
-void strat_release_servo(enum servo_e servo) {
-    if(servo == RIGHT)
-        cvra_servo_set(SERVOS_BASE, 1, 15000);
-    else
-        cvra_servo_set(SERVOS_BASE, 0, 15000); 
-}
 
 void strat_left_take_glass(int glass_index) {
 

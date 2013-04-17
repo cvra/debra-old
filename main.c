@@ -29,6 +29,7 @@
 
 #include "hardware.h"
 #include "cvra_cs.h"
+#include "strat_utils.h"
 
 extern command_t commands_list[];
 
