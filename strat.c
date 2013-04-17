@@ -6,6 +6,7 @@
 #include <aversive/error.h>
 #include "arm.h"
 #include "arm_interpolators.h"
+#include "strat_job.h"
 #include <cvra_beacon.h>
 
 struct strat_info strat;
@@ -267,7 +268,12 @@ retry2:
     return END_TRAJ;
 }
 
-int strat_do_gifts(void) {
+void strat_job_do_gift(void *param) {
+    int gift_index = (int)param;
+    WARNING(0, "Doing gift %d from job pool.", gift_index); 
+}
+
+void strat_do_gifts(void *dummy) {
     int ret;
     arm_t *arm;
     float x, y, z;
@@ -301,8 +307,12 @@ int strat_do_gifts(void) {
 
     while(!arm_trajectory_finished(arm));
 
-    if(!TRAJ_SUCCESS(ret))
-        return ret;
+    if(!TRAJ_SUCCESS(ret)) {
+        for(i=3;i>=0;i--) {
+            strat_schedule_job(strat_job_do_gift, (void *)i);
+        } 
+        return;
+    }
 
     arm_trajectory_init(&traj);
     arm_interpolator_append_point(&traj, 150, 0, height, COORDINATE_ARM, .5);
@@ -326,7 +336,13 @@ int strat_do_gifts(void) {
                 if(!arm_trajectory_finished(arm)) {
                     ERROR(0, "Arm is moving too slowly !!");
                     trajectory_stop(&robot.traj);
-                    return END_ERROR;
+
+                    /* reschedule gifts because we will do them slower. */
+                    for(i=3;i>=0;i--) {
+                        if(!strat.gifts[i].done)
+                            strat_schedule_job(strat_job_do_gift, (void *)i);
+                    } 
+                    return;
                 }
 
                 arm_trajectory_init(&traj);
@@ -340,10 +356,15 @@ int strat_do_gifts(void) {
         }
     }
 
+
+    /* We schedule all the gifts that we haven't done yet for later. */
+    for(i=3;i>=0;i--) {
+        if(!strat.gifts[i].done)
+            strat_schedule_job(strat_job_do_gift, (void *)i);
+    } 
+
     /* Wait for the arm to be complete. */
     while(!arm_trajectory_finished(arm));
-
-    return ret;
 }
 
 void strat_set_objects(void) {
@@ -419,11 +440,13 @@ void strat_begin(void) {
     /* Do the two central glasses. */
     strat_do_first_glasses();
 
-
     strat_do_far_glasses();
     strat_do_near_glasses();
     strat_drop();
-    strat_do_gifts();
+
+    strat_schedule_job(strat_do_gifts, NULL); 
+    while(!strat_job_pool_is_empty())
+        strat_do_job();
 
 
     left_pump(0);
