@@ -18,8 +18,8 @@
 /** @brief A forbidden volume for the arm.
  *
  * This structure contains all the required informations to create forbidden
- * volumes that the arms cannot go into. Those volumes are define as right 
- * prisms who point to the z-axis.
+ * volumes that the arms cannot go into. Those volumes are defined as right
+ * prisms who point in the z-axis direction.
  */
 typedef struct {
     arm_coordinate_t coordinate_system; /**< Coordinate system of the obstacle. */
@@ -69,7 +69,7 @@ typedef struct {
     int32_t last_loop;              /**< Timestamp of the last loop execution, in us since boot. */
 
     /* Obstacles */ 
-    arm_obstacle_t *obstacles;       /**< All the obstacle to watch for. */
+    arm_obstacle_t *obstacles;       /**< All the obstacles to watch for. */
     int obstacle_count;              /**< The number of obstacles. */
     shoulder_mode_t shoulder_mode;
 } arm_t;
@@ -125,7 +125,7 @@ void arm_connect_io(arm_t *arm,
  * can free its own copy.
  *
  * @warning No verification on the trajectory is done prior to moving. Therefore
- * violent and uncontrolled movements can happen in case of bad prepared datas.
+ * violent and uncontrolled movements can happen in case of bad prepared data.
  */
 void arm_execute_movement(arm_t *arm, arm_trajectory_t *traj); 
 
@@ -133,7 +133,7 @@ void arm_execute_movement(arm_t *arm, arm_trajectory_t *traj);
  *
  * This function takes care of an arm management. Its tasks are:
  * - Computing current point, using a linear interpolation of the trajectory.
- * - Computing inverse cinematics.
+ * - Computing inverse kinematics.
  * - Send the computed values to the control system.
  *
  * @param [in] a A pointer to an arm_t structure which was cast to a void *

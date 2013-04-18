@@ -48,9 +48,9 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
 int check_for_obstacle_collision(arm_t *arm, point_t p1, point_t p2, int z); 
 
 inline float smoothstep(float t) {
-	if(t < 0.) return 0.;
-	if(t > 1.) return 1.;
-	return t*t*t*(t*(6*t-15)+10);
+	if(t < 0.0f) return 0.0f;
+	if(t > 1.0f) return 1.0f;
+	return t*t*t*(t*(6.0f*t-15.0f)+10.0f);
 }
 
 void arm_highlevel_init(void) {
@@ -70,8 +70,8 @@ void arm_highlevel_init(void) {
     robot.left_arm.offset_xy.x = 0; robot.left_arm.offset_xy.y = 79;
     robot.right_arm.offset_xy.x = 0; robot.right_arm.offset_xy.y = -79;
 
-    robot.left_arm.offset_rotation = M_PI / 2;
-    robot.right_arm.offset_rotation = -M_PI / 2;
+    robot.left_arm.offset_rotation = M_PI / 2.;
+    robot.right_arm.offset_rotation = -M_PI / 2.;
 
 
     arm_connect_io(&robot.left_arm,
@@ -244,11 +244,11 @@ void arm_manage(void *a) {
 
             /* Smoothstep interpolation between the 2 frames. */
             t = smoothstep(t);
-            position[0] = (1 - t) * previous_frame_xy[0];
-            position[1] = (1 - t) * previous_frame_xy[1];
-            position[2] = (1 - t) * arm->trajectory.frames[i-1].position[2];
-            length[0] = (1 - t) * arm->trajectory.frames[i-1].length[0];
-            length[1] = (1 - t) * arm->trajectory.frames[i-1].length[1];
+            position[0] = (1. - t) * previous_frame_xy[0];
+            position[1] = (1. - t) * previous_frame_xy[1];
+            position[2] = (1. - t) * arm->trajectory.frames[i-1].position[2];
+            length[0] = (1. - t) * arm->trajectory.frames[i-1].length[0];
+            length[1] = (1. - t) * arm->trajectory.frames[i-1].length[1];
 
             position[0] += t * next_frame_xy[0]; 
             position[1] += t * next_frame_xy[1]; 
@@ -336,13 +336,9 @@ void arm_shutdown(arm_t *arm) {
 static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha, float *beta, const float l1, const float l2) {
     circle_t c1, c2;
     point_t p1, p2, chosen;
-    
-    if(y > 0)
-    	y += 0.5;
-    else
-    	y -= 0.5;
 
-    c1.x = c1.y = 0;
+    c1.x = 0;
+    c1.y = 0;
     c1.r = l1;
     
     c2.x = x;
@@ -358,16 +354,16 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
 
     /* Checks if one of the two possibilities crosses an obstacle. */
     else if(nbPos == 2) {
-    	if(x < 0) {
-            if(p1.x > 0)
+    	if(x < 0.) {
+            if(p1.x > 0.)
                 chosen = p1;
-            else if(p2.x > 0)
+            else if(p2.x > 0.)
                 chosen = p2;
             else
                 chosen = p1;
     	}
     	else {
-            if(arm->offset_rotation > 0) { 
+            if(arm->offset_rotation > 0.) {
                 if(arm->shoulder_mode == SHOULDER_BACK) {
                     /* TODO the left arm is mirrored when compared to the right arm. */
                     if(p2.y > p1.y)
@@ -407,8 +403,8 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
 
     //printf("%d;%d;%d;%d;%d;%d\n", (int)x, (int)y, (int)p1.x, (int)p1.y, (int)p2.x, (int)p2.y);
 
-    *alpha = atan2(chosen.y, chosen.x);
-    *beta = atan2(y-chosen.y, x-chosen.x);
+    *alpha = atan2f(chosen.y, chosen.x);
+    *beta = atan2f(y-chosen.y, x-chosen.x);
     *beta = *beta - *alpha;
 
 
