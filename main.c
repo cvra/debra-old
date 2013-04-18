@@ -138,7 +138,7 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
    //
    
 
-    IOWR(AVOIDING_BASE, 3, 127);
+    IOWR(AVOIDING_BASE, 3, 0xff);
 
     commandline_init(commands_list);
     for(;;) commandline_input_char(getchar());

@@ -103,7 +103,7 @@ int strat_do_near_glasses(void) {
         return ret;
 
 
-    trajectory_a_abs(&robot.traj, 190);
+    trajectory_a_abs(&robot.traj, 180);
     ret = wait_traj_end(TRAJ_FLAGS_STD);
 
 
@@ -114,11 +114,11 @@ int strat_do_near_glasses(void) {
     //wait_traj_end(TRAJ_FLAGS_STD);
 
     if(strat.color == BLUE) {
-     //   left_arm_take_glass(0);
+        left_arm_take_glass(0);
         right_arm_take_glass(1);
     }
     else {
-      //  left_arm_take_glass(1);
+        left_arm_take_glass(1);
         right_arm_take_glass(0);
     }
 
@@ -160,11 +160,11 @@ void strat_do_far_glasses(void) {
 
 
     if(strat.color == BLUE) {
-      //  left_arm_take_glass(3);
+        left_arm_take_glass(3);
         right_arm_take_glass(4);
     }
     else {
-       // left_arm_take_glass(4);
+        left_arm_take_glass(4);
         right_arm_take_glass(3);
     }
 
@@ -243,7 +243,7 @@ void strat_do_gifts(void *dummy) {
     arm_trajectory_t traj;
 
     const float height = 100; // height of attack
-    const float depth = 50; // the length to go out of the table
+    const float depth = 150; // the length to go out of the table
     int i;
 
 
@@ -259,29 +259,54 @@ void strat_do_gifts(void *dummy) {
     arm_get_position(arm, &x, &y, &z);
     arm_trajectory_init(&traj); 
     arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 1.); // duration not used 
-    arm_interpolator_append_point(&traj, x, y, 197, COORDINATE_ARM, .5); 
-    arm_interpolator_append_point(&traj, 150, 0, 197, COORDINATE_ARM, .5); 
-    arm_interpolator_append_point(&traj, 150, 0, height, COORDINATE_ARM, .5); 
+    if(strat.color == BLUE) {
+        arm_interpolator_append_point(&traj, x, y-30, z, COORDINATE_ARM, .2); 
+        arm_interpolator_append_point(&traj, 150, y-30, 197, COORDINATE_ARM, 1); 
+    }
+    else {
+        arm_interpolator_append_point(&traj, x, y+30, z, COORDINATE_ARM, .1); 
+        arm_interpolator_append_point(&traj, 150, y+30, 197, COORDINATE_ARM, 1); 
+    }
+    arm_interpolator_append_point_with_length(&traj, 100, 0, 197, COORDINATE_ARM, 1., 135, 115); 
+    arm_interpolator_append_point_with_length(&traj, 100, 0, height, COORDINATE_ARM, 1., 135, 115); 
     arm_execute_movement(arm, &traj);
 
-    trajectory_goto_backward_xy_abs(&robot.traj, strat.gifts[0].x, COLOR_Y(2000-300));
-    ret = wait_traj_end(TRAJ_FLAGS_STD);
 
     while(!arm_trajectory_finished(arm));
 
+    
+/*
     if(!TRAJ_SUCCESS(ret)) {
         for(i=3;i>=0;i--) {
             strat_schedule_job(strat_job_do_gift, (void *)i);
         } 
         return;
     }
+    */
 
-    arm_trajectory_init(&traj);
-    arm_interpolator_append_point(&traj, 150, 0, height, COORDINATE_ARM, .5);
-    arm_interpolator_append_point(&traj, strat.gifts[0].x, 
-                                  COLOR_Y(2000+depth), height, COORDINATE_TABLE, .5); 
-    arm_interpolator_append_point(&traj, 150, 0, height, COORDINATE_ARM, .5); 
-    arm_execute_movement(arm, &traj);
+
+    for(i=0;i<4;i++) {
+        trajectory_goto_backward_xy_abs(&robot.traj, strat.gifts[i].x, COLOR_Y(2000-250));
+        ret = wait_traj_end(TRAJ_FLAGS_STD);
+
+
+        trajectory_a_abs(&robot.traj, 180);
+        ret = wait_traj_end(TRAJ_FLAGS_STD);
+
+        arm_trajectory_init(&traj);
+
+        arm_interpolator_append_point_with_length(&traj, 100, 0, height, COORDINATE_ARM, 1., 135, 115); 
+
+        arm_interpolator_append_point_with_length(&traj, strat.gifts[i].x,
+                COLOR_Y(2000+depth), height, COORDINATE_TABLE, 1., 135, 115); 
+        arm_interpolator_append_point_with_length(&traj, 100, 0, height, COORDINATE_ARM, 1., 135, 115); 
+
+        arm_execute_movement(arm, &traj);
+
+        while(!arm_trajectory_finished(arm));
+    }
+
+    return;
 
 
     /* We do the first gift without moving. */
@@ -405,10 +430,14 @@ void strat_begin(void) {
     strat_do_far_glasses();
     strat_do_near_glasses();
     strat_drop();
+    
 
-    strat_schedule_job(strat_do_gifts, NULL); 
+    strat_do_gifts(NULL);
+
+    /*strat_schedule_job(strat_do_gifts, NULL); 
     while(!strat_job_pool_is_empty())
         strat_do_job();
+    */
 
 
     left_pump(0);
