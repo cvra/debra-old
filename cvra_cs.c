@@ -125,8 +125,8 @@ void cvra_cs_init(void) {
 	trajectory_init(&robot.traj, ASSERV_FREQUENCY);
 	trajectory_set_cs(&robot.traj, &robot.distance_cs, &robot.angle_cs);
 	trajectory_set_robot_params(&robot.traj, &robot.rs, &robot.pos);
-	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 700), speed_rd2imp(&robot.traj, 2*M_PI) ); /* distance, angle */
-	trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 800), acc_rd2imp(&robot.traj, 2*M_PI));
+	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 600), speed_rd2imp(&robot.traj, 4.85) ); /* distance, angle */
+	trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 1600), acc_rd2imp(&robot.traj, 19.4));
 	/* distance window, angle window, angle start */
 	trajectory_set_windows(&robot.traj, 30., 1.0, 45.); // Prod
 
@@ -143,9 +143,11 @@ void cvra_cs_init(void) {
 	// Initialisation déplacement:
 	position_set(&robot.pos, 0, 0, 0);
 
+
+
 	/* ajoute la regulation au multitache. ASSERV_FREQUENCY est dans cvra_cs.h */
 	scheduler_add_periodical_event_priority(cvra_cs_manage, NULL, (1000000
-			/ ASSERV_FREQUENCY) / SCHEDULER_UNIT, 130);
+			/ ASSERV_FREQUENCY) / SCHEDULER_UNIT, 131);
 }
 
 /** Logge l'erreur sur les differents regulateurs et l'affiche avec le temps. */
@@ -163,6 +165,7 @@ static void dump_error(void) {
 void cvra_cs_manage(__attribute__((unused)) void * dummy) {
 	/* Gestion de la position. */
 	rs_update(&robot.rs);
+
 	position_manage(&robot.pos);
 
 	/* Gestion de l'asservissement. */
@@ -178,7 +181,7 @@ void cvra_cs_manage(__attribute__((unused)) void * dummy) {
 		} else {
 			rs_set_distance(&robot.rs, 0); // Sets a distance angle PWM
 		}
-	}
+	} 
 
 	/* Affichage des courbes d'asservissement. */
 	dump_error();

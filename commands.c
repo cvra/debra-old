@@ -276,6 +276,33 @@ void cmd_error_get(void) {
 
 }
 
+/** Puts all PWM to max and measure the position. */
+void cmd_acceleration_calibrate(void) {
+    printf("Press a key to go. Regulation task should be off.\n");
+    getchar();
+
+    int32_t start_time = uptime_get();
+    int32_t time;
+
+
+    rs_set_angle(&robot.rs, 475);
+
+    /* Print it for 1s. */
+    while((time = uptime_get()) < start_time + 1 * 1000000) {
+        /* Dumps every 10 ms. */
+        printf("%d;%d\n", (uptime_get() - start_time) / 1000, rs_get_angle(&robot.rs));
+        while(uptime_get() < time + 10000);
+        rs_update(&robot.rs);
+    }
+
+    rs_set_angle(&robot.rs, 0);
+
+
+
+
+}
+
+
 /** Dumps an error curve. */
 void cmd_error_dump(int argc, char **argv) {
     if(argc < 2) return;
@@ -542,6 +569,7 @@ void cmd_beacon(void) {
 /** An array of all the commands. Sort them by order of completion. */
 command_t commands_list[] = {
 
+    COMMAND("acc_calibrate", cmd_acceleration_calibrate),
     COMMAND("place_arms", cmd_place_arms),
     COMMAND("test_argv",test_func),
     COMMAND("autopos", cmd_autopos),
