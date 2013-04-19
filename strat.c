@@ -212,7 +212,7 @@ retry1:
 
 retry2:
     trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[5].pos.x, COLOR_Y(strat.glasses[5].pos.y)+50);
-    ret = wait_traj_end(TRAJ_FLAGS_STD | END_OBSTACLE);
+    ret = wait_traj_end(TRAJ_FLAGS_NEAR | END_OBSTACLE);
 
 
     if(!(TRAJ_SUCCESS(ret))) {
@@ -437,7 +437,7 @@ void strat_begin(void) {
     strat_drop();
     
 
-//    strat_do_gifts(NULL);
+    strat_do_gifts(NULL);
 
     strat_schedule_job(strat_do_gifts, NULL); 
     while(!strat_job_pool_is_empty()) {

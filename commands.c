@@ -62,45 +62,11 @@ void cmd_autopos(int argc, char **argv) {
 
     strat_autopos(230, 1255, COLOR_A(-10), 119);
 
-	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 700), speed_rd2imp(&robot.traj, 2*M_PI)); 
 
-	bd_set_thresholds(&robot.distance_bd,  3000, 1);
-	bd_set_thresholds(&robot.angle_bd,  1200, 1);
+	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 600), speed_rd2imp(&robot.traj, 4.85) ); /* distance, angle */
 
-    // XXX
-    return;
-    arm_trajectory_t left_traj, right_traj;
-    float x, y,z ;
-
-    arm_get_position(&robot.left_arm, &x, &y, &z);
-
-    arm_trajectory_init(&left_traj);
-    arm_interpolator_append_point(&left_traj, x, y, z, COORDINATE_ARM, 9.); // duration not used 
-    arm_interpolator_append_point(&left_traj, 100., -100., 197, COORDINATE_ARM, 1.);
-    arm_interpolator_append_point(&left_traj, 100., -100., 100, COORDINATE_ARM, 2.);
-
-    arm_trajectory_init(&right_traj);
-    arm_get_position(&robot.right_arm, &x, &y, &z);
-
-    arm_interpolator_append_point(&right_traj, x, y, z, COORDINATE_ARM, 9.); // duration not used 
-    arm_interpolator_append_point(&right_traj, 100., 100., 197, COORDINATE_ARM, 1.); 
-    arm_interpolator_append_point(&right_traj, 100., -100., 197, COORDINATE_ARM, 1.);
-//    arm_interpolator_append_point(&right_traj, -150., -50., 197, COORDINATE_ARM, 1.);
-    
-    printf("length : %d\n", (int)right_traj.frame_count);
-
-    int i;
-    printf("now = %d\n", (int)uptime_get());
-    for(i=0;i<right_traj.frame_count;i++) {
-        printf("frame %d\t (%.1f;%.1f;%.1f)\t date = %d\n", i, right_traj.frames[i].position[0],right_traj.frames[i].position[1],right_traj.frames[i].position[2], (int)right_traj.frames[i].date);
-
-    } 
-
-    printf("God bless this poor robot... executing trajectory.\n");
-   // arm_execute_movement(&robot.left_arm, &left_traj);
-   //
-   // robot.right_arm.shoulder_mode = SHOULDER_FRONT;
-   // arm_execute_movement(&robot.right_arm, &right_traj);
+	bd_set_thresholds(&robot.distance_bd,  3600, 1);
+	bd_set_thresholds(&robot.angle_bd,  1500, 1);
 }
 
 
@@ -288,7 +254,7 @@ void cmd_acceleration_calibrate(void) {
     rs_set_angle(&robot.rs, 475);
 
     /* Print it for 1s. */
-    while((time = uptime_get()) < start_time + 1 * 1000000) {
+    while((time = uptime_get()) < start_time + 2 * 1000000) {
         /* Dumps every 10 ms. */
         printf("%d;%d\n", (uptime_get() - start_time) / 1000, rs_get_angle(&robot.rs));
         while(uptime_get() < time + 10000);
@@ -296,10 +262,7 @@ void cmd_acceleration_calibrate(void) {
     }
 
     rs_set_angle(&robot.rs, 0);
-
-
-
-
+    return;
 }
 
 
@@ -311,21 +274,13 @@ void cmd_error_dump(int argc, char **argv) {
     int32_t start_time = uptime_get();
     int32_t time;
     int32_t previous_pos = rs_get_angle(&robot.rs);
-    int left_current_max =0 , right_current_max = 0;
     /* Print it for 5s. */
     while((time = uptime_get()) < start_time + 3* 1000000) {
         /* Dumps every 10 ms. */
         printf("%d;%d;%d\n", (uptime_get() - start_time) / 1000, (int)robot.angle_qr.previous_var, (int)rs_get_ext_angle(&robot.rs)-previous_pos);
         previous_pos = rs_get_ext_angle(&robot.rs);
-        if(cvra_dc_get_current(HEXMOTORCONTROLLER_BASE, 4) > left_current_max)
-        	left_current_max = cvra_dc_get_current(HEXMOTORCONTROLLER_BASE, 4);
-
-        if(cvra_dc_get_current(HEXMOTORCONTROLLER_BASE, 2) > right_current_max)
-        	right_current_max = cvra_dc_get_current(HEXMOTORCONTROLLER_BASE, 2);
         while(uptime_get() < time + 10000);
     }
-
-    printf("max current = %d;%d\n", left_current_max, right_current_max);
 }
 
 /** Goes forward by a given distance. */
@@ -569,7 +524,7 @@ void cmd_beacon(void) {
 /** An array of all the commands. Sort them by order of completion. */
 command_t commands_list[] = {
 
-    COMMAND("acc_calibrate", cmd_acceleration_calibrate),
+//    COMMAND("acc_calibrate", cmd_acceleration_calibrate),
     COMMAND("place_arms", cmd_place_arms),
     COMMAND("test_argv",test_func),
     COMMAND("autopos", cmd_autopos),

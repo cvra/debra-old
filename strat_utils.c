@@ -12,7 +12,7 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 	// Pour se recaler, on met le robot en regulation angulaire, on reduit la vitesse et l'acceleration
 	// On diminue la sensibilite on augmente la constante de temps de detection du bloquage
 
-	bd_set_thresholds(&robot.distance_bd,  2000, 2);
+	bd_set_thresholds(&robot.distance_bd,  4000, 2);
 
 	trajectory_set_speed(&robot.traj, 100, 100);
 	robot.mode = BOARD_MODE_DISTANCE_ONLY;
@@ -37,6 +37,7 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 	while(!trajectory_finished(&robot.traj));
 
 	/* On recule jusqu'a avoir touche le bord. */
+
 	trajectory_d_rel(&robot.traj, (double) -2000);
 	while(!bd_get(&robot.distance_bd));
 
@@ -48,6 +49,7 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 	position_set(&robot.pos, position_get_x_s16(&robot.pos), COLOR_Y((epaisseurRobot+100)), COLOR_A(90));
 
 	/* On se met en place a la position demandee. */
+
 	trajectory_d_rel(&robot.traj, (double) (y - epaisseurRobot));
 	while(!trajectory_finished(&robot.traj));
 
@@ -86,7 +88,7 @@ int test_traj_end(int why) {
     if((why & END_BLOCKING) && bd_get(&robot.angle_bd)) {
         trajectory_hardstop(&robot.traj);
         return END_BLOCKING;
-    }
+    } 
 
     /* XXX Implement END_OBSTACLE when we got our beacons. */
 

@@ -87,7 +87,7 @@ void cvra_cs_init(void) {
 	/****************************************************************************/
 
 	pid_init(&robot.angle_pid);
-	pid_set_gains(&robot.angle_pid, 500, 0, 2000);
+	pid_set_gains(&robot.angle_pid, 400, 0, 2000);
 	pid_set_maximums(&robot.angle_pid, 0, 5000, 30000);
 	pid_set_out_shift(&robot.angle_pid, 10);
 
@@ -105,7 +105,7 @@ void cvra_cs_init(void) {
 	/****************************************************************************/
 
 	pid_init(&robot.distance_pid); /* Initialise le PID. */
-	pid_set_gains(&robot.distance_pid, 600, 0, 600); /* Regles les gains du PID. */
+	pid_set_gains(&robot.distance_pid, 200, 0, 1000); /* Regles les gains du PID. */
 	pid_set_maximums(&robot.distance_pid, 0, 5000, 30000); /* pas de max sur l'entree, integral limite a 5000, sortie limitee a 4095 (PWM 12 bits). */
 	pid_set_out_shift(&robot.distance_pid, 10); /* Divise la sortie par 1024. */
 
@@ -132,11 +132,11 @@ void cvra_cs_init(void) {
 
 	// Angle BDM
 	bd_init(&robot.angle_bd, &robot.angle_cs);
-	bd_set_thresholds(&robot.angle_bd, 1200, 1); /* thresold, duration. */
+	bd_set_thresholds(&robot.angle_bd, 1500, 1); /* thresold, duration. */
 
 	// Distance BDM
 	bd_init(&robot.distance_bd, &robot.distance_cs);
-	bd_set_thresholds(&robot.distance_bd, 1200, 1); /* thresold, duration. */
+	bd_set_thresholds(&robot.distance_bd, 3600, 1); /* thresold, duration. */
 
 	robot.is_aligning = 0;
 
@@ -165,7 +165,6 @@ static void dump_error(void) {
 void cvra_cs_manage(__attribute__((unused)) void * dummy) {
 	/* Gestion de la position. */
 	rs_update(&robot.rs);
-
 	position_manage(&robot.pos);
 
 	/* Gestion de l'asservissement. */
