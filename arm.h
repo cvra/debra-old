@@ -11,68 +11,99 @@
 #include <pid.h>
 #include <blocking_detection_manager.h>
 #include <vect2.h>
-
+#include <polygon.h>
 
 #include "keyframe.h"
 
-/** Structure represantant tout ce qui est necessaire pour controller un bras.
- * @todo Checker le padding. */
+/** @brief A forbidden volume for the arm.
+ *
+ * This structure contains all the required informations to create forbidden
+ * volumes that the arms cannot go into. Those volumes are defined as right
+ * prisms who point in the z-axis direction.
+ */
 typedef struct {
-    vect2_cart offset_xy; /** Le vecteur de decalage entre le referentiel du robot et celui des bras. */
-    float offset_rotation; /** Rotation entre le référentiel du robot et des bras en radian. */
+    arm_coordinate_t coordinate_system; /**< Coordinate system of the obstacle. */
+    poly_t base; /**< The base polygon of the prism. */
+    int height;  /**< The height of the polygon, in mm. */
+} arm_obstacle_t;
+
+/** @brief The shoulder position.
+ *
+ * This enum is used to define a shoulder mode for the robot, as in "The shoulder
+ * should be in front of the hand or behind it ?".
+ */
+typedef enum {
+	SHOULDER_FRONT,
+	SHOULDER_BACK,
+} shoulder_mode_t;
+
+/** Struct holding everything that is related to a single arm.  
+ * \image html arm_change_coordinate.png "The offset_* parameters."
+ * @todo Are the blocking managers really useful ? To be tested.
+ * */
+typedef struct {
+    vect2_cart offset_xy; /**< Offset vector between center of robot and shoulder. */ 
+    float offset_rotation; /**< Rotation between the robot base and shoulder in rad. */
 
     /* Control systems */
-    struct cs z_axis_cs;    /** Control System de l'axe Z. */
-    struct cs shoulder_cs;  /** Control System de l'epaule. */
-    struct cs elbow_cs;     /** Control System du coude. */
+    struct cs z_axis_cs;    /**< Control System of Z axis. */
+    struct cs shoulder_cs;  /**< Control System of the soulder. */ 
+    struct cs elbow_cs;     /**< Control System of the elbow */
+ 
+    struct pid_filter z_axis_pid;   /**< Z axis PID */
+    struct pid_filter shoulder_pid; /**< Shoulder PID. */ 
+    struct pid_filter elbow_pid;    /**< Elbow PID. */
     
-    struct pid_filter z_axis_pid;   /** PID de l'axe Z. */
-    struct pid_filter shoulder_pid; /** PID de l'epaule. */
-    struct pid_filter elbow_pid;    /** PID du coude. */
-    
-    struct blocking_detection z_axis_bd;    /** Gestionnaire du blocage de l'axe Z. */
-    struct blocking_detection shoulder_bd;  /** Gestionnaire du blocage de l'epaule. */
-    struct blocking_detection elbow_bd;     /** Gestionnaire du blocage du coude. */ 
+    struct blocking_detection z_axis_bd;    /**< Z axis blocking detector. */
+    struct blocking_detection shoulder_bd;  /**< Shoulder blocking detector. */
+    struct blocking_detection elbow_bd;     /**< Elbow blocking detector. */ 
 
     /* Physical parameters. */
-    int32_t z_axis_imp_per_mm;      /** Nombre d'impulsions par mmm sur l'axe Z. */
-    int32_t shoulder_imp_per_rad;   /** Nombre d'impulsion par rad sur l'epaule. */
-    int32_t elbow_imp_per_rad;      /** Nombre d'impulsion par rad sur le coude. */
-    int length[2];                  /** Longueurs des 2 bras. length[0] est epaule <-> coude. */
+    int32_t z_axis_imp_per_mm;      /**< Z axis encoder impulsion per mm. */
+    int32_t shoulder_imp_per_rad;   /**< Shoulder impulsions per rad. */ 
+    int32_t elbow_imp_per_rad;      /**< Elbow impulsions per rad. */
+    float length[2];                  /**< Length of the 2 arms elements. */
 
     /* Path informations */
-    arm_trajectory_t trajectory;    /** La trajectoire que le bras est en train d'executer. */
-    int32_t last_loop;              /** Date du dernier passage dans la boucle, en us. */
+    arm_trajectory_t trajectory;    /**< Current trajectory of the arm. */ 
+    int32_t last_loop;              /**< Timestamp of the last loop execution, in us since boot. */
 
-    /* Debug informations */
-    char name[64]; /** Le nom du bras, par exemple "left" */
+    /* Obstacles */ 
+    arm_obstacle_t *obstacles;       /**< All the obstacles to watch for. */
+    int obstacle_count;              /**< The number of obstacles. */
+    shoulder_mode_t shoulder_mode;
 } arm_t;
 
-/** Init tous les regulateurs d'un bras donne et copie le nom du bras.
- * @param [in, out] arm Le bras a preparer.
- * @param [in] name Le nom du bras.
- * 
- * @note Le module arm garde sa propre copie du nom, il n'est donc pas necessaire
- * que l'appelant la garde en memoire.
- */
-void arm_init(arm_t *arm, const char *name);
-
-/** Connecte les entrees sortie d'un bras au regulateur.
- * @param [in,out] arm Le bras a regler.
- * @param [in] z_set_pwn La fonction a utiliser pour regler la PWM de l'axe Z.,
- * @param [in] z_set_pwm_param Le parametre qui sera passer a z_set_pwm avant la valeur.
- * @param [in] z_get_coder La fonction a utiliser pour recuperer la valeur du codeur de l'axe z.
- * @param [in] z_get_coder_param Le parametre qui sera passer a z_get_encoder.
- * @param [in] shoulder_set_pwn La fonction a utiliser pour regler la PWM de l'epaule.
- * @param [in] shoulder_set_pwm_param Le parametre qui sera passer a shoulder_set_pwm avant la valeur.
- * @param [in] shoulder_get_coder La fonction a utiliser pour recuperer la valeur du codeur de l'epaule.
- * @param [in] shoulder_get_coder_param Le parametre qui sera passer a shoulder_get_encoder.
- * @param [in] elbow_set_pwn La fonction a utiliser pour regler la PWM du coude.
- * @param [in] elbow_set_pwm_param Le parametre qui sera passer a elbow_set_pwm avant la valeur.
- * @param [in] elbow_get_coder La fonction a utiliser pour recuperer la valeur du codeur du coude.
- * @param [in] elbow_get_coder_param Le parametre qui sera passer a elbow_get_encoder.
+/** @brief Highlevel init of the arm.
  *
- * @note arm_init() doit etre appelle avant arm_connect_io().
+ * This function does all the high level init of the arm.
+ */
+void arm_highlevel_init(void);
+
+/** Init all the regulators of a given arm. 
+ * @param [in, out] arm The arm to initialize.
+ */
+void arm_init(arm_t *arm);
+
+/** Connects all the IO of an arm to the correct regulators. 
+ * @param [in,out] arm The arm to connect.
+ *
+ * @param [in] *z_set_pwm Z axis PWM setter. 
+ * @param [in] *z_set_pwm_param This will be passed as first argument to z_set_pwm. 
+ * @param [in] *z_get_coder Z axis encoder getter. 
+ * @param [in] *z_get_coder_param This will be passed as first argument to z_get_coder. 
+ *
+ * @param [in] *shoulder_set_pwm Shoulder axis PWM setter. 
+ * @param [in] *shoulder_set_pwm_param This will be passed as first argument to shoulder_set_pwm. 
+ * @param [in] *shoulder_get_coder Shoulder axis encoder getter. 
+ * @param [in] shoulder_get_coder_param This will be passed as first argument to shoulder_get_coder. 
+ *
+ * @param [in] *elbow_set_pwm Elbow axis PWM setter. 
+ * @param [in] *elbow_set_pwm_param This will be passed as first argument to elbow_set_pwm. 
+ * @param [in] *elbow_get_coder Elbow axis encoder getter. 
+ * @param [in] *elbow_get_coder_param This will be passed as first argument to elbow_get_coder.  
+ *
+ * @note arm_init() must be called before calling arm_connect_io. 
  */ 
 void arm_connect_io(arm_t *arm, 
                     void (*z_set_pwm)(void *, int32_t), void *z_set_pwm_param,
@@ -83,70 +114,113 @@ void arm_connect_io(arm_t *arm,
                     int32_t (*elbow_get_coder)(void *), void *elbow_get_coder_param);
 
 
-/** Execute la trajectoire d'un bras.
- * @param [in] arm Le bras a deplacer.
- * @param [in] traj Une structure arm_trajectory_t dont les keyframes sont remplies de facon a decrire
- * la trajectoire a effecture.
+/** Executes a trajectory on given arm.
  *
- * @note Les frames fournie sont supposees triees de la plus ancienne a la plus recente. 
+ * @param [in] arm The arm to move.
+ * @param [in] traj An arm_trajectory_t with appropriately filled keyframes.
  *
- * @note Le module bras garde sa propre copie de la trajectoire en cours. Il n'est pas necessaire pour la
- * fonction appellante de la garder en memoire.
+ * @note Keyframes are supposed sorted from oldest to newest.
  *
- * @warning Aucune verification sur la trajectoire n'est faite avant le deplacement. Par consequent des
- * mouvements violents peuvent arriver en cas de donnees mal preparees.
+ * @note The arm module keeps its own copy of the trajectory, so the caller
+ * can free its own copy.
+ *
+ * @warning No verification on the trajectory is done prior to moving. Therefore
+ * violent and uncontrolled movements can happen in case of bad prepared data.
  */
 void arm_execute_movement(arm_t *arm, arm_trajectory_t *traj); 
 
-/** Manage un bras.
+/** Manages an arm.
+ *
+ * This function takes care of an arm management. Its tasks are:
+ * - Computing current point, using a linear interpolation of the trajectory.
+ * - Computing inverse kinematics.
+ * - Send the computed values to the control system.
+ *
+ * @param [in] a A pointer to an arm_t structure which was cast to a void *
+ * to be compatible with the scheduler.
+ *
+ * @note This function should be called at a fixed rate, even if it integrates
+ * some lag compensation
  * 
- * Cette fonction doit etre appellee a frequence fixe. Elle est chargee de la regulation d'un bras.
- * Elle s'occupe alors de :
- * - Calculer le point actuel a utiliser, en faisant une interpolation lineaire des points de la
- *   trajectoire.
- * - Calculer la cinematique inverse pour ce point.
- * - Selectioner la solution du mouvement la plus adaptee.
- * - Regler la consigne du PID.
+ * @note This function doesn't do any regulation. You have to call arm_manage_cs
+ * for the regulation to happen.
  *
- * @param [in] a Un pointeur vers une structure de type arm_t. Il est caste en void * pour etre
- * compatible avec le module scheduler.
+ * @note If the current time is before the first point or after the last point,
+ * the trajectory is clamped.
  *
- * @note Cette fonction ne fait pas de regulation en elle meme. Il faut appeller arm_manage_cs() pour
- * que le regulateur soit pris en compte.
- *
- * @note Si le dernier point a ete depasse ou que le premier point n'a pas encore ete atteint, la
- * trajectoire est bornee sur les points de depart et d'arrivee.
- */  
+ * @todo Handle all the different modes for the trajectories (table, etc...).
+ * For now, only movement relatives to the arm base are supported.
+ */
 void arm_manage(void *a);
 
-/** Manage le regulateur d'un bras.
- * @param [in] a Un pointeur vers une structure de type arm_t. Il est caste en void * pour etre
- * compatible avec le module scheduler.
- * @note arm_manage() doit etre appelle de temps en temps afin de rafraichir les consignes du regulateur.
- * @note Si il n'y a aucune trajectoire chargee sur le bras, la regulation est desactivee. 
+/** Manages an arm regulation.
+ * @param [in] a A pointer to an arm_t structure, cast to void * for scheduler compatibility.
+ *
+ * @note arm_manage must be called to update control system consigns.
+ * @note If there is no trajectory on the arm, regulation is disabled.
  */
 void arm_manage_cs(void *a);
 
-/** Recupere la position d'un bras.
- * @param [in] arm Le bras dont on veut recuperer la position.
- * @param [out] x L'adresse ou sera stocke la position du bras en X.
- * @param [out] y L'adresse ou sera stocke la position du bras en Y.
- * @param [out] z L'adresse ou sera stocke la position du bras en Z.
+/** Tells if a trajectory is finished.
  *
- * @note Si un des pointeurs vaut NULL alors la coordonnee concernee ne sera pas recuperee. Ex :
- * arm_get_position(arm, &x, NULL, NULL); met la position en x dans la variable X et ne stocke pas les 
- * 2 autres.
+ * This function tells us if an arm's trajectory is finished.
+ *
+ * @param [in] arm The arm pointer.
+ * @returns 1 if the trajectory is finished, 0 otherwise.
+ */
+int arm_trajectory_finished(arm_t *arm);
+
+/** Gets an arm position.
+ * @param [in] arm The arm whom position we want.
+ * @param [out] x,y,z The adresses where to stock the position.
+ *
+ * @note If one of the pointer is NULL, then the corresponding coordinate will
+ * be discarded. Ex : arm_get_position(a, &x, NULL, NULL); will only get the X
+ * coordinate.
+ *
+ * @todo Implement it.
  */
 void arm_get_position(arm_t *arm, float *x, float *y, float *z);
 
-/** Efface la trajectoire d'un bras et donc coupe la regulation. 
+/** Deletes a trajectory and cutoffs the motors.
  *
- * @note Le bras ne s'arrete pas. Son regulateur est simplement coupe
- * et il continue sur son inertie. Cette fonction est donc prevue pour
- * les arrets de securite, comme par exemple a la fin du match ou avant
- * une collision.
+ * @param [in] arm The arm instance to shutdown.
  *
- * @note Renvoyer une trajectoire redemarre le bras automatiquement. */
+ * @warning This doesnt stop the arm, it justs cuts the power on the motors.
+ *
+ * @note calling arm_execute_movement power backs the arms.
+ */
 void arm_shutdown(arm_t *arm);
+
+/** @brief Switches coordinates system.
+ *
+ * This function takes a point in any coordinate system and translates it to the
+ * arm coordinate system for execution.
+ *
+ * \image html arm_change_coordinate.png "The different coordinate systems for the arms."
+ *
+ * @param [in] arm The instance of an arm.
+ * @param [in] x,y The point in any coordinate system.
+ * @param [in] system The coordinate system of the point.
+ * @param [out] arm_x, arm_y The point in arm coordinates.
+ */
+void arm_change_coordinate_system(arm_t *arm, float x, float y, 
+             arm_coordinate_t system, float *arm_x, float *arm_y);
+
+
+/** Creates an obstacle for the given arm.
+ *
+ * This function allocates memory for a given arm, adds it to its obstacle
+ * list and returns a pointer to it for configuration.
+ *
+ * @param [in] arm The arm which will get the obstacle.
+ * @param [in] points_count The number of point in the obstacle base polygon.
+ * @returns The allocated obstacle or null if less that 3 points are given.
+ */
+arm_obstacle_t *arm_create_obstacle(arm_t *arm, int points_count);
+
+/** Tells the arms to assume they are at a known position. */
+void arm_calibrate(void);
+
 
 #endif

@@ -17,6 +17,7 @@
 #include <uptime.h>
 #include <string.h>
 #include <cvra_servo.h>
+#include <cvra_beacon.h>
 
 #include <commandline.h>
 
@@ -28,8 +29,13 @@
 
 #include "hardware.h"
 #include "cvra_cs.h"
+#include "strat_utils.h"
 
 extern command_t commands_list[];
+
+void do_nothing(int32_t val) {
+
+}
 
 /** Logs an event.
  *
@@ -46,7 +52,6 @@ void mylog(struct error * e, ...) {
 	printf("\r\n");
 	va_end(ap);
 }
-
 /** Cette variable contient le temps maximum passe dans une boucle du scheduler.
  * Elle donne donc une assez bonne indication de l'occupation du CPU. */
 int32_t longest_scheduler_interrupt_time=0;
@@ -92,7 +97,7 @@ void main_timer_interrupt(__attribute__((unused)) void *param) {
  */ 
 int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) {
 
-	//robot.verbosity_level = ERROR_SEVERITY_NOTICE;
+	robot.verbosity_level = ERROR_SEVERITY_NOTICE;
     
 	/* Step 1 : Setup UART speed. Doit etre en premier car necessaire pour le log. */
 	//cvra_set_uart_speed(COMPC_BASE, 57600);
@@ -107,10 +112,9 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
     /**FIXME @todo Est-ce qu'on a encore besoin de fast_math_init() dans la version finale ? */
     fast_math_init();
 
+
 	/* Step 3 : Demare le scheduler pour le multitache. */
 	scheduler_init(); 
-
-    /* Puts the servomotors at neutra position. */
 
 #ifdef COMPILE_ON_ROBOT
 	/* Step 3 (suite) : Si on est sur le robot on inscrit le tick dans la table des interrupts. */
@@ -119,18 +123,24 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
 
 	/* Step 5 : Init la regulation et l'odometrie. */
 	cvra_cs_init();  // Desactive depuis la casse du moteur.
-	
-	/* Step 6 : Init les bras.  */
-    /** FIXME @todo Reimplementer l'init des bras avec la nouvelle API. */
+
+    arm_highlevel_init();    
+
+    strat_release_servo(LEFT);
+
+    strat_release_servo(RIGHT);
 
 	/* Step 7 : Init tout les parametres propres a une certaine edition ainsi que l'evitement d'obstacle. */
     /** FIXME @todo Init des parametres robot a refaire au propre. */
+   // cvra_beacon_init(&robot.beacon, AVOIDING_BASE, AVOIDING_IRQ);
+   //
+   
 
+    IOWR(AVOIDING_BASE, 3, 0xff);
 
     commandline_init(commands_list);
     for(;;) commandline_input_char(getchar());
-
-	
+    	
 	return 0;
 }
 

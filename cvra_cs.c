@@ -48,12 +48,13 @@ void cvra_cs_init(void) {
 	/*--------------------------------------------------------------------------*/
 	/*                                Motor                                     */
 	/*--------------------------------------------------------------------------*/
+#ifdef COMPILE_ON_ROBOT
     int i;
-
     for(i=0;i<6;i++) {
         cvra_dc_set_encoder(HEXMOTORCONTROLLER_BASE, i, 0);
         cvra_dc_set_pwm(HEXMOTORCONTROLLER_BASE, i, 0);
     }
+#endif
 
 	/****************************************************************************/
 	/*                             Robot system                                 */
@@ -64,10 +65,12 @@ void cvra_cs_init(void) {
 	/*************************f***************************************************/
 	/*                         Encoders & PWMs                                  */
 	/****************************************************************************/
+#ifdef COMPILE_ON_ROBOT
 	rs_set_left_pwm(&robot.rs, cvra_dc_set_pwm0, HEXMOTORCONTROLLER_BASE);
 	rs_set_right_pwm(&robot.rs, cvra_dc_set_pwm5, HEXMOTORCONTROLLER_BASE);
 	rs_set_left_ext_encoder(&robot.rs, cvra_dc_get_encoder0, HEXMOTORCONTROLLER_BASE, 0.999981348555308);
 	rs_set_right_ext_encoder(&robot.rs, cvra_dc_get_encoder5, HEXMOTORCONTROLLER_BASE, -1.00001865144469);
+#endif
 
 	/****************************************************************************/
 	/*                          Position manager                                */
@@ -84,7 +87,7 @@ void cvra_cs_init(void) {
 	/****************************************************************************/
 
 	pid_init(&robot.angle_pid);
-	pid_set_gains(&robot.angle_pid, 500, 0, 2000);
+	pid_set_gains(&robot.angle_pid, 400, 0, 2000);
 	pid_set_maximums(&robot.angle_pid, 0, 5000, 30000);
 	pid_set_out_shift(&robot.angle_pid, 10);
 
@@ -102,7 +105,7 @@ void cvra_cs_init(void) {
 	/****************************************************************************/
 
 	pid_init(&robot.distance_pid); /* Initialise le PID. */
-	pid_set_gains(&robot.distance_pid, 200, 0, 500); /* Regles les gains du PID. */
+	pid_set_gains(&robot.distance_pid, 200, 0, 1000); /* Regles les gains du PID. */
 	pid_set_maximums(&robot.distance_pid, 0, 5000, 30000); /* pas de max sur l'entree, integral limite a 5000, sortie limitee a 4095 (PWM 12 bits). */
 	pid_set_out_shift(&robot.distance_pid, 10); /* Divise la sortie par 1024. */
 
@@ -122,27 +125,29 @@ void cvra_cs_init(void) {
 	trajectory_init(&robot.traj, ASSERV_FREQUENCY);
 	trajectory_set_cs(&robot.traj, &robot.distance_cs, &robot.angle_cs);
 	trajectory_set_robot_params(&robot.traj, &robot.rs, &robot.pos);
-	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 700), speed_rd2imp(&robot.traj, 2*M_PI) ); /* distance, angle */
-	trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 1000), acc_rd2imp(&robot.traj, 4*M_PI));
+	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 600), speed_rd2imp(&robot.traj, 4.85) ); /* distance, angle */
+	trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 1600), acc_rd2imp(&robot.traj, 19.4));
 	/* distance window, angle window, angle start */
 	trajectory_set_windows(&robot.traj, 30., 1.0, 45.); // Prod
 
 	// Angle BDM
 	bd_init(&robot.angle_bd, &robot.angle_cs);
-	bd_set_thresholds(&robot.angle_bd, ROBOT_ANGLE_BD, 5);
+	bd_set_thresholds(&robot.angle_bd, 1500, 1); /* thresold, duration. */
 
 	// Distance BDM
 	bd_init(&robot.distance_bd, &robot.distance_cs);
-	bd_set_thresholds(&robot.distance_bd, ROBOT_DIST_BD, 5);
+	bd_set_thresholds(&robot.distance_bd, 3600, 1); /* thresold, duration. */
 
 	robot.is_aligning = 0;
 
 	// Initialisation déplacement:
 	position_set(&robot.pos, 0, 0, 0);
 
+
+
 	/* ajoute la regulation au multitache. ASSERV_FREQUENCY est dans cvra_cs.h */
 	scheduler_add_periodical_event_priority(cvra_cs_manage, NULL, (1000000
-			/ ASSERV_FREQUENCY) / SCHEDULER_UNIT, 130);
+			/ ASSERV_FREQUENCY) / SCHEDULER_UNIT, 131);
 }
 
 /** Logge l'erreur sur les differents regulateurs et l'affiche avec le temps. */
@@ -158,8 +163,6 @@ static void dump_error(void) {
 }
 
 void cvra_cs_manage(__attribute__((unused)) void * dummy) {
-	//NOTICE(ERROR_CS, __FUNCTION__);
-
 	/* Gestion de la position. */
 	rs_update(&robot.rs);
 	position_manage(&robot.pos);
@@ -177,7 +180,7 @@ void cvra_cs_manage(__attribute__((unused)) void * dummy) {
 		} else {
 			rs_set_distance(&robot.rs, 0); // Sets a distance angle PWM
 		}
-	}
+	} 
 
 	/* Affichage des courbes d'asservissement. */
 	dump_error();
@@ -185,4 +188,15 @@ void cvra_cs_manage(__attribute__((unused)) void * dummy) {
 	/* Gestion du blocage */
 	bd_manage(&robot.angle_bd);
 	bd_manage(&robot.distance_bd);
+
+
+/*	if(bd_get(&robot.distance_bd)) {
+		WARNING(0, "Error choc distance !");
+		trajectory_hardstop(&robot.traj);
+	}
+
+	if(bd_get(&robot.angle_bd)) {
+		WARNING(0, "Error choc angle !");
+		trajectory_hardstop(&robot.traj);
+	} */
 }

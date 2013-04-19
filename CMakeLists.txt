@@ -7,32 +7,32 @@ project(cvra-simu)
 set(CMAKE_BUILD_TYPE Debug)
 file(GLOB_RECURSE
     nastya_source
-    nastya/arm.c
-    nastya/armFunc.c
-    nastya/com_balises.c
-    nastya/comm_pc.c
-    nastya/cvra_cs.c
-    nastya/fifo.c
-    nastya/hardware.c
-    nastya/main.c
-    nastya/posFunction.c
-    nastya/strat.c
+	nastya/arm.c
+	nastya/armFunc.c
+	nastya/com_balises.c
+	nastya/comm_pc.c
+	nastya/cvra_cs.c
+	nastya/fifo.c
+	nastya/hardware.c
+	nastya/main.c
+	nastya/posFunction.c
+	nastya/strat.c
     nastya/move_queue.c
     nastya/commands.c
 )
 
 file(GLOB_RECURSE
-    debra_source
-    debra/arm.c
-    debra/armFunc.c
-    debra/com_balises.c
-    debra/comm_pc.c
-    debra/cvra_cs.c
-    debra/fifo.c
-    debra/hardware.c
-    debra/main.c
-    debra/posFunction.c
-    debra/strat.c
+	debra_source
+	debra/arm.c
+    debra/arm_interpolators.c
+	debra/com_balises.c
+	debra/comm_pc.c
+	debra/cvra_cs.c
+	debra/fifo.c
+	debra/hardware.c
+	debra/main.c
+	debra/posFunction.c
+	debra/strat.c
     debra/move_queue.c
     debra/commands.c
 )
@@ -75,25 +75,25 @@ include_directories(modules/cvra_servo)
 include_directories(modules/commandline)
 
 add_executable(
-    debra
-    ${debra_source}
+	debra
+	${debra_source}
     ${modules_source}
 )
 
 target_link_libraries(
-    debra
-    m
+	debra
+	m
 )
 
 add_executable(
-    nastya
-    ${nastya_source}
+	nastya
+	${nastya_source}
     ${modules_source}
 )
 
 target_link_libraries(
-    nastya
-    m
+	nastya
+	m
 )
 
 if(MSVC)

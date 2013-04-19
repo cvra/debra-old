@@ -1,10 +1,19 @@
+/** Registers all the command in a single file. */
 #include <aversive.h>
-#include "adresses.h"
-#include <commandline.h>
+#include <cvra_servo.h>
+#include <aversive/error.h>
+#include <2wheels/trajectory_manager_utils.h>
 #include <string.h>
-#include "cvra_cs.h"
 #include <uptime.h>
 #include <cvra_dc.h>
+#include <commandline.h>
+#include <cvra_pio.h>
+
+#include "adresses.h"
+#include "cvra_cs.h"
+#include "arm_interpolators.h"
+#include "arm.h"
+#include "strat_utils.h"
 
 /** Prints all args, then exits. */
 void test_func(int argc, char **argv) {
@@ -35,10 +44,71 @@ void cmd_reset(void) {
 
 /** starts the strategy. */
 void cmd_start() {
-    printf("Press a key to start the robot.\n");
-    getchar();
+    printf("Pull starter to start the robot.");
+    while((IORD(PIO_BASE, 0) & 0x1000) == 0);
     strat_begin();
     printf("Match done. Hope you enjoyed it !\n");
+}
+
+/** Positions the robot at the beginning of a match. */
+void cmd_autopos(int argc, char **argv) {
+    if(argc < 2) {
+        printf("usage : %s [blue|red]\n", argv[0]);
+        return;
+    }
+
+    if(!strcmp("red", argv[1])) strat.color = RED;
+    if(!strcmp("blue", argv[1])) strat.color = BLUE;
+
+    strat_autopos(230, 1255, COLOR_A(-10), 119);
+
+
+	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 600), speed_rd2imp(&robot.traj, 4.85) ); /* distance, angle */
+
+	bd_set_thresholds(&robot.distance_bd,  3600, 1);
+	bd_set_thresholds(&robot.angle_bd,  1500, 1);
+}
+
+
+/** Grabs a glass. */
+void cmd_grab(int argc, char **argv) {
+
+    arm_trajectory_t traj;
+    if(argc < 3)
+        return;
+
+    float start[3], end[3];
+
+    start[0] = (float)atoi(argv[1]);
+    start[1] = (float)atoi(argv[2]);
+    start[2] = 265.;
+
+    end[0] = (float)atoi(argv[1]);
+    end[1] = (float)atoi(argv[2]);
+    end[2] = 100.;
+
+    /* Descend. */
+    //arm_interpolator_linear_motion(&traj, start, end, 3.);
+    //arm_execute_movement(&robot.left_arm, &traj);
+    while(!arm_trajectory_finished(&robot.left_arm)); 
+
+//    cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, 400);
+
+    /* Remonte */
+//    arm_interpolator_linear_motion(&traj, end, start, 3.);
+    arm_execute_movement(&robot.left_arm, &traj);
+    while(!arm_trajectory_finished(&robot.left_arm)); 
+
+    /* Bouge vers l'arriere. */
+    end[0]  = 55;
+    end[1] = 55;
+    end[2] = 265.;
+
+ //   arm_interpolator_linear_motion(&traj, start, end, 3.);
+    arm_execute_movement(&robot.left_arm, &traj);
+    while(!arm_trajectory_finished(&robot.left_arm)); 
+//    cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, 0);
+
 }
 
 /** Writes to a specific PWM. */
@@ -108,6 +178,38 @@ void cmd_position(int argc, char **argv) {
     }
 }
 
+
+/** Show PID error. */
+void cmd_error_calibrate(int argc, char **argv) {
+	int32_t start_time = uptime_get();
+	int32_t time = uptime_get();
+	if(argc < 2) return;
+
+	trajectory_a_rel(&robot.traj, atof(argv[1]));
+
+	while(!trajectory_finished(&robot.traj)) {
+		time = uptime_get();
+		printf("%d;%d\n", (time-start_time)/1000, cs_get_error(&robot.angle_cs));
+		while(uptime_get() < time + 10000);
+	}
+}
+
+/** Setups arm shoulder mode. */
+void cmd_arm_shoulder_mode(int argc, char **argv) {
+    if(argc < 2)
+        return;
+
+    if(!strcmp("front", argv[1])) {
+        robot.left_arm.shoulder_mode = SHOULDER_FRONT;
+        robot.right_arm.shoulder_mode = SHOULDER_FRONT;
+    }
+    else {
+        robot.left_arm.shoulder_mode = SHOULDER_BACK;
+        robot.right_arm.shoulder_mode = SHOULDER_BACK;
+    }
+
+}
+
 /** Sets or gets right wheel gain. */
 void cmd_right_gain(int argc, char **argv) {
     /** @todo We should be more cautious when handling user input. */
@@ -134,17 +236,49 @@ void cmd_help(void) {
     printf("\n");
 }
 
-/** Dumps an error curve. */
-void cmd_error_dump(int argc, char **argv) {
-    if(argc < 2) return;
-    trajectory_d_rel(&robot.traj, atoi(argv[1]));
+/** Gets error. */
+void cmd_error_get(void) {
+    printf("angle %d\n distance %d\n", cs_get_error(&robot.angle_cs), cs_get_error(&robot.distance_cs));
+
+}
+
+/** Puts all PWM to max and measure the position. */
+void cmd_acceleration_calibrate(void) {
+    printf("Press a key to go. Regulation task should be off.\n");
+    getchar();
 
     int32_t start_time = uptime_get();
     int32_t time;
-    /* Print it for 5s. */
-    while((time = uptime_get()) < start_time + 5* 1000000) { 
+
+
+    rs_set_angle(&robot.rs, 475);
+
+    /* Print it for 1s. */
+    while((time = uptime_get()) < start_time + 2 * 1000000) {
         /* Dumps every 10 ms. */
-        printf("%d;%d\n", uptime_get() / 1000, cs_get_error(&robot.distance_cs));
+        printf("%d;%d\n", (uptime_get() - start_time) / 1000, rs_get_angle(&robot.rs));
+        while(uptime_get() < time + 10000);
+        rs_update(&robot.rs);
+    }
+
+    rs_set_angle(&robot.rs, 0);
+    return;
+}
+
+
+/** Dumps an error curve. */
+void cmd_error_dump(int argc, char **argv) {
+    if(argc < 2) return;
+    trajectory_a_rel(&robot.traj, atoi(argv[1]));
+
+    int32_t start_time = uptime_get();
+    int32_t time;
+    int32_t previous_pos = rs_get_angle(&robot.rs);
+    /* Print it for 5s. */
+    while((time = uptime_get()) < start_time + 3* 1000000) {
+        /* Dumps every 10 ms. */
+        printf("%d;%d;%d\n", (uptime_get() - start_time) / 1000, (int)robot.angle_qr.previous_var, (int)rs_get_ext_angle(&robot.rs)-previous_pos);
+        previous_pos = rs_get_ext_angle(&robot.rs);
         while(uptime_get() < time + 10000);
     }
 }
@@ -183,7 +317,7 @@ void cmd_goto(int argc, char **argv) {
         printf("Usage %s x y\n", argv[0]);
         return;
     }
-    trajectory_goto_forward_xy_abs(&robot.traj, atoi(argv[1]), atoi(argv[2]));
+    trajectory_goto_forward_xy_abs(&robot.traj, atoi(argv[1]), COLOR_Y(atoi(argv[2])));
 }
 
 /** Puts the robot to a certain mode. */
@@ -198,6 +332,36 @@ void cmd_mode(int argc, char **argv) {
     trajectory_hardstop(&robot.traj);
 }
 
+/** Places the arm. */
+void cmd_place_arms(int argc, char **argv) {
+    if(argc != 2) {
+        printf("usage : %s [blue|red]\n", argv[0]);
+        return;
+    }
+    arm_trajectory_t traj;
+    float x, y, z;
+
+    arm_get_position(&robot.left_arm, &x, &y, &z);
+    arm_trajectory_init(&traj); 
+    arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 9.); // duration not used 
+    arm_interpolator_append_point(&traj, 0, -200, 197, COORDINATE_ARM, 3.);
+    arm_interpolator_append_point(&traj, 200, 10, 197, COORDINATE_ARM, 3.);
+//    arm_interpolator_append_point(&traj, 200, 10, 60, COORDINATE_ARM, 3.);
+    arm_execute_movement(&robot.left_arm, &traj);
+
+
+    arm_get_position(&robot.right_arm, &x, &y, &z);
+    arm_trajectory_init(&traj); 
+    arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 9.); // duration not used 
+    arm_interpolator_append_point(&traj, 0, 200, 197, COORDINATE_ARM, 3.);
+    arm_interpolator_append_point(&traj, 200, 10, 197, COORDINATE_ARM, 3.);
+    arm_execute_movement(&robot.right_arm, &traj);
+
+    while(!arm_trajectory_finished(&robot.left_arm) && !arm_trajectory_finished(&robot.right_arm));
+
+
+}
+
 void cmd_demo(void) {
     trajectory_d_rel(&robot.traj, 1300);
     wait_traj_end(END_TRAJ);
@@ -209,29 +373,192 @@ void cmd_demo(void) {
     trajectory_a_rel(&robot.traj, -180);
 }
 
+void cmd_arm_pos() {
+    printf("Left : %.1f mm %.1f deg %.1f deg\n",  
+            (double)cvra_dc_get_encoder(ARMSMOTORCONTROLLER_BASE, 1) / robot.left_arm.z_axis_imp_per_mm,
+            (double)cvra_dc_get_encoder(ARMSMOTORCONTROLLER_BASE, 0) / robot.left_arm.shoulder_imp_per_rad * 180./M_PI ,
+            (double)cvra_dc_get_encoder(ARMSMOTORCONTROLLER_BASE, 2) / robot.left_arm.elbow_imp_per_rad * 180./M_PI);
 
-/** An array of all the commands. */
+    printf("right : %.1f mm %.1f deg %.1f deg\n",  
+            (double)cvra_dc_get_encoder(ARMSMOTORCONTROLLER_BASE, 4) / robot.right_arm.z_axis_imp_per_mm,
+            (double)cvra_dc_get_encoder(ARMSMOTORCONTROLLER_BASE, 5) / robot.right_arm.shoulder_imp_per_rad * 180./M_PI ,
+            (double)cvra_dc_get_encoder(ARMSMOTORCONTROLLER_BASE, 3) / robot.right_arm.elbow_imp_per_rad * 180./M_PI);
+    printf("\n");
+}
+
+void cmd_servo(int argc, char **argv) {
+    if(argc < 3) {
+        printf("usage : %s channel value\n", argv[0]);
+        return;
+    }
+
+    printf("Setting %d to %d\n", atoi(argv[1]), atoi(argv[2]));
+
+    IOWR(SERVOS_BASE, atoi(argv[1]), atoi(argv[2]));
+}
+
+void cmd_arm_goto(int argc, char **argv) {
+    arm_t *arm;
+    arm_trajectory_t traj;
+
+    float start[3], end[3];
+    if(argc < 6) {
+        printf("usage : %s [left#right] [arm#robot#table] x y z\n", argv[0]);
+        return;
+    }
+
+    if(!strcmp("left", argv[1]))
+        arm = &robot.left_arm;
+    else
+        arm = &robot.right_arm;
+
+
+    arm_get_position(arm, &start[0],&start[1],&start[2]);
+
+    printf("start %.1f %.1f %.1f\n", start[0], start[1],start[2]);
+
+    arm_coordinate_t system; 
+    if(!strcmp("arm", argv[2])) system = COORDINATE_ARM;
+    if(!strcmp("table", argv[2])) system = COORDINATE_TABLE;
+    if(!strcmp("robot", argv[2])) system = COORDINATE_ROBOT;
+
+    end[0] = (float)atoi(argv[3]);
+    end[1] = (float)atoi(argv[4]);
+    end[2] = (float)atoi(argv[5]);
+
+    arm_trajectory_init(&traj);
+    arm_interpolator_append_point(&traj, start[0], start[1], start[2], COORDINATE_ARM, 9.);
+    arm_interpolator_append_point(&traj, end[0], end[1], end[2], system, 9.);
+    arm_execute_movement(arm, &traj);
+
+    return;
+
+    int32_t time = uptime_get();
+    int32_t start_time = time;
+
+    while(uptime_get() < start_time + 2 * 1000000) {
+        time = uptime_get();
+        printf("%d;%d;%d;%d\n", (time-start_time)/1000, cs_get_filtered_feedback(&arm->z_axis_cs), cs_get_filtered_consign(&arm->z_axis_cs), cvra_dc_get_current(ARMSMOTORCONTROLLER_BASE, 1)); 
+        while(uptime_get() < time + 10000);
+    }
+
+}
+
+void cmd_arm_pid(int argc, char **argv) {
+    if(argc < 6) return;
+
+    arm_t *arm;
+    struct pid_filter *pid;
+    
+    if(!strcmp("left", argv[1])) arm = &robot.left_arm;
+    if(!strcmp("right", argv[1])) arm = &robot.right_arm;
+
+    if(!strcmp("shoulder", argv[2])) pid = &arm->shoulder_pid;
+    if(!strcmp("elbow", argv[2])) pid = &arm->elbow_pid;
+    if(!strcmp("z_axis", argv[2])) pid = &arm->z_axis_pid;
+
+    pid_set_gains(pid, atoi(argv[3]), atoi(argv[4]), atoi(argv[5]));
+
+    printf("Left arm :\n");
+    printf("Z axis : %d %d %d\n", 
+            pid_get_gain_P(&robot.left_arm.z_axis_pid),
+            pid_get_gain_I(&robot.left_arm.z_axis_pid), 
+            pid_get_gain_D(&robot.left_arm.z_axis_pid));
+    printf("Shoulder : %d %d %d\n", pid_get_gain_P(&robot.left_arm.shoulder_pid), 
+            pid_get_gain_I(&robot.left_arm.shoulder_pid), 
+            pid_get_gain_D(&robot.left_arm.z_axis_pid));
+    printf("Elbow : %d %d %d\n", pid_get_gain_P(&robot.left_arm.elbow_pid),
+            pid_get_gain_I(&robot.left_arm.shoulder_pid), 
+            pid_get_gain_D(&robot.left_arm.z_axis_pid));
+
+
+    printf("Right arm :\n");
+    printf("Z axis : %d %d %d\n", 
+            pid_get_gain_P(&robot.right_arm.z_axis_pid),
+            pid_get_gain_I(&robot.right_arm.z_axis_pid), 
+            pid_get_gain_D(&robot.right_arm.z_axis_pid));
+    printf("Shoulder : %d %d %d\n", pid_get_gain_P(&robot.right_arm.shoulder_pid),
+            pid_get_gain_I(&robot.right_arm.shoulder_pid), 
+            pid_get_gain_D(&robot.right_arm.z_axis_pid));
+    printf("Elbow : %d %d %d\n", pid_get_gain_P(&robot.right_arm.elbow_pid),
+            pid_get_gain_I(&robot.right_arm.shoulder_pid), 
+            pid_get_gain_D(&robot.right_arm.z_axis_pid));
+}
+
+void cmd_calibrate_arm() {
+    printf("Place the arms in position, then press a key\n");
+    getchar();
+
+    arm_calibrate();
+}
+
+void cmd_show_currents() {
+    int i=0;
+    for(i=0;i<6;i++)
+        printf("%d : %d\n", i, cvra_dc_get_current(ARMSMOTORCONTROLLER_BASE, i));
+
+}
+
+void cmd_pio_read(void) {
+    printf("starter : %d\n", (IORD(PIO_BASE, 0) & 0x1000) > 0);
+
+}
+
+void cmd_beacon(void) {
+    printf("==Beacon==\n");
+    printf("period = %u\n", (unsigned int)robot.beacon.period);
+    printf("firstedge = %u\n", (unsigned int)robot.beacon.firstedge);
+    printf("lastindex = %u\n", (unsigned int)robot.beacon.lastindex);
+    printf("nbedge = %d\n", (int)robot.beacon.nb_edges);
+
+/*    for(;;)
+        printf("angle : %d\n",(int)(robot.beacon.firstedge - robot.beacon.lastindex)/10000);  */
+
+
+    
+
+}
+
+
+
+/** An array of all the commands. Sort them by order of completion. */
 command_t commands_list[] = {
+
+//    COMMAND("acc_calibrate", cmd_acceleration_calibrate),
+    COMMAND("place_arms", cmd_place_arms),
     COMMAND("test_argv",test_func),
+    COMMAND("autopos", cmd_autopos),
     COMMAND("arm_shutdown",cmd_arm_shutdown),
+    COMMAND("arm_pid", cmd_arm_pid),
 //    COMMAND("reset", cmd_reset),
     COMMAND("start",cmd_start),
+    COMMAND("pio_read", cmd_pio_read),
+    COMMAND("beacon", cmd_beacon),
+    COMMAND("currents", cmd_show_currents),
     COMMAND("pid", cmd_pid), 
     COMMAND("pwm", cmd_pwm),
+    COMMAND("get_error", cmd_error_get),
+    COMMAND("choc", cmd_error_calibrate),
     COMMAND("encoders", cmd_encoders),
     COMMAND("position", cmd_position),
+    COMMAND("grab", cmd_grab),
+    COMMAND("shoulder_mode", cmd_arm_shoulder_mode),
     COMMAND("forward", cmd_forward),
+    COMMAND("servo", cmd_servo),
     COMMAND("correction", cmd_right_gain),
     COMMAND("error", cmd_error_dump),
     COMMAND("help", cmd_help),
     COMMAND("turn", cmd_turn),
     COMMAND("rs", cmd_rs),
     COMMAND("goto", cmd_goto),
+    COMMAND("arm_goto", cmd_arm_goto),
     COMMAND("demo", cmd_demo),
+    COMMAND("calibrate_arm", cmd_calibrate_arm),
     COMMAND("mode", cmd_mode),
+    COMMAND("arm_pos", cmd_arm_pos),
     COMMAND("none",NULL), /* must be last. */
 };
-
+ 
 
 
 
