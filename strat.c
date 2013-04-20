@@ -106,7 +106,7 @@ int strat_do_near_glasses(void) {
 
 
     trajectory_a_abs(&robot.traj, 190);
-    ret = wait_traj_end(TRAJ_FLAGS_STD);
+    ret = wait_traj_end(TRAJ_FLAGS_STD);    // TODO : necessary? the variable is not used later on...
 
 
     left_pump(1);
@@ -289,7 +289,7 @@ void strat_do_gifts(void *dummy) {
 
     for(i=0;i<4;i++) {
         trajectory_goto_backward_xy_abs(&robot.traj, strat.gifts[i].x, COLOR_Y(2000-250));
-        ret = wait_traj_end(TRAJ_FLAGS_STD);
+        ret = wait_traj_end(TRAJ_FLAGS_STD);        // TODO : is this line really necessary when a copy of it appears 4 lines below?
 
 
         trajectory_a_abs(&robot.traj, 180);
@@ -318,7 +318,7 @@ void strat_do_gifts(void *dummy) {
     /* start moving. */
     trajectory_goto_backward_xy_abs(&robot.traj, strat.gifts[3].x, COLOR_Y(2000-300));
 
-    while((ret = test_traj_end(TRAJ_FLAGS_STD)) == 0) {
+    while((ret = test_traj_end(TRAJ_FLAGS_STD)) == 0) {         // TODO : ret is affected a value that is never used
         for(i=1;i<4;i++) {
             /* XXX test if 200 is enough. */
             if(position_get_x_s16(&robot.pos) > strat.gifts[i].x - 200 && !strat.gifts[i].done) {
@@ -419,7 +419,7 @@ retrydrop:
 }
 
 void strat_begin(void) {
-    int ret;
+    int ret;                                // TODO : unused variable
     /* Starts the game timer. */
     strat.time = 0;
 
