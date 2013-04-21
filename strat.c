@@ -430,20 +430,19 @@ void strat_begin(void) {
     strat_set_objects();
 
     /* Do the two central glasses. */
-    strat_do_first_glasses();
-
+  /*  strat_do_first_glasses(); 
     strat_do_far_glasses();
     strat_do_near_glasses();
-    strat_drop();
+    strat_drop(); */
     
 
     strat_do_gifts(NULL);
 
-    strat_schedule_job(strat_do_gifts, NULL); 
+    /*strat_schedule_job(strat_do_gifts, NULL); 
     while(!strat_job_pool_is_empty()) {
         WARNING(0, "Doing job!");
         strat_do_job();
-    }
+    }*/
     
 
 

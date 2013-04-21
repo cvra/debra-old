@@ -60,55 +60,13 @@ void cmd_autopos(int argc, char **argv) {
     if(!strcmp("red", argv[1])) strat.color = RED;
     if(!strcmp("blue", argv[1])) strat.color = BLUE;
 
-    strat_autopos(230, 1255, COLOR_A(-10), 119);
+    strat_autopos(230, 1255, COLOR_A(0), 119);
 
 
 	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 600), speed_rd2imp(&robot.traj, 4.85) ); /* distance, angle */
 
 	bd_set_thresholds(&robot.distance_bd,  3600, 1);
 	bd_set_thresholds(&robot.angle_bd,  1500, 1);
-}
-
-
-/** Grabs a glass. */
-void cmd_grab(int argc, char **argv) {
-
-    arm_trajectory_t traj;
-    if(argc < 3)
-        return;
-
-    float start[3], end[3];
-
-    start[0] = (float)atoi(argv[1]);
-    start[1] = (float)atoi(argv[2]);
-    start[2] = 265.;
-
-    end[0] = (float)atoi(argv[1]);
-    end[1] = (float)atoi(argv[2]);
-    end[2] = 100.;
-
-    /* Descend. */
-    //arm_interpolator_linear_motion(&traj, start, end, 3.);
-    //arm_execute_movement(&robot.left_arm, &traj);
-    while(!arm_trajectory_finished(&robot.left_arm)); 
-
-//    cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, 400);
-
-    /* Remonte */
-//    arm_interpolator_linear_motion(&traj, end, start, 3.);
-    arm_execute_movement(&robot.left_arm, &traj);
-    while(!arm_trajectory_finished(&robot.left_arm)); 
-
-    /* Bouge vers l'arriere. */
-    end[0]  = 55;
-    end[1] = 55;
-    end[2] = 265.;
-
- //   arm_interpolator_linear_motion(&traj, start, end, 3.);
-    arm_execute_movement(&robot.left_arm, &traj);
-    while(!arm_trajectory_finished(&robot.left_arm)); 
-//    cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, 0);
-
 }
 
 /** Writes to a specific PWM. */
@@ -290,6 +248,10 @@ void cmd_forward(int argc, char **argv) {
         return;
     }
 
+
+
+    while((IORD(PIO_BASE, 0) & 0x1000) == 0);
+
     trajectory_d_rel(&robot.traj, atoi(argv[1])); 
 }
 
@@ -317,7 +279,12 @@ void cmd_goto(int argc, char **argv) {
         printf("Usage %s x y\n", argv[0]);
         return;
     }
-    trajectory_goto_forward_xy_abs(&robot.traj, atoi(argv[1]), COLOR_Y(atoi(argv[2])));
+
+
+    while((IORD(PIO_BASE, 0) & 0x1000) == 0);
+
+    position_set(&robot.pos, 0, 0, 0.);
+    trajectory_goto_forward_xy_abs(&robot.traj, 2600, 0);
 }
 
 /** Puts the robot to a certain mode. */
@@ -513,10 +480,35 @@ void cmd_beacon(void) {
 
 /*    for(;;)
         printf("angle : %d\n",(int)(robot.beacon.firstedge - robot.beacon.lastindex)/10000);  */
+}
+
+void cmd_wheel_calibrate(int argc, char **argv) {
+    int i;
+    if(argc == 1)
+        i = 1;
+    else
+        i = atoi(argv[1]);
 
 
-    
+	trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 160), acc_rd2imp(&robot.traj, 1.94));
 
+
+    while((IORD(PIO_BASE, 0) & 0x1000) == 0);
+    /*
+
+    while(i--) {
+        trajectory_d_rel(&robot.traj, 1200);
+        while(!trajectory_finished(&robot.traj));
+        trajectory_a_rel(&robot.traj, 180);
+        while(!trajectory_finished(&robot.traj));
+
+        trajectory_d_rel(&robot.traj, 1200);
+        while(!trajectory_finished(&robot.traj));
+        trajectory_a_rel(&robot.traj, -180);
+        while(!trajectory_finished(&robot.traj));
+    } */
+
+    trajectory_a_rel(&robot.traj, i*360);
 }
 
 
@@ -541,11 +533,11 @@ command_t commands_list[] = {
     COMMAND("choc", cmd_error_calibrate),
     COMMAND("encoders", cmd_encoders),
     COMMAND("position", cmd_position),
-    COMMAND("grab", cmd_grab),
     COMMAND("shoulder_mode", cmd_arm_shoulder_mode),
     COMMAND("forward", cmd_forward),
     COMMAND("servo", cmd_servo),
     COMMAND("correction", cmd_right_gain),
+    COMMAND("wheel_calibrate", cmd_wheel_calibrate),
     COMMAND("error", cmd_error_dump),
     COMMAND("help", cmd_help),
     COMMAND("turn", cmd_turn),
