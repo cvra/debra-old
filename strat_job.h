@@ -4,15 +4,8 @@
 #include "strat.h"
 #include <aversive/queue.h>
 
-/** Represents a single strategy job (tasks are for OS scheduling). */
-struct strat_job {
-    void (*f)(void *); /** The function to call. */
-    void (*param); /** The parameter that will be provided to f. */
-    SIMPLEQ_ENTRY(strat_job) next; /** The poinbter to the next task, should not be filled manually. */
-};
-
-/** Runs a single job from the task pool in a round robin fashion. */
-void strat_do_job(void);
+/** Run all the jobs from the pool, until the pool is empty. */
+void strat_do_jobs(void);
 
 /** Adds a job to the pool. */
 void strat_schedule_job(void (*f)(void *), void *param);
