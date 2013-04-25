@@ -508,7 +508,7 @@ void arm_calibrate(void) {
 
     
     /* Elbows. */
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 2, (M_PI * -156.36 / 180.) * robot.left_arm.elbow_imp_per_rad); 
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 3, (M_PI * 156.36 / 180.) * robot.right_arm.elbow_imp_per_rad); 
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 2, (M_PI * -160.62/ 180.) * robot.left_arm.elbow_imp_per_rad); 
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 3, (M_PI * 160.62/ 180.) * robot.right_arm.elbow_imp_per_rad); 
 
 }

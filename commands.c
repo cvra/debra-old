@@ -471,6 +471,16 @@ void cmd_pio_read(void) {
 
 }
 
+void cmd_pio_write(int argc, char **argv) {
+    if(argc != 2) return;
+    if(argv[1][0] == '1') {
+        IOWR(PIO_BASE, 0, 1 << 9);
+    }
+    else
+        IOWR(PIO_BASE, 0, 0x0000);
+
+}
+
 void cmd_beacon(void) {
     printf("==Beacon==\n");
     printf("period = %u\n", (unsigned int)robot.beacon.period);
@@ -522,6 +532,7 @@ command_t commands_list[] = {
     COMMAND("autopos", cmd_autopos),
     COMMAND("arm_shutdown",cmd_arm_shutdown),
     COMMAND("arm_pid", cmd_arm_pid),
+    COMMAND("electro", cmd_pio_write),
 //    COMMAND("reset", cmd_reset),
     COMMAND("start",cmd_start),
     COMMAND("pio_read", cmd_pio_read),

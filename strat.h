@@ -45,6 +45,20 @@ typedef struct {
     int last_try_time; /**< Last time we tried to do this gift, in s since match start. */
 } gift_t;
 
+/** Candle type. */
+enum candle_color_t {
+    CANDLE_OUR,
+    CANDLE_OPP,
+    CANDLE_WHITE,
+};
+
+/** A single candle on the cake. */
+typedef struct {
+    float angle;
+    int done;
+    enum candle_color_t color;
+} candle_t;
+
 /** This structure holds all the configuration data and state of the strategy. */
 struct strat_info {
     strat_color_t color;				/**< Color of our robot. */
@@ -63,6 +77,8 @@ struct strat_info {
      * \image html doc/gifts_position.png "Indexes of the gifts."
      */
     gift_t gifts[4];
+
+    candle_t candles[12];
 
     int time; /**< Time since the beginning of the match, in seconds. */
 

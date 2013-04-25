@@ -13,11 +13,6 @@
 struct strat_info strat;
 
 
-
-void strat_left_take_glass(int glass_index) {
-
-}
-
 /** Increments the match timer, called every second. */
 static void increment_timer(__attribute__((unused))void *data) {
     strat.time++;
@@ -105,7 +100,7 @@ int strat_do_near_glasses(void) {
         return ret;
 
 
-    trajectory_a_abs(&robot.traj, 190);
+    trajectory_a_abs(&robot.traj, 180);
     ret = wait_traj_end(TRAJ_FLAGS_STD);    // TODO : necessary? the variable is not used later on...
 
 
@@ -153,7 +148,7 @@ void strat_do_far_glasses(void) {
     if(!TRAJ_SUCCESS(ret))
         return ret;
 
-    trajectory_a_abs(&robot.traj, 190);
+    trajectory_a_abs(&robot.traj, 180);
     wait_traj_end(TRAJ_FLAGS_STD);
 
 
@@ -230,6 +225,37 @@ retry2:
     strat_close_servo(RIGHT);
 
     return END_TRAJ;
+}
+
+void strat_do_candles(void) {
+    int i;
+    int ret;
+    float robot_x, robot_y;
+    const float waypoint_radius = 650; // distance from center of cake to robot waypoints
+    // we do our candle first
+
+    robot_x = cos(strat.candles[10].angle) * (waypoint_radius + 200) + 1500;
+    robot_y = sin(strat.candles[10].angle) * (waypoint_radius + 200);
+
+    // replace with goto_avoid
+    trajectory_goto_backward_xy_abs(&robot.traj, robot_x, robot_y);
+    ret = wait_traj_end(TRAJ_FLAGS_STD);
+    if(!TRAJ_SUCCESS(ret))
+        return;
+
+
+    for(i=10;i>=0;i--) {
+        // we do the candles backward.
+        robot_x = cos(strat.candles[i].angle) * waypoint_radius + 1500;
+        robot_y = sin(strat.candles[i].angle) * waypoint_radius;
+
+        // replace with goto_avoid
+        trajectory_goto_backward_xy_abs(&robot.traj, robot_x, robot_y);
+        ret = wait_traj_end(TRAJ_FLAGS_STD);
+
+        // test moar waypoints
+    }
+
 }
 
 void strat_job_do_gift(void *param) {
@@ -381,6 +407,24 @@ void strat_set_objects(void) {
     strat.glasses[9].pos.x = 1950; strat.glasses[9].pos.y = (1300);
     strat.glasses[10].pos.x = 2100; strat.glasses[10].pos.y = (1550);
     strat.glasses[11].pos.x = 2100; strat.glasses[11].pos.y = (1050);
+
+    float alpha = 7.5;
+
+    int i;
+    for(i=0;i<12;i++) {
+        strat.candles[i].angle = alpha * 3.14 / 180.;
+        strat.candles[i].done = 0;
+        strat.candles[i].color = CANDLE_OPP;
+        alpha = alpha + 15.;
+    }
+
+    strat.candles[11].color = CANDLE_OUR;
+
+    /* XXX Change if we reach finals. */
+    strat.candles[4].color = CANDLE_WHITE;
+    strat.candles[5].color = CANDLE_WHITE;
+    strat.candles[6].color = CANDLE_WHITE;
+    strat.candles[7].color = CANDLE_WHITE;
 }
 
 int strat_drop(void) {
@@ -404,6 +448,8 @@ retrydrop:
 
     strat_open_servo(LEFT);
     strat_open_servo(RIGHT);
+    
+    strat_wait_ms(2000);
 
     trajectory_d_rel(&robot.traj, -300);
     ret = wait_traj_end(TRAJ_FLAGS_STD);
@@ -430,13 +476,13 @@ void strat_begin(void) {
     strat_set_objects();
 
     /* Do the two central glasses. */
-  /*  strat_do_first_glasses(); 
+    strat_do_first_glasses(); 
     strat_do_far_glasses();
     strat_do_near_glasses();
-    strat_drop(); */
+    strat_drop(); 
     
 
-    strat_do_gifts(NULL);
+//    strat_do_gifts(NULL);
 
     /*strat_schedule_job(strat_do_gifts, NULL); 
     while(!strat_job_pool_is_empty()) {

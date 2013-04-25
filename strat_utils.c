@@ -26,7 +26,7 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 	bd_reset(&robot.angle_bd);
 	robot.mode = BOARD_MODE_ANGLE_DISTANCE;
 
-    position_set(&robot.pos, epaisseurRobot, 0, 0);
+    position_set(&robot.pos, epaisseurRobot, 0, 0.59);
 
 	/* On se mets a la bonne position en x. */
 	trajectory_d_rel(&robot.traj, (double) (x - epaisseurRobot));
@@ -46,9 +46,11 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 
 	/* On reregle la position. */
     /* XXX ze + 100 is just for 2013. */
-	position_set(&robot.pos, position_get_x_s16(&robot.pos), COLOR_Y((epaisseurRobot+100)), COLOR_A(90));
+	position_set(&robot.pos, position_get_x_s16(&robot.pos), COLOR_Y((epaisseurRobot+100)), COLOR_A(90-.59));
 
 	/* On se met en place a la position demandee. */
+
+	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 300), speed_rd2imp(&robot.traj, 2.5) ); /* distance, angle */
 
 	trajectory_d_rel(&robot.traj, (double) (y - epaisseurRobot));
 	while(!trajectory_finished(&robot.traj));
