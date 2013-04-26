@@ -514,8 +514,8 @@ void cmd_wheel_calibrate(int argc, char **argv) {
 
     while((IORD(PIO_BASE, 0) & 0x1000) == 0);
     
-/*
-    while(i--) {
+
+/*    while(i--) {
         trajectory_d_rel(&robot.traj, 1200);
         while(!trajectory_finished(&robot.traj));
         trajectory_a_rel(&robot.traj, 180);
@@ -527,7 +527,7 @@ void cmd_wheel_calibrate(int argc, char **argv) {
         while(!trajectory_finished(&robot.traj));
     } 
 */
-//    trajectory_d_rel(&robot.traj, i * 1200);
+ //   trajectory_d_rel(&robot.traj, i * 1200);
     trajectory_a_rel(&robot.traj, i*360);
 }
 
