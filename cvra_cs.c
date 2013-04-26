@@ -68,8 +68,8 @@ void cvra_cs_init(void) {
 #ifdef COMPILE_ON_ROBOT
 	rs_set_left_pwm(&robot.rs, cvra_dc_set_pwm0, HEXMOTORCONTROLLER_BASE);
 	rs_set_right_pwm(&robot.rs, cvra_dc_set_pwm5, HEXMOTORCONTROLLER_BASE);
-	rs_set_left_ext_encoder(&robot.rs, cvra_dc_get_encoder0, HEXMOTORCONTROLLER_BASE, 0.999795586680693 *  1.00009613697688 * 1.00008495823774);
-	rs_set_right_ext_encoder(&robot.rs, cvra_dc_get_encoder5, HEXMOTORCONTROLLER_BASE, -1.00020441331931 * 0.999903863023121 * 0.999915041762258);
+	rs_set_left_ext_encoder(&robot.rs, cvra_dc_get_encoder0, HEXMOTORCONTROLLER_BASE, 0.99942582579035);
+	rs_set_right_ext_encoder(&robot.rs, cvra_dc_get_encoder5, HEXMOTORCONTROLLER_BASE, -1.00057417420965);
 #endif
 
 	/****************************************************************************/
@@ -80,7 +80,7 @@ void cvra_cs_init(void) {
 	/* Links the position manager to the robot system. */
 	position_set_related_robot_system(&robot.pos, &robot.rs);
 	position_set_physical_params(&robot.pos, 177.5538401394, // Distance between encoding wheels. // 276
-			162. * 1.002); // imp / mm  //
+			162. * 1200. / 1216); // imp / mm  //
 
 	/****************************************************************************/
 	/*                       Regulation de l'angle                              */
@@ -127,7 +127,9 @@ void cvra_cs_init(void) {
 	trajectory_set_robot_params(&robot.traj, &robot.rs, &robot.pos);
 	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 600), speed_rd2imp(&robot.traj, 4.85) ); /* distance, angle */
 	trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 1600), acc_rd2imp(&robot.traj, 19.4));
-	/* distance window, angle window, angle start */
+
+	
+    /* distance window, angle window, angle start */
 	trajectory_set_windows(&robot.traj, 30., 1.0, 45.); // Prod
 
 	// Angle BDM

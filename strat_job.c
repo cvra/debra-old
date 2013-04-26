@@ -3,7 +3,7 @@
 #include <aversive.h>
 
 struct strat_job {
-    void (*f)(void *);
+    int (*f)(void *);
     void *param;
     int active;
 };
@@ -33,10 +33,10 @@ void strat_do_jobs(void) {
     int i=0;
     while(!strat_job_pool_is_empty()) {
         if(jobs[i].active)
-            jobs[i].f(jobs[i].param);
-
-        jobs[i].active = 0;
-        active_count--;
+            if(jobs[i].f(jobs[i].param)==0) {
+                jobs[i].active = 0;
+                active_count--;
+            }
 
         i++;
         if(i>=job_count)

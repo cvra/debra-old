@@ -29,17 +29,17 @@ void left_arm_take_glass(int glass_index) {
 
     arm_interpolator_append_point(&traj, -28, -66, z, COORDINATE_ARM, 3.);
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
-                                        COLOR_Y(strat.glasses[glass_index].pos.y), 197, COORDINATE_TABLE, 2., 135, 155);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y), 197, COORDINATE_TABLE, 1., 135, 175);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
-                                        COLOR_Y(strat.glasses[glass_index].pos.y), 15, COORDINATE_TABLE, 2., 135, 155);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y-20), 15, COORDINATE_TABLE, 2., 135, 175);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x, 
-                                        COLOR_Y(strat.glasses[glass_index].pos.y), 15, COORDINATE_TABLE, 3., 135, 100);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y+20), 15, COORDINATE_TABLE, 2., 135, 100);
 
-    arm_interpolator_append_point(&traj, 150, -150, 210, COORDINATE_ARM, 3.);
-    arm_interpolator_append_point(&traj, -28, -66, 210, COORDINATE_ARM, 3.);
-    
+    arm_interpolator_append_point(&traj, 150, -150, 210, COORDINATE_ARM, 2.);
+    arm_interpolator_append_point(&traj, -28, -66, 210, COORDINATE_ARM, 2.);
+
 
     arm_execute_movement(&robot.left_arm, &traj);
 }
@@ -54,17 +54,17 @@ void right_arm_take_glass(int glass_index) {
 
     arm_interpolator_append_point(&traj, -28, 66, z, COORDINATE_ARM, 3.);
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
-                                        COLOR_Y(strat.glasses[glass_index].pos.y), 197, COORDINATE_TABLE, 2., 135, 155);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y), 197, COORDINATE_TABLE, 1., 135, 175);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
-                                        COLOR_Y(strat.glasses[glass_index].pos.y), 15, COORDINATE_TABLE, 2., 135, 155);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y+20), 15, COORDINATE_TABLE, 2., 135, 175);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x, 
-                                        COLOR_Y(strat.glasses[glass_index].pos.y), 15, COORDINATE_TABLE, 3., 135, 100);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y-20), 15, COORDINATE_TABLE, 2., 135, 100);
 
     
-    arm_interpolator_append_point(&traj, 150, 150, 210, COORDINATE_ARM, 3.);
-    arm_interpolator_append_point(&traj, -28, 66, 210, COORDINATE_ARM, 3.);
+    arm_interpolator_append_point(&traj, 150, 150, 210, COORDINATE_ARM, 2.);
+    arm_interpolator_append_point(&traj, -28, 66, 210, COORDINATE_ARM, 2.);
 
     arm_execute_movement(&robot.right_arm, &traj);
 }
@@ -234,27 +234,36 @@ void strat_do_candles(void) {
     const float waypoint_radius = 650; // distance from center of cake to robot waypoints
     // we do our candle first
 
-    robot_x = cos(strat.candles[10].angle) * (waypoint_radius + 200) + 1500;
-    robot_y = sin(strat.candles[10].angle) * (waypoint_radius + 200);
+    robot_x = cos(strat.candles[10].angle) * (waypoint_radius) + 1500;
+    robot_y = sin(strat.candles[10].angle) * (waypoint_radius);
 
     // replace with goto_avoid
-    trajectory_goto_backward_xy_abs(&robot.traj, robot_x, robot_y);
+    trajectory_goto_xy_abs(&robot.traj, robot_x, COLOR_Y(robot_y));
     ret = wait_traj_end(TRAJ_FLAGS_STD);
-    if(!TRAJ_SUCCESS(ret))
-        return;
+    trajectory_a_abs(&robot.traj, COLOR_A(DEG(strat.candles[10].angle) - 90)); // XXX check red
+    ret = wait_traj_end(TRAJ_FLAGS_STD);
+
+    trajectory_circle_rel(&robot.traj, 1500, COLOR_Y(0), waypoint_radius, 90, TRIGO | FORWARD);
+    while(position_get_x_s16(&robot.pos < 2000));
+    trajectory_stop(&robot.traj);
 
 
-    for(i=10;i>=0;i--) {
+/*    for(i=10;i>=1;i--) {
         // we do the candles backward.
         robot_x = cos(strat.candles[i].angle) * waypoint_radius + 1500;
         robot_y = sin(strat.candles[i].angle) * waypoint_radius;
 
         // replace with goto_avoid
-        trajectory_goto_backward_xy_abs(&robot.traj, robot_x, robot_y);
-        ret = wait_traj_end(TRAJ_FLAGS_STD);
+        trajectory_goto_backward_xy_abs(&robot.traj, robot_x, COLOR_Y(robot_y));
+        ret = wait_traj_end(END_TRAJ);
 
         // test moar waypoints
     }
+
+    ret = wait_traj_end(END_TRAJ);
+    */
+
+
 
 }
 
@@ -314,7 +323,7 @@ void strat_do_gifts(void *dummy) {
 
 
     for(i=0;i<4;i++) {
-        trajectory_goto_backward_xy_abs(&robot.traj, strat.gifts[i].x, COLOR_Y(2000-250));
+        trajectory_goto_backward_xy_abs(&robot.traj, strat.gifts[i].x+10, COLOR_Y(2000-250));
         ret = wait_traj_end(TRAJ_FLAGS_STD);        // TODO : is this line really necessary when a copy of it appears 4 lines below?
 
 
@@ -449,7 +458,7 @@ retrydrop:
     strat_open_servo(LEFT);
     strat_open_servo(RIGHT);
     
-    strat_wait_ms(2000);
+    strat_wait_ms(500);
 
     trajectory_d_rel(&robot.traj, -300);
     ret = wait_traj_end(TRAJ_FLAGS_STD);
@@ -462,6 +471,14 @@ retrydrop:
 
     robot.mode = BOARD_MODE_FREE;
 
+}
+
+void job1(void *dummy) {
+    static int i = 10;
+    if(i--)
+        return 1;
+
+    return 0;
 }
 
 void strat_begin(void) {
@@ -479,16 +496,17 @@ void strat_begin(void) {
     strat_do_first_glasses(); 
     strat_do_far_glasses();
     strat_do_near_glasses();
-    strat_drop(); 
+    strat_drop();  
     
 
 //    strat_do_gifts(NULL);
 
-    /*strat_schedule_job(strat_do_gifts, NULL); 
-    while(!strat_job_pool_is_empty()) {
-        WARNING(0, "Doing job!");
-        strat_do_job();
-    }*/
+    //strat_do_candles();
+
+
+//    strat_schedule_job(job1, NULL);
+
+    strat_do_jobs();
     
 
 

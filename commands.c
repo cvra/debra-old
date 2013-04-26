@@ -492,6 +492,15 @@ void cmd_beacon(void) {
         printf("angle : %d\n",(int)(robot.beacon.firstedge - robot.beacon.lastindex)/10000);  */
 }
 
+void cmd_circle(int argc, char **argv) {
+      trajectory_circle_rel(&robot.traj, 0, 400, 400, 90, atoi(argv[1]));  
+      getchar();
+      trajectory_hardstop(&robot.traj);
+
+
+
+}
+
 void cmd_wheel_calibrate(int argc, char **argv) {
     int i;
     if(argc == 1)
@@ -504,8 +513,8 @@ void cmd_wheel_calibrate(int argc, char **argv) {
 
 
     while((IORD(PIO_BASE, 0) & 0x1000) == 0);
-    /*
-
+    
+/*
     while(i--) {
         trajectory_d_rel(&robot.traj, 1200);
         while(!trajectory_finished(&robot.traj));
@@ -516,8 +525,9 @@ void cmd_wheel_calibrate(int argc, char **argv) {
         while(!trajectory_finished(&robot.traj));
         trajectory_a_rel(&robot.traj, -180);
         while(!trajectory_finished(&robot.traj));
-    } */
-
+    } 
+*/
+//    trajectory_d_rel(&robot.traj, i * 1200);
     trajectory_a_rel(&robot.traj, i*360);
 }
 
@@ -559,6 +569,7 @@ command_t commands_list[] = {
     COMMAND("calibrate_arm", cmd_calibrate_arm),
     COMMAND("mode", cmd_mode),
     COMMAND("arm_pos", cmd_arm_pos),
+    COMMAND("circle", cmd_circle),
     COMMAND("none",NULL), /* must be last. */
 };
  

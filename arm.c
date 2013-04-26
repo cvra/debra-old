@@ -119,10 +119,9 @@ void arm_init(arm_t *arm) {
     arm->length[0] = 135.5; /* mm */
     arm->length[1] = 136;
 
-    pid_set_gains(&arm->z_axis_pid, 1000, 0, 100);
-
-    pid_set_gains(&arm->elbow_pid, 10, 0, 0);
-    pid_set_gains(&arm->shoulder_pid, 10, 0, 0);
+    pid_set_gains(&arm->z_axis_pid, 3000, 0, 100);
+    pid_set_gains(&arm->elbow_pid, 30, 0, 0);
+    pid_set_gains(&arm->shoulder_pid, 30, 0, 0);
 
     arm->z_axis_imp_per_mm = 655*4;
     arm->shoulder_imp_per_rad = -77785;
@@ -186,6 +185,7 @@ void arm_manage(void *a) {
      * This allows us to mix different coordinate systems in a single trajectory. */
     float previous_frame_xy[2], next_frame_xy[2];
     float alpha, beta; /* The angles of the arms. */
+    float offset = 0;
 
     /* Lag compensation */
     int32_t compensated_date = 2*current_date - arm->last_loop;
@@ -255,11 +255,14 @@ void arm_manage(void *a) {
             position[2] += t * arm->trajectory.frames[i].position[2];
             length[0] += t * arm->trajectory.frames[i].length[0];
             length[1] += t * arm->trajectory.frames[i].length[1];
+            offset = (1. - t) * arm->trajectory.frames[i-1].angle_offset;
+            offset += t * arm->trajectory.frames[i].angle_offset; 
         }
 
 
         /* Computes the inverse cinematics and send the consign to the control systems. */
         if(compute_inverse_cinematics(arm, position[0], position[1], &alpha, &beta, length[0], length[1]) == 0) {
+            beta += offset;
             cs_set_consign(&arm->z_axis_cs, position[2] * arm->z_axis_imp_per_mm);
             cs_set_consign(&arm->shoulder_cs, alpha * arm->shoulder_imp_per_rad);
             cs_set_consign(&arm->elbow_cs, beta * arm->elbow_imp_per_rad);
@@ -499,8 +502,8 @@ int check_for_obstacle_collision(arm_t *arm, point_t p1, point_t p2, int z) {
 
 void arm_calibrate(void) {
     /* Z axis. */
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 1, 197.5 * robot.left_arm.z_axis_imp_per_mm);
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 4, 197.5 * robot.left_arm.z_axis_imp_per_mm);
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 1, 191.5 * robot.left_arm.z_axis_imp_per_mm);
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 4, 191.5 * robot.left_arm.z_axis_imp_per_mm);
 
     /* Shoulders. */
     cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 0, (M_PI * -55.42 / 180.) * robot.left_arm.shoulder_imp_per_rad); 
@@ -508,7 +511,7 @@ void arm_calibrate(void) {
 
     
     /* Elbows. */
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 2, (M_PI * -160.62/ 180.) * robot.left_arm.elbow_imp_per_rad); 
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 3, (M_PI * 160.62/ 180.) * robot.right_arm.elbow_imp_per_rad); 
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 2, (M_PI * -157.87 / 180.) * robot.left_arm.elbow_imp_per_rad); 
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 3, (M_PI * 157.87/ 180.) * robot.right_arm.elbow_imp_per_rad); 
 
 }
