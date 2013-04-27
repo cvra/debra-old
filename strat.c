@@ -29,13 +29,13 @@ void left_arm_take_glass(int glass_index) {
 
     arm_interpolator_append_point(&traj, -28, -66, z, COORDINATE_ARM, 3.);
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
-                                        COLOR_Y(strat.glasses[glass_index].pos.y), 197, COORDINATE_TABLE, 1., 135, 175);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y-40), 197, COORDINATE_TABLE, 1., 135, 155);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
-                                        COLOR_Y(strat.glasses[glass_index].pos.y-20), 15, COORDINATE_TABLE, 2., 135, 175);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y-40), 15, COORDINATE_TABLE, 2., 135, 155);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x, 
-                                        COLOR_Y(strat.glasses[glass_index].pos.y+20), 15, COORDINATE_TABLE, 2., 135, 100);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y+40), 15, COORDINATE_TABLE, 2., 135, 100);
 
     arm_interpolator_append_point(&traj, 150, -150, 210, COORDINATE_ARM, 2.);
     arm_interpolator_append_point(&traj, -28, -66, 210, COORDINATE_ARM, 2.);
@@ -54,13 +54,13 @@ void right_arm_take_glass(int glass_index) {
 
     arm_interpolator_append_point(&traj, -28, 66, z, COORDINATE_ARM, 3.);
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
-                                        COLOR_Y(strat.glasses[glass_index].pos.y), 197, COORDINATE_TABLE, 1., 135, 175);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y+40), 197, COORDINATE_TABLE, 1., 135, 155);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
-                                        COLOR_Y(strat.glasses[glass_index].pos.y+20), 15, COORDINATE_TABLE, 2., 135, 175);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y+40), 15, COORDINATE_TABLE, 2., 135, 155);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x, 
-                                        COLOR_Y(strat.glasses[glass_index].pos.y-20), 15, COORDINATE_TABLE, 2., 135, 100);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y-40), 15, COORDINATE_TABLE, 2., 135, 100);
 
     
     arm_interpolator_append_point(&traj, 150, 150, 210, COORDINATE_ARM, 2.);
@@ -219,10 +219,10 @@ retry2:
     }
 
 
-    trajectory_d_rel(&robot.traj, 100);
-    wait_traj_end(TRAJ_FLAGS_STD | END_OBSTACLE);
     strat_close_servo(LEFT);
     strat_close_servo(RIGHT);
+    trajectory_d_rel(&robot.traj, 100);
+    wait_traj_end(TRAJ_FLAGS_STD | END_OBSTACLE);
 
     return END_TRAJ;
 }
@@ -499,7 +499,7 @@ void strat_begin(void) {
     strat_drop();  
     
 
-//    strat_do_gifts(NULL);
+    strat_do_gifts(NULL);
 
     //strat_do_candles();
 

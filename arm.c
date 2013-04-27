@@ -262,7 +262,6 @@ void arm_manage(void *a) {
 
         /* Computes the inverse cinematics and send the consign to the control systems. */
         if(compute_inverse_cinematics(arm, position[0], position[1], &alpha, &beta, length[0], length[1]) == 0) {
-            beta += offset;
             cs_set_consign(&arm->z_axis_cs, position[2] * arm->z_axis_imp_per_mm);
             cs_set_consign(&arm->shoulder_cs, alpha * arm->shoulder_imp_per_rad);
             cs_set_consign(&arm->elbow_cs, beta * arm->elbow_imp_per_rad);
@@ -506,7 +505,7 @@ void arm_calibrate(void) {
     cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 4, 191.5 * robot.left_arm.z_axis_imp_per_mm);
 
     /* Shoulders. */
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 0, (M_PI * -55.42 / 180.) * robot.left_arm.shoulder_imp_per_rad); 
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 0, (M_PI * -53.92 / 180.) * robot.left_arm.shoulder_imp_per_rad); 
     cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 5, (M_PI * 55.42 / 180.) * robot.right_arm.shoulder_imp_per_rad); 
 
     
