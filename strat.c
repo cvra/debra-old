@@ -6,6 +6,7 @@
 #include <aversive/error.h>
 #include "arm.h"
 #include "arm_interpolators.h"
+#include <stdio.h>
 #include "strat_job.h"
 #include <cvra_beacon.h>
 #include "strat_utils.h"
@@ -219,9 +220,11 @@ retry2:
     }
 
 
+
+    trajectory_d_rel(&robot.traj, 100);
+    strat_wait_ms(50);
     strat_close_servo(LEFT);
     strat_close_servo(RIGHT);
-    trajectory_d_rel(&robot.traj, 100);
     wait_traj_end(TRAJ_FLAGS_STD | END_OBSTACLE);
 
     return END_TRAJ;
@@ -280,7 +283,7 @@ void strat_do_gifts(void *dummy) {
     arm_trajectory_t traj;
 
     const float height = 100; // height of attack
-    const float depth = 150; // the length to go out of the table
+    const float depth = 250; // the length to go out of the table
     int i;
 
 
@@ -304,8 +307,8 @@ void strat_do_gifts(void *dummy) {
         arm_interpolator_append_point(&traj, x, y+30, z, COORDINATE_ARM, .1); 
         arm_interpolator_append_point(&traj, 150, y+30, 197, COORDINATE_ARM, 1); 
     }
-    arm_interpolator_append_point_with_length(&traj, 100, 0, 197, COORDINATE_ARM, 1., 135, 115); 
-    arm_interpolator_append_point_with_length(&traj, 100, 0, height, COORDINATE_ARM, 1., 135, 115); 
+    arm_interpolator_append_point_with_length(&traj, 100, 10, 197, COORDINATE_ARM, 1., 135, 115); 
+    arm_interpolator_append_point_with_length(&traj, 100, 10, height, COORDINATE_ARM, 1., 135, 115); 
     arm_execute_movement(arm, &traj);
 
 
@@ -323,7 +326,9 @@ void strat_do_gifts(void *dummy) {
 
 
     for(i=0;i<4;i++) {
-        trajectory_goto_backward_xy_abs(&robot.traj, strat.gifts[i].x+10, COLOR_Y(2000-250));
+
+ //       while((IORD(PIO_BASE, 0) & 0x1000) !=0 );
+        trajectory_goto_backward_xy_abs(&robot.traj, strat.gifts[i].x-50, COLOR_Y(2000-230));
         ret = wait_traj_end(TRAJ_FLAGS_STD);        // TODO : is this line really necessary when a copy of it appears 4 lines below?
 
 
@@ -332,63 +337,28 @@ void strat_do_gifts(void *dummy) {
 
         arm_trajectory_init(&traj);
 
-        arm_interpolator_append_point_with_length(&traj, 100, 0, height, COORDINATE_ARM, 1., 135, 115); 
+        arm_interpolator_append_point_with_length(&traj, 95, 20, height, COORDINATE_ARM, 1., 135, 115); 
 
-        arm_interpolator_append_point_with_length(&traj, strat.gifts[i].x,
+        arm_interpolator_append_point_with_length(&traj, strat.gifts[i].x-25,
                 COLOR_Y(2000+depth), height, COORDINATE_TABLE, 1., 135, 115); 
-        arm_interpolator_append_point_with_length(&traj, 100, 0, height, COORDINATE_ARM, 1., 135, 115); 
+        arm_interpolator_append_point_with_length(&traj, 95, 20, height, COORDINATE_ARM, 1., 135, 115); 
 
         arm_execute_movement(arm, &traj);
 
         while(!arm_trajectory_finished(arm));
     }
 
-    return;
+//        while((IORD(PIO_BASE, 0) & 0x1000) !=0 );
 
-
-    /* We do the first gift without moving. */
     while(!arm_trajectory_finished(arm));
-    strat.gifts[0].done = 1;
+    printf("im goin home\n");
 
-    /* start moving. */
-    trajectory_goto_backward_xy_abs(&robot.traj, strat.gifts[3].x, COLOR_Y(2000-300));
+    trajectory_goto_forward_xy_abs(&robot.traj, 230, COLOR_Y(1355));
+    wait_traj_end(TRAJ_FLAGS_STD);
 
-    while((ret = test_traj_end(TRAJ_FLAGS_STD)) == 0) {         // TODO : ret is affected a value that is never used
-        for(i=1;i<4;i++) {
-            /* XXX test if 200 is enough. */
-            if(position_get_x_s16(&robot.pos) > strat.gifts[i].x - 200 && !strat.gifts[i].done) {
-                if(!arm_trajectory_finished(arm)) {
-                    ERROR(0, "Arm is moving too slowly !!");
-                    trajectory_stop(&robot.traj);
+    trajectory_a_abs(&robot.traj, 0);
 
-                    /* reschedule gifts because we will do them slower. */
-                    for(i=3;i>=0;i--) {
-                        if(!strat.gifts[i].done)
-                            strat_schedule_job(strat_job_do_gift, (void *)i);
-                    } 
-                    return;
-                }
-
-                arm_trajectory_init(&traj);
-                arm_interpolator_append_point(&traj, 150, 0, height, COORDINATE_ARM, .5);
-                arm_interpolator_append_point(&traj, strat.gifts[i].x, 
-                        COLOR_Y(2000+depth), height, COORDINATE_TABLE, .5); 
-                arm_interpolator_append_point(&traj, 150, 0, height, COORDINATE_ARM, .5); 
-                arm_execute_movement(arm, &traj);
-                strat.gifts[i].done = 1;
-            }
-        }
-    }
-
-
-    /* We schedule all the gifts that we haven't done yet for later. */
-    for(i=3;i>=0;i--) {
-        if(!strat.gifts[i].done)
-            strat_schedule_job(strat_job_do_gift, (void *)i);
-    } 
-
-    /* Wait for the arm to be complete. */
-    while(!arm_trajectory_finished(arm));
+    wait_traj_end(TRAJ_FLAGS_STD);
 }
 
 void strat_set_objects(void) {
@@ -442,7 +412,11 @@ int strat_drop(void) {
 
 
 retrydrop:
-    trajectory_goto_forward_xy_abs(&robot.traj, 300, COLOR_Y(1400));
+
+    trajectory_goto_forward_xy_abs(&robot.traj, 400, COLOR_Y(1400));
+    ret = wait_traj_end(TRAJ_FLAGS_NEAR);
+
+    trajectory_goto_forward_xy_abs(&robot.traj, 120, COLOR_Y(1400));
     ret = wait_traj_end(TRAJ_FLAGS_STD);
 
     if(!(TRAJ_SUCCESS(ret))) {
@@ -493,10 +467,10 @@ void strat_begin(void) {
     strat_set_objects();
 
     /* Do the two central glasses. */
-    strat_do_first_glasses(); 
+/*   strat_do_first_glasses(); 
     strat_do_far_glasses();
     strat_do_near_glasses();
-    strat_drop();  
+    strat_drop(); */
     
 
     strat_do_gifts(NULL);

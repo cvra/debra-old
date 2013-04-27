@@ -26,9 +26,9 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 	bd_reset(&robot.angle_bd);
 	robot.mode = BOARD_MODE_ANGLE_DISTANCE;
 
-    position_set(&robot.pos, epaisseurRobot, 0, 0.);
-    // XXX delete this
+    //position_set(&robot.pos, epaisseurRobot, 0, -1.1778+0.254);
 
+    position_set(&robot.pos, epaisseurRobot, 0, 0.);
 	/* On se mets a la bonne position en x. */
 	trajectory_d_rel(&robot.traj, (double) (x - epaisseurRobot));
 	while(!trajectory_finished(&robot.traj));
@@ -47,7 +47,9 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 
 	/* On reregle la position. */
     /* XXX ze + 100 is just for 2013. */
-	position_set(&robot.pos, position_get_x_s16(&robot.pos), COLOR_Y((epaisseurRobot+100)), COLOR_A(90));
+//	position_set(&robot.pos, position_get_x_s16(&robot.pos), COLOR_Y((epaisseurRobot+100)), COLOR_A(90));
+    robot.pos.pos_d.y = COLOR_Y(epaisseurRobot+100);
+    robot.pos.pos_s16.y = COLOR_Y(epaisseurRobot+100);
 
 	/* On se met en place a la position demandee. */
 
@@ -85,11 +87,14 @@ int test_traj_end(int why) {
 
     if((why & END_BLOCKING) && bd_get(&robot.distance_bd)) {
         trajectory_hardstop(&robot.traj);
+        WARNING(0, "Erreur choc distance !");
         return END_BLOCKING;
     }
 
     if((why & END_BLOCKING) && bd_get(&robot.angle_bd)) {
         trajectory_hardstop(&robot.traj);
+
+        WARNING(0, "Erreur choc angle !");
         return END_BLOCKING;
     } 
 

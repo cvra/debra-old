@@ -65,8 +65,8 @@ void cmd_autopos(int argc, char **argv) {
 
 	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 600), speed_rd2imp(&robot.traj, 4.85) ); /* distance, angle */
 
-	bd_set_thresholds(&robot.distance_bd,  3600, 1);
-	bd_set_thresholds(&robot.angle_bd,  1500, 1);
+	bd_set_thresholds(&robot.distance_bd,  7200, 1);
+	bd_set_thresholds(&robot.angle_bd,  3000, 1);
 }
 
 /** Writes to a specific PWM. */
@@ -282,9 +282,9 @@ void cmd_goto(int argc, char **argv) {
 
 
     while((IORD(PIO_BASE, 0) & 0x1000) == 0);
-
-    position_set(&robot.pos, 0, 0, 0.);
-    trajectory_goto_forward_xy_abs(&robot.traj, 2600, 0);
+    trajectory_goto_forward_xy_abs(&robot.traj, atoi(argv[1]), COLOR_Y(atoi(argv[2])));
+    while(!trajectory_finished(&robot.traj));
+    trajectory_a_abs(&robot.traj, 0);
 }
 
 /** Puts the robot to a certain mode. */
@@ -515,7 +515,7 @@ void cmd_wheel_calibrate(int argc, char **argv) {
     while((IORD(PIO_BASE, 0) & 0x1000) == 0);
     
 
-/*    while(i--) {
+    while(i--) {
         trajectory_d_rel(&robot.traj, 1200);
         while(!trajectory_finished(&robot.traj));
         trajectory_a_rel(&robot.traj, 180);
@@ -526,11 +526,10 @@ void cmd_wheel_calibrate(int argc, char **argv) {
         trajectory_a_rel(&robot.traj, -180);
         while(!trajectory_finished(&robot.traj));
     } 
-*/
- //   trajectory_d_rel(&robot.traj, i * 1200);
-    trajectory_a_rel(&robot.traj, i*360);
-}
 
+ //   trajectory_d_rel(&robot.traj, i * 1200);
+//    trajectory_a_rel(&robot.traj, i*360);
+}
 
 
 /** An array of all the commands. Sort them by order of completion. */
