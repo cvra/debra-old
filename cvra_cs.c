@@ -68,8 +68,8 @@ void cvra_cs_init(void) {
 #ifdef COMPILE_ON_ROBOT
 	rs_set_left_pwm(&robot.rs, cvra_dc_set_pwm0, HEXMOTORCONTROLLER_BASE);
 	rs_set_right_pwm(&robot.rs, cvra_dc_set_pwm5, HEXMOTORCONTROLLER_BASE);
-	rs_set_left_ext_encoder(&robot.rs, cvra_dc_get_encoder0, HEXMOTORCONTROLLER_BASE,1.00263362848842*1.00016639831626*0.999662708436156*0.999672912952771);
-	rs_set_right_ext_encoder(&robot.rs, cvra_dc_get_encoder5, HEXMOTORCONTROLLER_BASE,-0.997366371511582*0.999833601683741*1.00033729156384*1.00032708704723);
+	rs_set_left_ext_encoder(&robot.rs, cvra_dc_get_encoder0, HEXMOTORCONTROLLER_BASE,1.00104672);
+	rs_set_right_ext_encoder(&robot.rs, cvra_dc_get_encoder5, HEXMOTORCONTROLLER_BASE,-0.99895328);
 #endif
 
 	/****************************************************************************/
@@ -79,7 +79,7 @@ void cvra_cs_init(void) {
 	position_init(&robot.pos);
 	/* Links the position manager to the robot system. */
 	position_set_related_robot_system(&robot.pos, &robot.rs);
-	position_set_physical_params(&robot.pos,0.998637179808659*177.5538401394, // Distance between encoding wheels. // 276
+	position_set_physical_params(&robot.pos,177.08985901, // Distance between encoding wheels. // 276
 			162.); // imp / mm  //
 
 	/****************************************************************************/

@@ -7,6 +7,7 @@
 #include <uptime.h>
 #include <cvra_dc.h>
 #include <commandline.h>
+#include <fcntl.h>
 #include <cvra_pio.h>
 
 #include "adresses.h"
@@ -250,6 +251,9 @@ void cmd_forward(int argc, char **argv) {
 
 
 
+	trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 160), acc_rd2imp(&robot.traj, 1.94));
+	trajectory_set_speed(&robot.traj, 200, 200);
+
     while((IORD(PIO_BASE, 0) & 0x1000) == 0);
 
     trajectory_d_rel(&robot.traj, atoi(argv[1])); 
@@ -259,6 +263,26 @@ void cmd_forward(int argc, char **argv) {
 void cmd_turn(int argc, char **argv) {
     if(argc == 2)
         trajectory_a_rel(&robot.traj, atoi(argv[1]));
+
+}
+
+/** Test UART. */
+void cmd_test_uart(int argc, char **argv) {
+    int handle;
+    char path[20];
+
+    if(argc > 1) {
+        sprintf(path, "/dev/%s", argv[1]);
+        handle = open(path, O_RDWR | O_NONBLOCK);
+    }
+    else {
+        handle = open("/dev/bt1", O_RDWR | O_NONBLOCK);
+    }
+
+    for(;;) {
+        read(handle, path, 20);
+        printf("%s", path);
+    }
 
 }
 
@@ -496,39 +520,197 @@ void cmd_circle(int argc, char **argv) {
       trajectory_circle_rel(&robot.traj, 0, 400, 400, 90, atoi(argv[1]));  
       getchar();
       trajectory_hardstop(&robot.traj);
+}
 
+void cmd_calage_test(int argc, char **argv) {
+    int32_t start_angle;
 
+	bd_set_thresholds(&robot.distance_bd,  5000, 2);
+
+	trajectory_set_speed(&robot.traj, 100, 100);
+	robot.mode = BOARD_MODE_DISTANCE_ONLY;
+
+	// On recule jusqu'a  qu'on ait touche un mur
+	trajectory_d_rel(&robot.traj, (double) -2000);
+
+	while(!bd_get(&robot.distance_bd));
+	trajectory_hardstop(&robot.traj);
+	bd_reset(&robot.distance_bd);
+	bd_reset(&robot.angle_bd);
+	robot.mode = BOARD_MODE_ANGLE_DISTANCE;
+
+    start_angle = rs_get_angle(&robot.rs);
+
+	trajectory_d_rel(&robot.traj, 10);
+    while(!trajectory_finished(&robot.traj));
+
+    while((IORD(PIO_BASE, 0) & 0x1000) == 0);
+
+	robot.mode = BOARD_MODE_DISTANCE_ONLY;
+	// On recule jusqu'a  qu'on ait touche un mur
+	trajectory_d_rel(&robot.traj, (double) -2000);
+	while(!bd_get(&robot.distance_bd));
+	trajectory_hardstop(&robot.traj);
+	bd_reset(&robot.distance_bd);
+	bd_reset(&robot.angle_bd);
+
+    start_angle -= rs_get_angle(&robot.rs);
+    printf("delta [pulse] : %d\n", (int)start_angle);
+    printf("delta [deg] : %f\n", DEG(pos_imp2rd(&robot.traj, start_angle)));
+    printf("decalage sur 3m : %f\n", sin(pos_imp2rd(&robot.traj, start_angle)) * 3000);
 
 }
 
-void cmd_wheel_calibrate(int argc, char **argv) {
-    int i;
-    if(argc == 1)
-        i = 1;
+void cmd_angle_calibrate(int argc, char **argv) {
+    int32_t start_angle, delta_angle;
+    float factor;
+
+    int count; 
+    if(argc < 2)
+        count = 1;
     else
-        i = atoi(argv[1]);
+        count = atoi(argv[1]);
+
+
+	trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 160), acc_rd2imp(&robot.traj, 1.94));
+	trajectory_set_speed(&robot.traj, 200, 200);
+
+    while((IORD(PIO_BASE, 0) & 0x1000) == 0);
+
+
+	bd_set_thresholds(&robot.distance_bd,  5000, 2);
+
+	robot.mode = BOARD_MODE_DISTANCE_ONLY;
+	// On recule jusqu'a  qu'on ait touche un mur
+	trajectory_d_rel(&robot.traj, (double) -2000);
+	while(!bd_get(&robot.distance_bd));
+	trajectory_hardstop(&robot.traj);
+	bd_reset(&robot.distance_bd);
+	bd_reset(&robot.angle_bd);
+	robot.mode = BOARD_MODE_ANGLE_DISTANCE;
+    start_angle = rs_get_angle(&robot.rs);
+
+    trajectory_d_rel(&robot.traj, 100);
+    while(!trajectory_finished(&robot.traj));
+
+    trajectory_a_rel(&robot.traj, count*360);
+    while(!trajectory_finished(&robot.traj));
+
+
+    trajectory_d_rel(&robot.traj, -50);
+    while(!trajectory_finished(&robot.traj));
+
+	robot.mode = BOARD_MODE_DISTANCE_ONLY;
+	// On recule jusqu'a  qu'on ait touche un mur
+	trajectory_d_rel(&robot.traj, (double) -2000);
+	while(!bd_get(&robot.distance_bd));
+	trajectory_hardstop(&robot.traj);
+	bd_reset(&robot.distance_bd);
+	bd_reset(&robot.angle_bd);
+	robot.mode = BOARD_MODE_ANGLE_DISTANCE;
+
+    delta_angle = rs_get_angle(&robot.rs) - start_angle;
+    delta_angle -= pos_rd2imp(&robot.traj, RAD(360*count));
+
+    // if factor > 0, then the robot turns too much
+    factor = (float)delta_angle / (float)(pos_rd2imp(&robot.traj,RAD(360*count)));
+    factor = (1.+factor)*robot.pos.phys.track_mm;
+    
+    printf("delta [pulse] : %d\n", delta_angle); 
+    printf("delta [deg] : %.3f\n", DEG(pos_imp2rd(&robot.traj, delta_angle))); 
+    printf("Suggested track : %.8f [mm]\n", factor);
+    printf("Old track : %.8f [mm]\n", robot.pos.phys.track_mm);
+    printf("apply ? [Yn]\n");
+    if(getchar()=='n')
+        return;
+    robot.pos.phys.track_mm = factor;
+}
+
+void cmd_wheel_calibrate(int argc, char **argv) {
+    int32_t start_angle, start_distance;
+    int32_t delta_angle, delta_distance;
+    float factor, left_gain, right_gain;
+
+    int count; 
+    if(argc < 2)
+        count = 1;
+    else
+        count = atoi(argv[1]);
 
 
 	trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 160), acc_rd2imp(&robot.traj, 1.94));
 
-
     while((IORD(PIO_BASE, 0) & 0x1000) == 0);
     
+	bd_set_thresholds(&robot.distance_bd,  5000, 2);
+	trajectory_set_speed(&robot.traj, 200, 200);
 
-    while(i--) {
-        trajectory_d_rel(&robot.traj, 1200);
+	robot.mode = BOARD_MODE_DISTANCE_ONLY;
+	// On recule jusqu'a  qu'on ait touche un mur
+	trajectory_d_rel(&robot.traj, (double) -2000);
+	while(!bd_get(&robot.distance_bd));
+	trajectory_hardstop(&robot.traj);
+	bd_reset(&robot.distance_bd);
+	bd_reset(&robot.angle_bd);
+	robot.mode = BOARD_MODE_ANGLE_DISTANCE;
+
+    start_angle = rs_get_angle(&robot.rs);
+    start_distance = rs_get_distance(&robot.rs);
+
+
+    trajectory_d_rel(&robot.traj, 1200);
+    while(!trajectory_finished(&robot.traj));
+    trajectory_a_rel(&robot.traj, 180);
+    while(!trajectory_finished(&robot.traj)); 
+    trajectory_d_rel(&robot.traj, 1150);
+    while(!trajectory_finished(&robot.traj));
+    trajectory_a_rel(&robot.traj, -180);
+    while(!trajectory_finished(&robot.traj)); 
+
+    while(--count) {
+        trajectory_d_rel(&robot.traj, 1150);
         while(!trajectory_finished(&robot.traj));
         trajectory_a_rel(&robot.traj, 180);
-        while(!trajectory_finished(&robot.traj));
-
-        trajectory_d_rel(&robot.traj, 1200);
+        while(!trajectory_finished(&robot.traj)); 
+        trajectory_d_rel(&robot.traj, 1150);
         while(!trajectory_finished(&robot.traj));
         trajectory_a_rel(&robot.traj, -180);
-        while(!trajectory_finished(&robot.traj));
-    } 
+        while(!trajectory_finished(&robot.traj)); 
+    }
 
- //   trajectory_d_rel(&robot.traj, i * 1200);
-//    trajectory_a_rel(&robot.traj, i*360);
+
+    trajectory_d_rel(&robot.traj, -25);
+    while(!trajectory_finished(&robot.traj));
+
+
+	robot.mode = BOARD_MODE_DISTANCE_ONLY;
+	// On recule jusqu'a  qu'on ait touche un mur
+	trajectory_d_rel(&robot.traj, (double) -2000);
+	while(!bd_get(&robot.distance_bd));
+	trajectory_hardstop(&robot.traj);
+	bd_reset(&robot.distance_bd);
+	bd_reset(&robot.angle_bd);
+	robot.mode = BOARD_MODE_ANGLE_DISTANCE;
+
+    delta_angle = start_angle-rs_get_angle(&robot.rs);
+    delta_distance = start_distance-rs_get_distance(&robot.rs);
+
+    factor = (float)(delta_angle)/(float)(delta_distance);
+    left_gain = (1. + factor) * robot.rs.left_ext_gain;
+    right_gain = (1. - factor) * robot.rs.right_ext_gain;
+
+    printf("angle difference : %f\n", DEG(pos_imp2rd(&robot.traj, delta_angle)));
+    printf("suggested factors :\n");
+    printf("left : %.8f (old gain was %f)\n", left_gain, robot.rs.left_ext_gain);
+    printf("right : %.8f (old gain was %f)\n", right_gain, robot.rs.right_ext_gain);
+
+    printf("apply those ? [Yn]\n");
+    if(getchar()=='n')
+        return;
+
+
+	rs_set_left_ext_encoder(&robot.rs, cvra_dc_get_encoder0, HEXMOTORCONTROLLER_BASE,left_gain);
+	rs_set_right_ext_encoder(&robot.rs, cvra_dc_get_encoder5, HEXMOTORCONTROLLER_BASE,right_gain); 
 }
 
 
@@ -558,6 +740,7 @@ command_t commands_list[] = {
     COMMAND("servo", cmd_servo),
     COMMAND("correction", cmd_right_gain),
     COMMAND("wheel_calibrate", cmd_wheel_calibrate),
+    COMMAND("angle_calibrate", cmd_angle_calibrate),
     COMMAND("error", cmd_error_dump),
     COMMAND("help", cmd_help),
     COMMAND("turn", cmd_turn),
@@ -569,6 +752,8 @@ command_t commands_list[] = {
     COMMAND("mode", cmd_mode),
     COMMAND("arm_pos", cmd_arm_pos),
     COMMAND("circle", cmd_circle),
+    COMMAND("uart", cmd_test_uart),
+    COMMAND("calage", cmd_calage_test),
     COMMAND("none",NULL), /* must be last. */
 };
  
