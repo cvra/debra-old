@@ -742,12 +742,12 @@ void cmd_calibrate_cale(void) {
 
     trajectory_d_rel(&robot.traj, 50);
     while(!trajectory_finished(&robot.traj));
-//    trajectory_a_rel(&robot.traj, 180);
+   // trajectory_a_rel(&robot.traj, 180);
     while(!trajectory_finished(&robot.traj));
     
-    trajectory_goto_xy_abs(&robot.traj, 1200, 0);
+    trajectory_goto_xy_abs(&robot.traj, 2600, 0);
     while(!trajectory_finished(&robot.traj)); 
-    //trajectory_a_rel(&robot.traj, -180);
+  //  trajectory_a_rel(&robot.traj, -180);
 }
 
 

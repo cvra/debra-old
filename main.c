@@ -138,6 +138,11 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
 
     IOWR(AVOIDING_BASE, 3, 0xff);
 
+    if((IORD(PIO_BASE, 0) & 0xff) == 0) {
+        printf("Hey sac a pain, la commande c'est en option ?\n");
+        while((IORD(PIO_BASE, 0) & 0xff) == 0);
+        printf("Merci bien !\n");
+    }
     commandline_init(commands_list);
     for(;;) commandline_input_char(getchar());
     	
