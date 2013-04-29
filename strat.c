@@ -16,6 +16,7 @@ struct strat_info strat;
 
 /** Increments the match timer, called every second. */
 static void increment_timer(__attribute__((unused))void *data) {
+    printf("%d\n", strat.time);
     strat.time++;
 }
 
@@ -30,10 +31,10 @@ void left_arm_take_glass(int glass_index) {
 
     arm_interpolator_append_point(&traj, -28, -66, z, COORDINATE_ARM, 3.);
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
-                                        COLOR_Y(strat.glasses[glass_index].pos.y-40), 197, COORDINATE_TABLE, 1., 135, 155);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y-40), 197, COORDINATE_TABLE, 1., 135, 160);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
-                                        COLOR_Y(strat.glasses[glass_index].pos.y-40), 15, COORDINATE_TABLE, 2., 135, 155);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y-40), 15, COORDINATE_TABLE, 2., 135, 160);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x, 
                                         COLOR_Y(strat.glasses[glass_index].pos.y+40), 15, COORDINATE_TABLE, 2., 135, 100);
@@ -55,10 +56,10 @@ void right_arm_take_glass(int glass_index) {
 
     arm_interpolator_append_point(&traj, -28, 66, z, COORDINATE_ARM, 3.);
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
-                                        COLOR_Y(strat.glasses[glass_index].pos.y+40), 197, COORDINATE_TABLE, 1., 135, 155);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y+40), 197, COORDINATE_TABLE, 1., 135, 160);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
-                                        COLOR_Y(strat.glasses[glass_index].pos.y+40), 15, COORDINATE_TABLE, 2., 135, 155);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y+40), 15, COORDINATE_TABLE, 2., 135, 160);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x, 
                                         COLOR_Y(strat.glasses[glass_index].pos.y-40), 15, COORDINATE_TABLE, 2., 135, 100);
@@ -275,7 +276,7 @@ void strat_job_do_gift(void *param) {
     WARNING(0, "Doing gift %d from job pool.", gift_index); 
 }
 
-void strat_do_gifts(void *dummy) {
+int strat_do_gifts(void *dummy) {
     int ret;
     arm_t *arm;
     float x, y, z;
@@ -283,14 +284,16 @@ void strat_do_gifts(void *dummy) {
     arm_trajectory_t traj;
 
     const float height = 100; // height of attack
-    const float depth = 250; // the length to go out of the table
+    const float depth = 40; // the length to go out of the table
     int i;
 
 
-    if(strat.color == BLUE)
+    if(strat.color == RED)
         arm = &robot.left_arm;
     else
         arm = &robot.right_arm;
+
+    arm->shoulder_mode = SHOULDER_FRONT;
 
     for(i=0;i<4;i++)
         strat.gifts[i].last_try_time = strat.time;
@@ -300,65 +303,43 @@ void strat_do_gifts(void *dummy) {
     arm_trajectory_init(&traj); 
     arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 1.); // duration not used 
     if(strat.color == BLUE) {
-        arm_interpolator_append_point(&traj, x, y-30, z, COORDINATE_ARM, .2); 
-        arm_interpolator_append_point(&traj, 150, y-30, 197, COORDINATE_ARM, 1); 
+        arm_interpolator_append_point(&traj, x, y+30, z, COORDINATE_ARM, .2); 
+        arm_interpolator_append_point(&traj, 150, y+30, z, COORDINATE_ARM, 1); 
     }
     else {
-        arm_interpolator_append_point(&traj, x, y+30, z, COORDINATE_ARM, .1); 
-        arm_interpolator_append_point(&traj, 150, y+30, 197, COORDINATE_ARM, 1); 
+        arm_interpolator_append_point(&traj, x, y-30, z, COORDINATE_ARM, .1); 
+        arm_interpolator_append_point(&traj, 150, y-30, z, COORDINATE_ARM, 1); 
     }
-    arm_interpolator_append_point_with_length(&traj, 100, 10, 197, COORDINATE_ARM, 1., 135, 115); 
-    arm_interpolator_append_point_with_length(&traj, 100, 10, height, COORDINATE_ARM, 1., 135, 115); 
+    arm_interpolator_append_point_with_length(&traj, 100, 10, z, COORDINATE_ARM, 1., 135, 95); 
+    arm_interpolator_append_point_with_length(&traj, 100, 10, height, COORDINATE_ARM, 1., 135, 95); //XXX change for red
     arm_execute_movement(arm, &traj);
 
 
     while(!arm_trajectory_finished(arm));
 
-    
-/*
-    if(!TRAJ_SUCCESS(ret)) {
-        for(i=3;i>=0;i--) {
-            strat_schedule_job(strat_job_do_gift, (void *)i);
-        } 
-        return;
-    }
-    */
-
-
     for(i=0;i<4;i++) {
 
- //       while((IORD(PIO_BASE, 0) & 0x1000) !=0 );
-        trajectory_goto_backward_xy_abs(&robot.traj, strat.gifts[i].x-50, COLOR_Y(2000-230));
+        trajectory_goto_forward_xy_abs(&robot.traj, strat.gifts[i].x-50, COLOR_Y(2000-250));
         ret = wait_traj_end(TRAJ_FLAGS_STD);        // TODO : is this line really necessary when a copy of it appears 4 lines below?
 
-
-        trajectory_a_abs(&robot.traj, 180);
-        ret = wait_traj_end(TRAJ_FLAGS_STD);
+        if(i==0) {
+            trajectory_a_abs(&robot.traj, 0);
+            ret = wait_traj_end(TRAJ_FLAGS_STD);
+        }
 
         arm_trajectory_init(&traj);
 
-        arm_interpolator_append_point_with_length(&traj, 95, 20, height, COORDINATE_ARM, 1., 135, 115); 
-
+        arm_interpolator_append_point_with_length(&traj, 100, 10, height, COORDINATE_ARM, 1., 135, 95); 
         arm_interpolator_append_point_with_length(&traj, strat.gifts[i].x-25,
-                COLOR_Y(2000+depth), height, COORDINATE_TABLE, 1., 135, 115); 
-        arm_interpolator_append_point_with_length(&traj, 95, 20, height, COORDINATE_ARM, 1., 135, 115); 
+                COLOR_Y(2000+depth), height, COORDINATE_TABLE, 0.4, 135, 85); 
+        arm_interpolator_append_point_with_length(&traj, 100, 10, height, COORDINATE_ARM, 0.4, 135, 95); 
 
         arm_execute_movement(arm, &traj);
 
         while(!arm_trajectory_finished(arm));
     }
 
-//        while((IORD(PIO_BASE, 0) & 0x1000) !=0 );
-
-    while(!arm_trajectory_finished(arm));
-    printf("im goin home\n");
-
-    trajectory_goto_forward_xy_abs(&robot.traj, 230, COLOR_Y(1355));
-    wait_traj_end(TRAJ_FLAGS_STD);
-
-    trajectory_a_abs(&robot.traj, 0);
-
-    wait_traj_end(TRAJ_FLAGS_STD);
+    return 0;
 }
 
 void strat_set_objects(void) {
@@ -442,9 +423,8 @@ retrydrop:
 
     strat_release_servo(LEFT);
     strat_release_servo(RIGHT);
-
-    robot.mode = BOARD_MODE_FREE;
-
+    left_pump(0);
+    right_pump(0);
 }
 
 void job1(void *dummy) {
@@ -452,6 +432,21 @@ void job1(void *dummy) {
     if(i--)
         return 1;
 
+    return 0;
+}
+
+int strat_do_funny_action(void *dummy) {
+    if(strat.time < 60)
+        return 1;
+
+    printf("doing it, time = %d\n", strat.time);
+
+
+    robot.mode = BOARD_MODE_FREE;
+    IOWR(PIO_BASE, 0, 1 << 9);
+    right_pump(1);
+    strat_wait_ms(9000);
+    right_pump(0);
     return 0;
 }
 
@@ -467,30 +462,19 @@ void strat_begin(void) {
     strat_set_objects();
 
     /* Do the two central glasses. */
-/*   strat_do_first_glasses(); 
+    strat_do_first_glasses(); 
     strat_do_far_glasses();
     strat_do_near_glasses();
-    strat_drop(); */
+    strat_drop();
     
+    strat_schedule_job(strat_do_gifts, NULL);
 
-    strat_do_gifts(NULL);
-
-    //strat_do_candles();
-
-
-//    strat_schedule_job(job1, NULL);
+    strat_schedule_job(strat_do_funny_action, NULL);
 
     strat_do_jobs();
     
-
-
     left_pump(0);
     right_pump(0);
-
-    /* Pickup this shit. */
-/*    strat_do_far_glasses();
-    strat_do_near_glasses(); */
-
 }
 
 

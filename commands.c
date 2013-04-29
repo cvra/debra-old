@@ -16,6 +16,8 @@
 #include "arm.h"
 #include "strat_utils.h"
 
+static int calibration_done = 0;
+
 /** Prints all args, then exits. */
 void test_func(int argc, char **argv) {
     int i;
@@ -45,6 +47,11 @@ void cmd_reset(void) {
 
 /** starts the strategy. */
 void cmd_start() {
+    if(!calibration_done) {
+        printf("Niveau calibration des bras, ca se passe comment?\n");
+        return;
+    }
+
     printf("Pull starter to start the robot.");
     while((IORD(PIO_BASE, 0) & 0x1000) == 0);
     strat_begin();
@@ -249,8 +256,6 @@ void cmd_forward(int argc, char **argv) {
         return;
     }
 
-
-
 	trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 160), acc_rd2imp(&robot.traj, 1.94));
 	trajectory_set_speed(&robot.traj, 200, 200);
 
@@ -258,6 +263,7 @@ void cmd_forward(int argc, char **argv) {
 
     trajectory_d_rel(&robot.traj, atoi(argv[1])); 
 }
+
 
 /** Turns of a given angle. */
 void cmd_turn(int argc, char **argv) {
@@ -481,6 +487,7 @@ void cmd_calibrate_arm() {
     getchar();
 
     arm_calibrate();
+    calibration_done = 1;
 }
 
 void cmd_show_currents() {
@@ -491,7 +498,7 @@ void cmd_show_currents() {
 }
 
 void cmd_pio_read(void) {
-    printf("starter : %d\n", (IORD(PIO_BASE, 0) & 0x1000) > 0);
+    printf("pio : 0x%X\n", IORD(PIO_BASE, 0));
 
 }
 
@@ -714,6 +721,36 @@ void cmd_wheel_calibrate(int argc, char **argv) {
 }
 
 
+void cmd_calibrate_cale(void) {
+    trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 160), acc_rd2imp(&robot.traj, 1.94));
+
+    while((IORD(PIO_BASE, 0) & 0x1000) == 0);
+    
+	bd_set_thresholds(&robot.distance_bd,  5000, 2);
+	trajectory_set_speed(&robot.traj, 200, 200);
+
+	robot.mode = BOARD_MODE_DISTANCE_ONLY;
+	// On recule jusqu'a  qu'on ait touche un mur
+	trajectory_d_rel(&robot.traj, (double) -2000);
+	while(!bd_get(&robot.distance_bd));
+	trajectory_hardstop(&robot.traj);
+	bd_reset(&robot.distance_bd);
+	bd_reset(&robot.angle_bd);
+	robot.mode = BOARD_MODE_ANGLE_DISTANCE;
+
+    position_set(&robot.pos, 0., 0., 0.);
+
+    trajectory_d_rel(&robot.traj, 50);
+    while(!trajectory_finished(&robot.traj));
+//    trajectory_a_rel(&robot.traj, 180);
+    while(!trajectory_finished(&robot.traj));
+    
+    trajectory_goto_xy_abs(&robot.traj, 1200, 0);
+    while(!trajectory_finished(&robot.traj)); 
+    //trajectory_a_rel(&robot.traj, -180);
+}
+
+
 /** An array of all the commands. Sort them by order of completion. */
 command_t commands_list[] = {
 
@@ -749,6 +786,7 @@ command_t commands_list[] = {
     COMMAND("arm_goto", cmd_arm_goto),
     COMMAND("demo", cmd_demo),
     COMMAND("calibrate_arm", cmd_calibrate_arm),
+    COMMAND("cale", cmd_calibrate_cale),
     COMMAND("mode", cmd_mode),
     COMMAND("arm_pos", cmd_arm_pos),
     COMMAND("circle", cmd_circle),
