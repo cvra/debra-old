@@ -16,7 +16,6 @@ struct strat_info strat;
 
 /** Increments the match timer, called every second. */
 static void increment_timer(__attribute__((unused))void *data) {
-    printf("%d\n", strat.time);
     strat.time++;
 }
 
@@ -436,7 +435,7 @@ void job1(void *dummy) {
 }
 
 int strat_do_funny_action(void *dummy) {
-    if(strat.time < 60)
+    if(strat.time < 90)
         return 1;
 
     printf("doing it, time = %d\n", strat.time);
@@ -454,6 +453,9 @@ void strat_begin(void) {
     int ret;                                // TODO : unused variable
     /* Starts the game timer. */
     strat.time = 0;
+
+    // eteinds l'electrovanne
+    IOWR(PIO_BASE, 0, 0 << 9);
 
     cvra_beacon_init(&robot.beacon, AVOIDING_BASE, AVOIDING_IRQ);
     scheduler_add_periodical_event(increment_timer, NULL, 1000000/SCHEDULER_UNIT);
