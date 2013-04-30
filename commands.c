@@ -286,8 +286,10 @@ void cmd_test_uart(int argc, char **argv) {
     }
 
     for(;;) {
-        read(handle, path, 20);
-        printf("%s", path);
+        memset(path, 0, 20);
+        int i = read(handle, path, 20);
+        if(i)
+            printf("%s", path);
     }
 
 }

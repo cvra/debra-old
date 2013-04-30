@@ -230,44 +230,73 @@ retry2:
     return END_TRAJ;
 }
 
-void strat_do_candles(void) {
+int strat_do_candles(void) {
     int i;
     int ret;
     float robot_x, robot_y;
+
+    arm_t *arm;
+    float x, y, z;
+    arm_trajectory_t traj;
     const float waypoint_radius = 650; // distance from center of cake to robot waypoints
-    // we do our candle first
+
+    if(strat.color == BLUE)
+        arm = &robot.left_arm;
+    else
+        arm = &robot.right_arm;
+
 
     robot_x = cos(strat.candles[10].angle) * (waypoint_radius) + 1500;
     robot_y = sin(strat.candles[10].angle) * (waypoint_radius);
 
     // replace with goto_avoid
-    trajectory_goto_xy_abs(&robot.traj, robot_x, COLOR_Y(robot_y));
+    trajectory_goto_forward_xy_abs(&robot.traj, robot_x, COLOR_Y(1000));
+    ret = wait_traj_end(TRAJ_FLAGS_STD);
+
+    trajectory_goto_forward_xy_abs(&robot.traj, robot_x-150, COLOR_Y(robot_y));
+    ret = wait_traj_end(TRAJ_FLAGS_STD);
+
+    trajectory_goto_forward_xy_abs(&robot.traj, robot_x, COLOR_Y(robot_y));
     ret = wait_traj_end(TRAJ_FLAGS_STD);
     trajectory_a_abs(&robot.traj, COLOR_A(DEG(strat.candles[10].angle) - 90)); // XXX check red
     ret = wait_traj_end(TRAJ_FLAGS_STD);
 
-    trajectory_circle_rel(&robot.traj, 1500, COLOR_Y(0), waypoint_radius, 90, TRIGO | FORWARD);
-    while(position_get_x_s16(&robot.pos < 2000));
-    trajectory_stop(&robot.traj);
+    arm->shoulder_mode = SHOULDER_BACK;
 
-
-/*    for(i=10;i>=1;i--) {
-        // we do the candles backward.
+    // we do the candles backward.
+    for(i=10;i>=1;i-=2) {
         robot_x = cos(strat.candles[i].angle) * waypoint_radius + 1500;
         robot_y = sin(strat.candles[i].angle) * waypoint_radius;
 
         // replace with goto_avoid
-        trajectory_goto_backward_xy_abs(&robot.traj, robot_x, COLOR_Y(robot_y));
-        ret = wait_traj_end(END_TRAJ);
 
-        // test moar waypoints
+        if(i!=10) {
+            trajectory_goto_forward_xy_abs(&robot.traj, robot_x, COLOR_Y(robot_y));
+            ret = wait_traj_end(END_TRAJ);
+        }
+
+        arm_get_position(arm, &x, &y, &z);
+        arm_trajectory_init(&traj); 
+        arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 1.); // duration not used 
+
+        arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i+1].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i+1].angle) * 450), z, COORDINATE_TABLE, .5, 135, 95); 
+        arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i+1].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i+1].angle) * 450), 150, COORDINATE_TABLE, .5, 135, 95); 
+        arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i+1].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i+1].angle) * 450), z, COORDINATE_TABLE, .5, 135, 95); 
+
+        arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 450), z, COORDINATE_TABLE, .5, 135, 95); 
+        arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 450), 150, COORDINATE_TABLE, .5, 135, 95); 
+        arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 450), z, COORDINATE_TABLE, .5, 135, 95); 
+
+        if(i==2) {
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i-1].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i-1].angle) * 450), z, COORDINATE_TABLE, .5, 135, 95); 
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i-1].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i-1].angle) * 450), 150, COORDINATE_TABLE, .5, 135, 95); 
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i-1].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i-1].angle) * 450), z, COORDINATE_TABLE, .5, 135, 95); 
+        }
+        arm_execute_movement(arm, &traj);
+        while(!arm_trajectory_finished(arm));
+        arm_shutdown(arm);
     }
-
-    ret = wait_traj_end(END_TRAJ);
-    */
-
-
-
+    return 0;
 }
 
 void strat_job_do_gift(void *param) {
@@ -330,7 +359,7 @@ int strat_do_gifts(void *dummy) {
 
         arm_interpolator_append_point_with_length(&traj, 100, 10, height, COORDINATE_ARM, 1., 135, 95); 
         arm_interpolator_append_point_with_length(&traj, strat.gifts[i].x-25,
-                COLOR_Y(2000+depth), height, COORDINATE_TABLE, 0.4, 135, 85); 
+                COLOR_Y(2000+depth), height, COORDINATE_TABLE, 0.4, 135, 82); 
         arm_interpolator_append_point_with_length(&traj, 100, 10, height, COORDINATE_ARM, 0.4, 135, 95); 
 
         arm_execute_movement(arm, &traj);
@@ -470,7 +499,7 @@ void strat_begin(void) {
     strat_drop();
     
     strat_schedule_job(strat_do_gifts, NULL);
-
+    strat_schedule_job(strat_do_candles, NULL);
     strat_schedule_job(strat_do_funny_action, NULL);
 
     strat_do_jobs();
