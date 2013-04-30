@@ -161,14 +161,15 @@ void arm_execute_movement(arm_t *arm, arm_trajectory_t *traj) {
     /* Step 2 : Allocates requested memory for our copy of the trajectory. */
     arm->trajectory.frames = malloc(traj->frame_count * sizeof(arm_keyframe_t));
 
-    printf("frame cnt %d\n", traj->frame_count);
-
     if(arm->trajectory.frames == NULL)
         panic();
     
 
+    WARNING(0, "%d", arm->trajectory.frame_count);
     /* Step 3 : Copy the trajectory data. */
     arm->trajectory.frame_count = traj->frame_count;
+
+    WARNING(0, "%d", arm->trajectory.frame_count);
 
     memcpy(arm->trajectory.frames, traj->frames, sizeof(arm_keyframe_t) * traj->frame_count);
 } 
@@ -208,7 +209,6 @@ void arm_manage(void *a) {
         /* Are we past the last frame ? */
         else if(compensated_date > arm->trajectory.frames[arm->trajectory.frame_count-1].date) {
             int f = arm->trajectory.frame_count-1;
-            //printf("f = %d\n", f);
             arm_change_coordinate_system(arm, arm->trajectory.frames[f].position[0], arm->trajectory.frames[f].position[1],
                                          arm->trajectory.frames[f].coordinate_type, &position[0], &position[1]);
             position[2] = arm->trajectory.frames[f].position[2];
@@ -286,8 +286,6 @@ void arm_manage(void *a) {
 
 
 void arm_manage_cs(void *a) {
- //   static int i=0;
-//    if(i++%2000 == 0) NOTICE(0, "Science again bitch !!");
     arm_t *arm = (arm_t *)a;
 
     cs_manage(&arm->z_axis_cs);
@@ -403,7 +401,6 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
         chosen = p1;
     }
 
-    //printf("%d;%d;%d;%d;%d;%d\n", (int)x, (int)y, (int)p1.x, (int)p1.y, (int)p2.x, (int)p2.y);
 
     *alpha = atan2f(chosen.y, chosen.x);
     *beta = atan2f(y-chosen.y, x-chosen.x);
@@ -412,15 +409,12 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
 
     if(*beta < -M_PI) {
         *beta = 2*M_PI + *beta;
-        if(arm == &robot.left_arm) putchar('a');
     }
     
     if(*beta > M_PI) {
         *beta = -2*M_PI + *beta; 
-        if(arm == &robot.left_arm) putchar('b');
     }
 
-//    printf("%.1f;%.1f\n", *alpha*180./M_PI, *beta*180./M_PI);
 
     return 0;
 }

@@ -278,19 +278,28 @@ int strat_do_candles(void) {
         arm_trajectory_init(&traj); 
         arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 1.); // duration not used 
 
-        arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i+1].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i+1].angle) * 450), z, COORDINATE_TABLE, .5, 135, 95); 
-        arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i+1].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i+1].angle) * 450), 150, COORDINATE_TABLE, .5, 135, 95); 
-        arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i+1].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i+1].angle) * 450), z, COORDINATE_TABLE, .5, 135, 95); 
+        if(strat.candles[i+1].color == strat.color) {
+            WARNING("Doing candle %d", i+1);
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i+1].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i+1].angle) * 450), z, COORDINATE_TABLE, .5, 135, 95); 
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i+1].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i+1].angle) * 450), 150, COORDINATE_TABLE, .5, 135, 95); 
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i+1].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i+1].angle) * 450), z, COORDINATE_TABLE, .5, 135, 95); 
+        }
 
-        arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 450), z, COORDINATE_TABLE, .5, 135, 95); 
-        arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 450), 150, COORDINATE_TABLE, .5, 135, 95); 
-        arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 450), z, COORDINATE_TABLE, .5, 135, 95); 
+        if(strat.candles[i].color == strat.color) {
+            WARNING("Doing candle %d", i);
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 450), z, COORDINATE_TABLE, .3, 135, 95); 
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 450), 150, COORDINATE_TABLE, .5, 135, 95); 
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 450), z, COORDINATE_TABLE, .5, 135, 95); 
+        }
 
         if(i==2) {
-            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i-1].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i-1].angle) * 450), z, COORDINATE_TABLE, .5, 135, 95); 
-            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i-1].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i-1].angle) * 450), 150, COORDINATE_TABLE, .5, 135, 95); 
-            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i-1].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i-1].angle) * 450), z, COORDINATE_TABLE, .5, 135, 95); 
+            if(strat.candles[i-1].color == strat.color) {
+                arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i-1].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i-1].angle) * 450), z, COORDINATE_TABLE, .3, 135, 95); 
+                arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i-1].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i-1].angle) * 450), 150, COORDINATE_TABLE, .5, 135, 95); 
+                arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i-1].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i-1].angle) * 450), z, COORDINATE_TABLE, .5, 135, 95); 
+            }
         }
+
         arm_execute_movement(arm, &traj);
         while(!arm_trajectory_finished(arm));
         arm_shutdown(arm);
@@ -401,17 +410,22 @@ void strat_set_objects(void) {
     for(i=0;i<12;i++) {
         strat.candles[i].angle = alpha * 3.14 / 180.;
         strat.candles[i].done = 0;
-        strat.candles[i].color = CANDLE_OPP;
+        if(strat.color == RED)
+            strat.candles[i].color = BLUE;
+        else
+            strat.candles[i].color = RED;
+
+//        strat.candles[i].color = strat.color; // XXX
         alpha = alpha + 15.;
     }
 
-    strat.candles[11].color = CANDLE_OUR;
+    strat.candles[11].color = strat.color;
 
     /* XXX Change if we reach finals. */
-    strat.candles[4].color = CANDLE_WHITE;
-    strat.candles[5].color = CANDLE_WHITE;
-    strat.candles[6].color = CANDLE_WHITE;
-    strat.candles[7].color = CANDLE_WHITE;
+    strat.candles[4].color = strat.color;
+    strat.candles[5].color = strat.color;
+    strat.candles[6].color = strat.color;
+    strat.candles[7].color = strat.color;
 }
 
 int strat_drop(void) {

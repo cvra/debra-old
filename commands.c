@@ -74,7 +74,7 @@ void cmd_autopos(int argc, char **argv) {
 	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 600), speed_rd2imp(&robot.traj, 4.85) ); /* distance, angle */
 
 	bd_set_thresholds(&robot.distance_bd,  7200, 1);
-	bd_set_thresholds(&robot.angle_bd,  3000, 1);
+	bd_set_thresholds(&robot.angle_bd,  6000, 1);
 }
 
 /** Writes to a specific PWM. */

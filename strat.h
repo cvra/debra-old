@@ -45,18 +45,11 @@ typedef struct {
     int last_try_time; /**< Last time we tried to do this gift, in s since match start. */
 } gift_t;
 
-/** Candle type. */
-enum candle_color_t {
-    CANDLE_OUR,
-    CANDLE_OPP,
-    CANDLE_WHITE,
-};
-
 /** A single candle on the cake. */
 typedef struct {
     float angle;
     int done;
-    enum candle_color_t color;
+    strat_color_t color;
 } candle_t;
 
 /** This structure holds all the configuration data and state of the strategy. */
