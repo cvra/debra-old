@@ -80,7 +80,7 @@ struct strat_info {
 
     candle_t candles[12];
 
-    int time; /**< Time since the beginning of the match, in seconds. */
+    int time_start; /**< Time since the beginning of the match, in seconds. */
 
     /* Configuration flags. */
     /** =1 If we should take the 1st glass on the left side, 0 if we take it on the right.*/

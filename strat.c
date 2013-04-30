@@ -13,11 +13,10 @@
 
 struct strat_info strat;
 
-
-/** Increments the match timer, called every second. */
-static void increment_timer(__attribute__((unused))void *data) {
-    strat.time++;
+int strat_get_time(void) {
+    return (uptime_get() - strat.time_start) / 1000000;
 }
+
 
 void left_arm_take_glass(int glass_index) {
     arm_trajectory_t traj;
@@ -251,7 +250,7 @@ int strat_do_candles(void) {
 
     // replace with goto_avoid
     trajectory_goto_forward_xy_abs(&robot.traj, robot_x, COLOR_Y(1000));
-    ret = wait_traj_end(TRAJ_FLAGS_STD);
+    ret = wait_traj_end(TRAJ_FLAGS_NEAR);
 
     trajectory_goto_forward_xy_abs(&robot.traj, robot_x-150, COLOR_Y(robot_y));
     ret = wait_traj_end(TRAJ_FLAGS_STD);
@@ -323,8 +322,8 @@ int strat_do_gifts(void *dummy) {
 
     arm->shoulder_mode = SHOULDER_FRONT;
 
-    for(i=0;i<4;i++)
-        strat.gifts[i].last_try_time = strat.time;
+   // for(i=0;i<4;i++)
+    //    strat.gifts[i].last_try_time = strat.time;
 
     
     arm_get_position(arm, &x, &y, &z);
@@ -455,20 +454,11 @@ retrydrop:
     right_pump(0);
 }
 
-void job1(void *dummy) {
-    static int i = 10;
-    if(i--)
-        return 1;
-
-    return 0;
-}
 
 int strat_do_funny_action(void *dummy) {
-    if(strat.time < 90)
+
+    if(strat_get_time() < 90)
         return 1;
-
-    printf("doing it, time = %d\n", strat.time);
-
 
     robot.mode = BOARD_MODE_FREE;
     IOWR(PIO_BASE, 0, 1 << 9);
@@ -481,13 +471,12 @@ int strat_do_funny_action(void *dummy) {
 void strat_begin(void) {
     int ret;                                // TODO : unused variable
     /* Starts the game timer. */
-    strat.time = 0;
+    strat.time_start = uptime_get();
 
     // eteinds l'electrovanne
     IOWR(PIO_BASE, 0, 0 << 9);
 
     cvra_beacon_init(&robot.beacon, AVOIDING_BASE, AVOIDING_IRQ);
-    scheduler_add_periodical_event(increment_timer, NULL, 1000000/SCHEDULER_UNIT);
 
     /* Prepares the object DB. */
     strat_set_objects();

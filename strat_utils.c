@@ -100,10 +100,10 @@ int test_traj_end(int why) {
 
     /* XXX Implement END_OBSTACLE when we got our beacons. */
 
-    if((why & END_TIMER) && strat.time >= MATCH_TIME) {
+    /*if((why & END_TIMER) && strat_get_time() >= MATCH_TIME) {
         trajectory_hardstop(&robot.traj);
         return END_TIMER;
-    } 
+    } */
 
     return 0;	
 }

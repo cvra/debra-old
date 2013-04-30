@@ -133,7 +133,7 @@ void cvra_cs_init(void) {
 
 	// Angle BDM
 	bd_init(&robot.angle_bd, &robot.angle_cs);
-	bd_set_thresholds(&robot.angle_bd, 1500, 1); /* thresold, duration. */
+	bd_set_thresholds(&robot.angle_bd, 3000, 1); /* thresold, duration. */
 
 	// Distance BDM
 	bd_init(&robot.distance_bd, &robot.distance_cs);
