@@ -165,11 +165,9 @@ void arm_execute_movement(arm_t *arm, arm_trajectory_t *traj) {
         panic();
     
 
-    WARNING(0, "%d", arm->trajectory.frame_count);
     /* Step 3 : Copy the trajectory data. */
     arm->trajectory.frame_count = traj->frame_count;
 
-    WARNING(0, "%d", arm->trajectory.frame_count);
 
     memcpy(arm->trajectory.frames, traj->frames, sizeof(arm_keyframe_t) * traj->frame_count);
 } 
@@ -328,7 +326,7 @@ int arm_trajectory_finished(arm_t *arm) {
 void arm_shutdown(arm_t *arm) {
     if(arm->trajectory.frame_count != 0) {
         free(arm->trajectory.frames);
-        arm->trajectory.frames = 0;
+        arm->trajectory.frame_count = 0;
     }
 }
 

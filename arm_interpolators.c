@@ -50,8 +50,12 @@ void arm_interpolator_append_point(arm_trajectory_t *traj, const float x, const 
                                    arm_coordinate_t system, const float duration) {
 
     if(traj->frame_count == 0) {
+        putchar('a');
         traj->frame_count = 1;
         traj->frames = malloc(sizeof(arm_keyframe_t));
+        if(traj->frames == NULL)
+            panic();
+
         traj->frames[0].position[0] = x;
         traj->frames[0].position[1] = y;
         traj->frames[0].position[2] = z;
@@ -66,8 +70,13 @@ void arm_interpolator_append_point(arm_trajectory_t *traj, const float x, const 
 
     }
     else {
+
+        putchar('b');
         traj->frame_count += 1;
         traj->frames = realloc(traj->frames, traj->frame_count*sizeof(arm_keyframe_t));
+
+        if(traj->frames == NULL)
+            panic();
 
         traj->frames[traj->frame_count-1].position[0] = x; 
         traj->frames[traj->frame_count-1].position[1] = y; 
