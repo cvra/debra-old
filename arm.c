@@ -493,8 +493,8 @@ int check_for_obstacle_collision(arm_t *arm, point_t p1, point_t p2, int z) {
 
 void arm_calibrate(void) {
     /* Z axis. */
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 1, 191.5 * robot.left_arm.z_axis_imp_per_mm);
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 4, 191.5 * robot.left_arm.z_axis_imp_per_mm);
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 1, 183 * robot.left_arm.z_axis_imp_per_mm);
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 4, 183 * robot.left_arm.z_axis_imp_per_mm);
 
     /* Shoulders. */
     cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 0, (M_PI * -53.92 / 180.) * robot.left_arm.shoulder_imp_per_rad); 

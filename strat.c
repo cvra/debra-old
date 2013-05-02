@@ -37,8 +37,8 @@ void left_arm_take_glass(int glass_index) {
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x, 
                                         COLOR_Y(strat.glasses[glass_index].pos.y+40), 17, COORDINATE_TABLE, 2., 135, 100);
 
-    arm_interpolator_append_point(&traj, 150, -150, 210, COORDINATE_ARM, 2.);
-    arm_interpolator_append_point(&traj, -28, -66, 210, COORDINATE_ARM, 2.);
+    arm_interpolator_append_point(&traj, 150, -150, 202, COORDINATE_ARM, 2.);
+    arm_interpolator_append_point(&traj, -28, -66, 202, COORDINATE_ARM, 2.);
 
 
     arm_execute_movement(&robot.left_arm, &traj);
@@ -63,8 +63,8 @@ void right_arm_take_glass(int glass_index) {
                                         COLOR_Y(strat.glasses[glass_index].pos.y-40), 17, COORDINATE_TABLE, 2., 135, 100);
 
     
-    arm_interpolator_append_point(&traj, 150, 150, 210, COORDINATE_ARM, 2.);
-    arm_interpolator_append_point(&traj, -28, 66, 210, COORDINATE_ARM, 2.);
+    arm_interpolator_append_point(&traj, 150, 150, 202, COORDINATE_ARM, 2.);
+    arm_interpolator_append_point(&traj, -28, 66, 202, COORDINATE_ARM, 2.);
 
     arm_execute_movement(&robot.right_arm, &traj);
 }
@@ -278,10 +278,11 @@ int strat_do_candles(void) {
         arm_trajectory_init(&traj); 
         arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 1.); // duration not used 
 
-        if(1 || strat.candles[i].color == strat.color) {
+        if(strat.candles[i].color == strat.color) {
             arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 450), z, COORDINATE_TABLE, .3, 135, 95); 
             arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 450), 140., COORDINATE_TABLE, .5, 135, 95); 
             arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 450), z, COORDINATE_TABLE, .5, 135, 95); 
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 500 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 500), z, COORDINATE_TABLE, .2, 135, 95); 
 
             arm_execute_movement(arm, &traj);
             while(!arm_trajectory_finished(arm));
@@ -320,7 +321,7 @@ int strat_do_gift(void *param) {
 
 
     // XXX strat avoid
-    trajectory_goto_forward_xy_abs(&robot.traj, strat.gifts[gift_index].x-50, COLOR_Y(2000-250));
+    trajectory_goto_forward_xy_abs(&robot.traj, strat.gifts[gift_index].x-50, COLOR_Y(2000-260));
     ret = wait_traj_end(TRAJ_FLAGS_STD);        // TODO : is this line really necessary when a copy of it appears 4 lines below?
 
     trajectory_a_abs(&robot.traj, 0);
@@ -384,7 +385,7 @@ int strat_do_gifts(void *dummy) {
 
     for(i=0;i<4;i++) {
 
-        trajectory_goto_forward_xy_abs(&robot.traj, strat.gifts[i].x-50, COLOR_Y(2000-250));
+        trajectory_goto_forward_xy_abs(&robot.traj, strat.gifts[i].x-50, COLOR_Y(2000-260));
         ret = wait_traj_end(TRAJ_FLAGS_STD);        // TODO : is this line really necessary when a copy of it appears 4 lines below?
 
         if(i==2)
@@ -456,18 +457,16 @@ void strat_set_objects(void) {
         else
             strat.candles[i].color = RED;
 
-//        strat.candles[i].color = strat.color; // XXX
         alpha = alpha + 15.;
     }
 
     strat.candles[11].color = strat.color;
 
     /* XXX Change if we reach finals. */
-    /*strat.candles[4].color = strat.color;
+    strat.candles[4].color = strat.color;
     strat.candles[5].color = strat.color;
     strat.candles[6].color = strat.color;
-    strat.candles[7].color = strat.color;
-    */
+    strat.candles[7].color = strat.color; 
 }
 
 int strat_drop(void) {
