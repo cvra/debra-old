@@ -28,11 +28,14 @@
 #include <aversive/error.h>
 #include <general_errors.h>
 
+// UART are in an another avalon io clock domain
+#define UART_FREQ PIO_FREQ  
+
 void cvra_set_uart_speed(int32_t *uart_adress, int baudrate) {
 #ifdef COMPILE_ON_ROBOT
     int32_t divisor;
         /* Formule tiree du Embedded IP User Guide page 7-4 */
-        divisor = (int32_t)(((float)ALT_CPU_FREQ/(float)baudrate) + 0.5);
+        divisor = (int32_t)(((float)UART_FREQ/(float)baudrate) + 0.5);
         IOWR(uart_adress, 0x04, divisor); // ecrit le diviseur dans le bon registre
 #endif
     DEBUG(E_UART, "Changed UART speed to %d at adress %p\n", baudrate, uart_adress);
