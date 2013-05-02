@@ -9,11 +9,13 @@
 #include <commandline.h>
 #include <fcntl.h>
 #include <cvra_pio.h>
+#include <stdio.h>
 
 #include "adresses.h"
 #include "cvra_cs.h"
 #include "arm_interpolators.h"
 #include "arm.h"
+#include "hardware.h"
 #include "strat_utils.h"
 
 static int calibration_done = 0;
@@ -274,24 +276,26 @@ void cmd_turn(int argc, char **argv) {
 
 /** Test UART. */
 void cmd_test_uart(int argc, char **argv) {
-    int handle;
     char path[20];
-
-    if(argc > 1) {
-        sprintf(path, "/dev/%s", argv[1]);
-        handle = open(path, O_RDWR | O_NONBLOCK);
-    }
-    else {
-        handle = open("/dev/bt1", O_RDWR | O_NONBLOCK);
-    }
-
-    for(;;) {
-        memset(path, 0, 20);
-        int i = read(handle, path, 20);
-        if(i)
-            printf("%s", path);
+    FILE *file;
+    if (argc < 2) return;
+    sprintf(path, "/dev/%s", argv[1]);
+    printf("Trying to open %s...", path);
+    file = fopen(path, "r");
+    if(file == NULL) {
+        printf("[KO]\n");
+        return;
     }
 
+    cvra_set_uart_speed(COMBT1_BASE, 9600);
+
+    printf("[OK]\n");
+
+    char data[256];
+    fgets(data, 256, file); 
+
+    printf("%s\n", data);
+    fclose(file);
 }
 
 /** Reads the robot_system state. */
