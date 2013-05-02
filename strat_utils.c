@@ -80,10 +80,30 @@ int test_traj_end(int why) {
     }
 
     /* TODO when rouven has fixed this fucking beacon. */
-    /*if((why & END_OBSTACLE) && robot.beacon.nb_edges != 0) {
-        trajectory_hardstop(&robot.traj);
-        return END_OBSTACLE;
-    }*/
+    if((why & END_OBSTACLE)) {
+        int i;
+        for(i=0;i<robot.beacon.nb_beacon;i++) {
+            /* Going forward. */
+            if(robot.beacon.beacon[i].distance < 60) { /*cm*/
+                if(robot.distance_qr.previous_var > 0) {
+                    if(robot.beacon.beacon[i].direction > -45 && robot.beacon.beacon[i].direction < 45) {
+                        trajectory_hardstop(&robot.traj);
+                        strat_wait_ms(500);
+                        bd_reset(&robot.angle_bd);
+                        return END_OBSTACLE;
+                    }
+                }
+                else if(robot.distance_qr.previous_var < 0) {
+                    if(robot.beacon.beacon[i].direction < -45 || robot.beacon.beacon[i].direction > 45) {
+                        trajectory_hardstop(&robot.traj);
+                        strat_wait_ms(500);
+                        bd_reset(&robot.distance_bd);
+                        return END_OBSTACLE;
+                    }
+                }
+            }
+        }
+    }
 
     if((why & END_BLOCKING) && bd_get(&robot.distance_bd)) {
         trajectory_hardstop(&robot.traj);
@@ -98,8 +118,6 @@ int test_traj_end(int why) {
         return END_BLOCKING;
     } 
 
-    /* XXX Implement END_OBSTACLE when we got our beacons. */
-
     /*if((why & END_TIMER) && strat_get_time() >= MATCH_TIME) {
         trajectory_hardstop(&robot.traj);
         return END_TIMER;
@@ -108,12 +126,13 @@ int test_traj_end(int why) {
     return 0;	
 }
 
-int wait_traj_end(int why) {
+int wait_traj_end_debug(int why, char *file, int line) {
     int ret;
-    /* Here we could easily insert debugging facilities. */
     do {
         ret = test_traj_end(why);
     } while(ret==0); 
+
+//    WARNING(0, "%s:%d got %d", file, line, ret);
 
     return ret;
 }

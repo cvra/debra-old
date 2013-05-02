@@ -520,9 +520,17 @@ void cmd_pio_write(int argc, char **argv) {
 
 void cmd_beacon(void) {
     int i;
-    for(i=0;i<robot.beacon.nb_beacon;i++) {
-        printf("Opp %d angle = %.1f distance = %.1f\n", i, robot.beacon.beacon[i].direction, 
-                robot.beacon.beacon[i].distance); 
+    int32_t start_time = uptime_get();
+
+    while(uptime_get() - start_time < 30000000) {
+        if(robot.beacon.nb_beacon != 0) {
+            trajectory_a_rel(&robot.traj, robot.beacon.beacon[0].direction);
+        }
+
+        for(i=0;i<robot.beacon.nb_beacon;i++) {
+            printf("Opp %d angle = %.1f distance = %.1f\n", i, robot.beacon.beacon[i].direction, 
+                    robot.beacon.beacon[i].distance); 
+        }
     }
 }
 

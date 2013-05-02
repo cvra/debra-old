@@ -16,7 +16,7 @@
 #define TRAJ_SUCCESS(f) ((f) & (END_TRAJ|END_NEAR))
 
 /** Flags for "standard" trajectories. */
-#define TRAJ_FLAGS_STD (END_TRAJ|END_BLOCKING|END_TIMER|END_ERROR)
+#define TRAJ_FLAGS_STD (END_TRAJ|END_BLOCKING|END_TIMER|END_ERROR | END_OBSTACLE)
 
 /** Flags for "cutting corners" trajectories.
  * @warning Using this type of trajectories lowers the precision.
@@ -31,6 +31,8 @@ typedef enum {BLUE, RED} strat_color_t;
 
 /** Computes the symmetrical angle depending on color. */
 #define COLOR_A(x) (strat.color == RED ? (x) : -(x))
+
+#define wait_traj_end(why) wait_traj_end_debug(why, __FILE__, __LINE__)
 
 enum servo_e {
     LEFT,
@@ -60,7 +62,7 @@ int test_traj_end(int why);
  * @param [in] why The allowed reasons to end the trajectory.
  * @returns An error code indicating the reason of the end of the trajectory.
  */
-int wait_traj_end(int why);
+int wait_traj_end_debug(int why, char *file, int line);
 
 
 void left_pump(int status);

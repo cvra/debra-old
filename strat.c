@@ -324,8 +324,15 @@ int strat_do_gift(void *param) {
     trajectory_goto_forward_xy_abs(&robot.traj, strat.gifts[gift_index].x-50, COLOR_Y(2000-260));
     ret = wait_traj_end(TRAJ_FLAGS_STD);        // TODO : is this line really necessary when a copy of it appears 4 lines below?
 
+    if(!TRAJ_SUCCESS(ret))
+        return 1;
+
     trajectory_a_abs(&robot.traj, 0);
     ret = wait_traj_end(TRAJ_FLAGS_STD);
+
+
+    if(!TRAJ_SUCCESS(ret))
+        return 1;
 
 
     arm_trajectory_init(&traj);
@@ -387,9 +394,6 @@ int strat_do_gifts(void *dummy) {
 
         trajectory_goto_forward_xy_abs(&robot.traj, strat.gifts[i].x-50, COLOR_Y(2000-260));
         ret = wait_traj_end(TRAJ_FLAGS_STD);        // TODO : is this line really necessary when a copy of it appears 4 lines below?
-
-        if(i==2)
-            ret = END_ERROR;
 
         if(!TRAJ_SUCCESS(ret))
             break;
@@ -541,7 +545,7 @@ void strat_begin(void) {
     strat_do_first_glasses(); 
     strat_do_far_glasses();
     strat_do_near_glasses();
-    strat_drop();
+    strat_drop(); // */
     
     
     strat_schedule_job(strat_do_gifts, NULL);
