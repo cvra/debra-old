@@ -250,7 +250,7 @@ int strat_do_candles(void) {
 
     // replace with goto_avoid
     trajectory_goto_forward_xy_abs(&robot.traj, robot_x, COLOR_Y(1000));
-    ret = wait_traj_end(TRAJ_FLAGS_NEAR);
+    ret = wait_traj_end(TRAJ_FLAGS_STD);
 
     trajectory_goto_forward_xy_abs(&robot.traj, robot_x-150, COLOR_Y(robot_y));
     ret = wait_traj_end(TRAJ_FLAGS_STD);
@@ -321,19 +321,29 @@ int strat_do_gift(void *param) {
 
 
     // XXX strat avoid
-    trajectory_goto_forward_xy_abs(&robot.traj, strat.gifts[gift_index].x-50, COLOR_Y(2000-260));
+    if(gift_index == 3)
+        trajectory_goto_forward_xy_abs(&robot.traj, strat.gifts[gift_index].x-50, COLOR_Y(2000-240));
+    else
+    trajectory_goto_forward_xy_abs(&robot.traj, strat.gifts[gift_index].x-50, COLOR_Y(2000-250));
     ret = wait_traj_end(TRAJ_FLAGS_STD);        // TODO : is this line really necessary when a copy of it appears 4 lines below?
 
-    if(!TRAJ_SUCCESS(ret))
-        return 1;
+    if(!TRAJ_SUCCESS(ret)) {
+        if(ret == END_TIMER)
+            return 0;
+        else
+            return 1;
+    }
 
     trajectory_a_abs(&robot.traj, 0);
     ret = wait_traj_end(TRAJ_FLAGS_STD);
 
 
-    if(!TRAJ_SUCCESS(ret))
-        return 1;
-
+    if(!TRAJ_SUCCESS(ret)) {
+        if(ret == END_TIMER)
+            return 0;
+        else
+            return 1;
+    }
 
     arm_trajectory_init(&traj);
 
@@ -471,6 +481,8 @@ void strat_set_objects(void) {
     strat.candles[5].color = strat.color;
     strat.candles[6].color = strat.color;
     strat.candles[7].color = strat.color; 
+
+    strat.candles[9].color = strat.color; 
 }
 
 int strat_drop(void) {
