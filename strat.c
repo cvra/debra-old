@@ -533,7 +533,6 @@ void strat_begin(void) {
     // eteinds l'electrovanne
     IOWR(PIO_BASE, 0, 0 << 9);
 
-    cvra_beacon_init(&robot.beacon, AVOIDING_BASE, AVOIDING_IRQ);
 
     /* Prepares the object DB. */
     strat_set_objects();

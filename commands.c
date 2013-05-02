@@ -519,15 +519,13 @@ void cmd_pio_write(int argc, char **argv) {
 }
 
 void cmd_beacon(void) {
-    printf("==Beacon==\n");
-    printf("period = %u\n", (unsigned int)robot.beacon.period);
-    printf("firstedge = %u\n", (unsigned int)robot.beacon.firstedge);
-    printf("lastindex = %u\n", (unsigned int)robot.beacon.lastindex);
-    printf("nbedge = %d\n", (int)robot.beacon.nb_edges);
-
-/*    for(;;)
-        printf("angle : %d\n",(int)(robot.beacon.firstedge - robot.beacon.lastindex)/10000);  */
+    int i;
+    for(i=0;i<robot.beacon.nb_beacon;i++) {
+        printf("Opp %d angle = %.1f distance = %.1f\n", i, robot.beacon.beacon[i].direction, 
+                robot.beacon.beacon[i].distance); 
+    }
 }
+
 
 void cmd_circle(int argc, char **argv) {
       trajectory_circle_rel(&robot.traj, 0, 400, 400, 90, atoi(argv[1]));  

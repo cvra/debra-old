@@ -136,7 +136,8 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
    //
    
 
-    IOWR(AVOIDING_BASE, 3, 0xff);
+    // gain and offset were found experimentally
+    cvra_beacon_init(&robot.beacon, AVOIDING_BASE, AVOIDING_IRQ, 127, -5.8618, 109.43);
 
     if((IORD(PIO_BASE, 0) & 0xff) == 0) {
         printf("Hey sac a pain, la commande c'est en option ?\n");
