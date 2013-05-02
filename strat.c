@@ -229,6 +229,51 @@ retry2:
     return END_TRAJ;
 }
 
+int strat_do_candle(void *param) {
+    int ret;
+    float robot_x, robot_y;
+    arm_t *arm;
+
+    float x, y, z;
+    arm_trajectory_t traj;
+    int candle = (int)param;
+    
+    const float waypoint_radius = 650; // distance from center of cake to robot waypoints
+
+    if(strat.color == BLUE)
+        arm = &robot.left_arm;
+    else
+        arm = &robot.right_arm;
+
+
+    robot_x = cos(strat.candles[candle].angle) * (waypoint_radius+200) + 1500;
+    robot_y = sin(strat.candles[candle].angle) * (waypoint_radius+200);
+
+    trajectory_goto_forward_xy_abs(&robot.traj, robot_x, COLOR_Y(robot_y));
+    ret = wait_traj_end(TRAJ_FLAGS_STD);
+
+    if(!TRAJ_SUCCESS(ret)) {
+        if(ret==END_TIMER)
+            return 0;
+        else
+            return 1;
+    }
+
+
+    robot_x = cos(strat.candles[candle].angle) * (waypoint_radius+200) + 1500;
+    robot_y = sin(strat.candles[candle].angle) * (waypoint_radius+200);
+
+    trajectory_goto_forward_xy_abs(&robot.traj, robot_x, COLOR_Y(robot_y));
+    ret = wait_traj_end(TRAJ_FLAGS_STD);
+
+    if(!TRAJ_SUCCESS(ret)) {
+        if(ret==END_TIMER)
+            return 0;
+        else
+            return 1;
+    }
+}
+
 int strat_do_candles(void) {
     int i;
     int ret;
@@ -279,10 +324,10 @@ int strat_do_candles(void) {
         arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 1.); // duration not used 
 
         if(strat.candles[i].color == strat.color) {
-            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 450), z, COORDINATE_TABLE, .3, 135, 95); 
-            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 450), 140., COORDINATE_TABLE, .5, 135, 95); 
-            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 450), z, COORDINATE_TABLE, .5, 135, 95); 
-            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 500 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 500), z, COORDINATE_TABLE, .2, 135, 95); 
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 450), z, COORDINATE_TABLE, .3, 135, 100); 
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 450), 140., COORDINATE_TABLE, .5, 135, 100); 
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 450), z, COORDINATE_TABLE, .5, 135, 100); 
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle + RAD(7.5)) * 500 + 1500, COLOR_Y(sin(strat.candles[i].angle + RAD(7.5)) * 500), z, COORDINATE_TABLE, .5, 135, 100); 
 
             arm_execute_movement(arm, &traj);
             while(!arm_trajectory_finished(arm));
@@ -321,10 +366,7 @@ int strat_do_gift(void *param) {
 
 
     // XXX strat avoid
-    if(gift_index == 3)
-        trajectory_goto_forward_xy_abs(&robot.traj, strat.gifts[gift_index].x-50, COLOR_Y(2000-240));
-    else
-    trajectory_goto_forward_xy_abs(&robot.traj, strat.gifts[gift_index].x-50, COLOR_Y(2000-250));
+    trajectory_goto_forward_xy_abs(&robot.traj, strat.gifts[gift_index].x-50, COLOR_Y(2000-240));
     ret = wait_traj_end(TRAJ_FLAGS_STD);        // TODO : is this line really necessary when a copy of it appears 4 lines below?
 
     if(!TRAJ_SUCCESS(ret)) {
@@ -349,8 +391,8 @@ int strat_do_gift(void *param) {
 
     arm_interpolator_append_point_with_length(&traj, 100, 10, height, COORDINATE_ARM, 1., 135, 95); 
     arm_interpolator_append_point_with_length(&traj, strat.gifts[gift_index].x-25,
-            COLOR_Y(2000+depth), height, COORDINATE_TABLE, 0.4, 135, 82); 
-    arm_interpolator_append_point_with_length(&traj, 100, 10, height, COORDINATE_ARM, 0.4, 135, 95); 
+            COLOR_Y(2000+depth), height, COORDINATE_TABLE, .4, 135, 82); 
+    arm_interpolator_append_point_with_length(&traj, 100, 10, height, COORDINATE_ARM, .4, 135, 95); 
 
     arm_execute_movement(arm, &traj);
 
@@ -387,11 +429,11 @@ int strat_do_gifts(void *dummy) {
     arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 1.); // duration not used 
     if(strat.color == BLUE) {
         arm_interpolator_append_point(&traj, x, y+30, z, COORDINATE_ARM, .2); 
-        arm_interpolator_append_point(&traj, 150, y+30, z, COORDINATE_ARM, 1); 
+        arm_interpolator_append_point(&traj, 150, y+30, z, COORDINATE_ARM, .3); 
     }
     else {
         arm_interpolator_append_point(&traj, x, y-30, z, COORDINATE_ARM, .1); 
-        arm_interpolator_append_point(&traj, 150, y-30, z, COORDINATE_ARM, 1); 
+        arm_interpolator_append_point(&traj, 150, y-30, z, COORDINATE_ARM, .3); 
     }
     arm_interpolator_append_point_with_length(&traj, 100, 10, z, COORDINATE_ARM, 1., 135, 95); 
     arm_interpolator_append_point_with_length(&traj, 100, 10, height, COORDINATE_ARM, 1., 135, 95); //XXX change for red
@@ -402,7 +444,7 @@ int strat_do_gifts(void *dummy) {
 
     for(i=0;i<4;i++) {
 
-        trajectory_goto_forward_xy_abs(&robot.traj, strat.gifts[i].x-50, COLOR_Y(2000-260));
+        trajectory_goto_forward_xy_abs(&robot.traj, strat.gifts[i].x-50, COLOR_Y(2000-240));
         ret = wait_traj_end(TRAJ_FLAGS_STD);        // TODO : is this line really necessary when a copy of it appears 4 lines below?
 
         if(!TRAJ_SUCCESS(ret))
