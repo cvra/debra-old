@@ -156,6 +156,7 @@ int strat_goto_avoid(int x, int y, int flags) {
     }
 }
 
+
 void left_arm_take_glass(int glass_index) {
     arm_trajectory_t traj;
     float x, y, z;
@@ -363,6 +364,10 @@ retry:
     return 2;
 }
 
+
+const float waypoint_radius = 675; // distance from center of cake to robot waypoints
+const float ball_radius = 460;
+
 int strat_do_candle(void *param) {
     int ret;
     float robot_x, robot_y;
@@ -371,8 +376,7 @@ int strat_do_candle(void *param) {
     float x, y, z;
     arm_trajectory_t traj;
     int candle = (int)param;
-    
-    const float waypoint_radius = 650; // distance from center of cake to robot waypoints
+ 
 
     if(strat.color == BLUE)
         arm = &robot.left_arm;
@@ -394,12 +398,21 @@ int strat_do_candle(void *param) {
     }
 
 
-    robot_x = cos(strat.candles[candle].angle) * (waypoint_radius+200) + 1500;
-    robot_y = sin(strat.candles[candle].angle) * (waypoint_radius+200);
+    robot_x = cos(strat.candles[candle].angle) * (waypoint_radius) + 1500;
+    robot_y = sin(strat.candles[candle].angle) * (waypoint_radius);
 
     trajectory_goto_forward_xy_abs(&robot.traj, robot_x, COLOR_Y(robot_y));
     ret = wait_traj_end(TRAJ_FLAGS_STD);
 
+    if(!TRAJ_SUCCESS(ret)) {
+        if(ret==END_TIMER)
+            return 0;
+        else
+            return 1;
+    }
+
+    trajectory_a_abs(&robot.traj, COLOR_A(DEG(strat.candles[candle].angle) - 90)); // XXX check red
+    ret = wait_traj_end(TRAJ_FLAGS_STD); 
     if(!TRAJ_SUCCESS(ret)) {
         if(ret==END_TIMER)
             return 0;
@@ -412,10 +425,14 @@ int strat_do_candle(void *param) {
     arm_trajectory_init(&traj); 
     arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 1.); // duration not used 
 
-    arm_interpolator_append_point_with_length(&traj, cos(strat.candles[candle].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[candle].angle) * 450), z, COORDINATE_TABLE, .3, 135, 95); 
-    arm_interpolator_append_point_with_length(&traj, cos(strat.candles[candle].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[candle].angle) * 450), 140., COORDINATE_TABLE, .5, 135, 95); 
-    arm_interpolator_append_point_with_length(&traj, cos(strat.candles[candle].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[candle].angle) * 450), z, COORDINATE_TABLE, .5, 135, 95); 
-    arm_interpolator_append_point_with_length(&traj, cos(strat.candles[candle].angle + RAD(7.5)) * 500 + 1500, COLOR_Y(sin(strat.candles[candle].angle + RAD(7.5)) * 500), z, COORDINATE_TABLE, .5, 135, 95); 
+    arm_interpolator_append_point_with_length(&traj, cos(strat.candles[candle].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[candle].angle) * ball_radius), z, COORDINATE_TABLE, .3, 135, 95); 
+    arm_interpolator_append_point_with_length(&traj, cos(strat.candles[candle].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[candle].angle) * ball_radius), 140., COORDINATE_TABLE, .5, 135, 95); 
+    arm_interpolator_append_point_with_length(&traj, cos(strat.candles[candle].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[candle].angle) * ball_radius), z, COORDINATE_TABLE, .5, 135, 95); 
+
+    if(strat.color==BLUE)
+        arm_interpolator_append_point_with_length(&traj, 100, 20, z, COORDINATE_ARM, .4, 135, 95); 
+    else
+        arm_interpolator_append_point_with_length(&traj, 100, -20, z, COORDINATE_ARM, .4, 135, 95); 
 
     arm_execute_movement(arm, &traj);
     while(!arm_trajectory_finished(arm));
@@ -432,8 +449,6 @@ int strat_do_candles(void) {
     arm_t *arm;
     float x, y, z;
     arm_trajectory_t traj;
-    const float waypoint_radius = 650; // distance from center of cake to robot waypoints
-    const float ball_radius = 460;
 
     if(strat.color == BLUE)
         arm = &robot.left_arm;
@@ -493,13 +508,15 @@ int strat_do_candles(void) {
 
         if(i!=10 && i%2==0) {
             trajectory_goto_forward_xy_abs(&robot.traj, robot_x, COLOR_Y(robot_y));
-            ret = wait_traj_end(END_TRAJ);
+            ret = wait_traj_end(TRAJ_FLAGS_STD);
             if(!TRAJ_SUCCESS(ret)) {
                 if(ret == END_TIMER)
                     return 0;
                 else {
+                    WARNING(0, "Got a problem !!");
                     for(i=1;i<12;i++) {
                         if(strat.candles[i].color == strat.color && !strat.candles[i].done) {
+                            WARNING(0, "Scheduling candle %d\n", i);
                             strat_schedule_job(strat_do_candle, (void *)i);
                         }
                     }
@@ -516,7 +533,12 @@ int strat_do_candles(void) {
             arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[i].angle) * ball_radius), z, COORDINATE_TABLE, .5, 135, 95); 
             arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[i].angle) * ball_radius), 140., COORDINATE_TABLE, .5, 135, 95); 
             arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[i].angle) * ball_radius), z, COORDINATE_TABLE, .5, 135, 95); 
-            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle + RAD(7.5)) * 520 + 1500, COLOR_Y(sin(strat.candles[i].angle + RAD(7.5)) * 520), z, COORDINATE_TABLE, .5, 135, 95); 
+    //        arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle + RAD(7.5)) * 520 + 1500, COLOR_Y(sin(strat.candles[i].angle + RAD(7.5)) * 520), z, COORDINATE_TABLE, .5, 135, 95); 
+    
+            if(strat.color==BLUE)
+                arm_interpolator_append_point_with_length(&traj, 100, 20, z, COORDINATE_ARM, .4, 135, 95); 
+            else
+                arm_interpolator_append_point_with_length(&traj, 100, -20, z, COORDINATE_ARM, .4, 135, 95); 
 
             arm_execute_movement(arm, &traj);
             while(!arm_trajectory_finished(arm));
@@ -712,6 +734,9 @@ void strat_set_objects(void) {
     strat.candles[7].color = strat.color; 
 
     strat.candles[9].color = strat.color; 
+    
+    //XXX debug only
+    strat.candles[1].color = strat.color;
 }
 
 int strat_drop(void) {
@@ -803,7 +828,7 @@ void strat_begin(void) {
    // strat_parse_candle_pos();
     
     strat_schedule_job(strat_do_gifts, NULL);
-//    strat_schedule_job(strat_do_candles, NULL);
+    strat_schedule_job(strat_do_candles, NULL);
     strat_schedule_job(strat_do_funny_action, NULL);
 
     strat_do_jobs();
