@@ -96,4 +96,7 @@ void strat_set_objects(void);
  */
 void strat_begin(void);
 
+
+int strat_goto_avoid(int x, int y, int flags);
+
 #endif

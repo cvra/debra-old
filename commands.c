@@ -318,9 +318,7 @@ void cmd_goto(int argc, char **argv) {
 
 
     while((IORD(PIO_BASE, 0) & 0x1000) == 0);
-    trajectory_goto_forward_xy_abs(&robot.traj, atoi(argv[1]), COLOR_Y(atoi(argv[2])));
-    while(!trajectory_finished(&robot.traj));
-    trajectory_a_abs(&robot.traj, 0);
+    strat_goto_avoid(atoi(argv[1]), atoi(argv[2]), END_TRAJ);
 }
 
 /** Puts the robot to a certain mode. */

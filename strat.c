@@ -4,6 +4,7 @@
 #include <2wheels/trajectory_manager_utils.h>
 #include <scheduler.h>
 #include <aversive/error.h>
+#include <obstacle_avoidance.h>
 #include "arm.h"
 #include "arm_interpolators.h"
 #include <stdio.h>
@@ -18,6 +19,92 @@ int strat_get_time(void) {
 }
 
 
+void strat_da_rel_to_xy_abs(float a_deg, float distance_mm, int *x_mm, int *y_mm) {
+    *x_mm = distance_mm * cos(RAD(a_deg)) + position_get_x_s16(&robot.pos);
+    *y_mm = distance_mm * sin(RAD(a_deg)) + position_get_y_s16(&robot.pos);
+}
+
+
+void create_opp_polygon(poly_t *pol, int x, int y) {
+    const int width = 600; // half width XXX check this, it should be greater IMHO
+    const int height = width;
+
+    oa_poly_set_point(pol, x+width, y+width, 0);
+    oa_poly_set_point(pol, x+width, y-width, 1);
+    oa_poly_set_point(pol, x-width, y-width, 2);
+    oa_poly_set_point(pol, x-width, y+width, 3);
+}
+
+int strat_goto_avoid(int x, int y, int flags) {
+    int i, len, ret;
+    int retry_count;
+    int opp_x, opp_y;
+    poly_t *pol_opp; 
+    point_t *p;
+    oa_init();
+//    pol_cake = oa_new_poly(12);
+    // create polygon for cake
+    // ...
+
+    // We retry the trajectory 3 times
+    for(retry_count=0;retry_count<3;retry_count++) {
+        for(i=0;i<robot.beacon.nb_beacon;i++) {
+            pol_opp = oa_new_poly(4);
+
+            strat_da_rel_to_xy_abs(robot.beacon.beacon[i].direction, robot.beacon.beacon[i].distance*10,
+                   &opp_x, &opp_y); 
+
+            WARNING(0, "Op is at %d;%d", opp_x, opp_y);
+            WARNING(0, "> implying op is not a fag...");
+
+            // create polygon for opp
+
+            create_opp_polygon(pol_opp, 800, 0);
+
+            if(is_point_in_poly(pol_opp, x, y)) {
+                WARNING(0, "Destination point is in opponent.");
+                return END_ERROR;
+            }
+        }
+
+        // Set starting and ending point of the path
+        oa_start_end_points(position_get_x_s16(&robot.pos), position_get_x_s16(&robot.pos), x, y);
+
+        // Compute the path
+        len = oa_process();
+
+        // If we cannot find a path
+        if(len == 0) {
+            WARNING(0, "Cannot find a suitable path.");
+            return END_ERROR;
+        }
+
+        // Do all the path
+        p = oa_get_path();
+        for(i=0;i<len;i++) {
+            trajectory_goto_forward_xy_abs(&robot.traj, p->x, p->y);
+            ret = wait_traj_end(flags);
+
+            if(ret == END_BLOCKING || ret == END_OBSTACLE) {
+                WARNING(0, "Retry");
+                break; // we retry once more
+            }
+            else if(!TRAJ_SUCCESS(ret)) {
+                WARNING(0, "Unknown error code : %d", ret);
+                return ret;
+            }
+            p++;
+        }
+
+        // If we managed to go to the last point, exit
+        if(ret == END_TRAJ) {
+
+            WARNING(0, "Everything went OK.");
+            break;
+            }
+    }
+}
+
 void left_arm_take_glass(int glass_index) {
     arm_trajectory_t traj;
     float x, y, z;
@@ -29,16 +116,16 @@ void left_arm_take_glass(int glass_index) {
 
     arm_interpolator_append_point(&traj, -28, -66, z, COORDINATE_ARM, 3.);
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
-                                        COLOR_Y(strat.glasses[glass_index].pos.y-40), 197, COORDINATE_TABLE, 1., 135, 160);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y-40), 197, COORDINATE_TABLE, .5, 135, 160);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
-                                        COLOR_Y(strat.glasses[glass_index].pos.y-40), 17, COORDINATE_TABLE, 2., 135, 160);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y-40), 17, COORDINATE_TABLE, 1., 135, 160);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x, 
                                         COLOR_Y(strat.glasses[glass_index].pos.y+40), 17, COORDINATE_TABLE, 2., 135, 100);
 
-    arm_interpolator_append_point(&traj, 150, -150, 202, COORDINATE_ARM, 2.);
-    arm_interpolator_append_point(&traj, -28, -66, 202, COORDINATE_ARM, 2.);
+    arm_interpolator_append_point(&traj, 150, -150, 202, COORDINATE_ARM, 1.5);
+    arm_interpolator_append_point(&traj, -28, -66, 202, COORDINATE_ARM, 1.);
 
 
     arm_execute_movement(&robot.left_arm, &traj);
@@ -54,17 +141,17 @@ void right_arm_take_glass(int glass_index) {
 
     arm_interpolator_append_point(&traj, -28, 66, z, COORDINATE_ARM, 3.);
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
-                                        COLOR_Y(strat.glasses[glass_index].pos.y+40), 197, COORDINATE_TABLE, 1., 135, 160);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y+40), 197, COORDINATE_TABLE, .5, 135, 160);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
-                                        COLOR_Y(strat.glasses[glass_index].pos.y+40), 17, COORDINATE_TABLE, 2., 135, 160);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y+40), 17, COORDINATE_TABLE, 1., 135, 160);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x, 
                                         COLOR_Y(strat.glasses[glass_index].pos.y-40), 17, COORDINATE_TABLE, 2., 135, 100);
 
     
-    arm_interpolator_append_point(&traj, 150, 150, 202, COORDINATE_ARM, 2.);
-    arm_interpolator_append_point(&traj, -28, 66, 202, COORDINATE_ARM, 2.);
+    arm_interpolator_append_point(&traj, 150, 150, 202, COORDINATE_ARM, 1.5);
+    arm_interpolator_append_point(&traj, -28, 66, 202, COORDINATE_ARM, 1.);
 
     arm_execute_movement(&robot.right_arm, &traj);
 }
@@ -272,6 +359,22 @@ int strat_do_candle(void *param) {
         else
             return 1;
     }
+
+
+    arm_get_position(arm, &x, &y, &z);
+    arm_trajectory_init(&traj); 
+    arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 1.); // duration not used 
+
+    arm_interpolator_append_point_with_length(&traj, cos(strat.candles[candle].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[candle].angle) * 450), z, COORDINATE_TABLE, .3, 135, 95); 
+    arm_interpolator_append_point_with_length(&traj, cos(strat.candles[candle].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[candle].angle) * 450), 140., COORDINATE_TABLE, .5, 135, 95); 
+    arm_interpolator_append_point_with_length(&traj, cos(strat.candles[candle].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[candle].angle) * 450), z, COORDINATE_TABLE, .5, 135, 95); 
+    arm_interpolator_append_point_with_length(&traj, cos(strat.candles[candle].angle + RAD(7.5)) * 500 + 1500, COLOR_Y(sin(strat.candles[candle].angle + RAD(7.5)) * 500), z, COORDINATE_TABLE, .5, 135, 95); 
+
+    arm_execute_movement(arm, &traj);
+    while(!arm_trajectory_finished(arm));
+    arm_shutdown(arm);
+
+    return 0;
 }
 
 int strat_do_candles(void) {
@@ -283,6 +386,7 @@ int strat_do_candles(void) {
     float x, y, z;
     arm_trajectory_t traj;
     const float waypoint_radius = 650; // distance from center of cake to robot waypoints
+    const float ball_radius = 460;
 
     if(strat.color == BLUE)
         arm = &robot.left_arm;
@@ -297,13 +401,39 @@ int strat_do_candles(void) {
     trajectory_goto_forward_xy_abs(&robot.traj, robot_x, COLOR_Y(1000));
     ret = wait_traj_end(TRAJ_FLAGS_STD);
 
+    if(!TRAJ_SUCCESS(ret)) {
+        if(ret==END_TIMER)
+            return 0;
+        else
+            return 1;
+    }
+
     trajectory_goto_forward_xy_abs(&robot.traj, robot_x-150, COLOR_Y(robot_y));
     ret = wait_traj_end(TRAJ_FLAGS_STD);
 
+    if(!TRAJ_SUCCESS(ret)) {
+        if(ret==END_TIMER)
+            return 0;
+        else
+            return 1;
+    }
+
     trajectory_goto_forward_xy_abs(&robot.traj, robot_x, COLOR_Y(robot_y));
-    ret = wait_traj_end(TRAJ_FLAGS_STD);
+    ret = wait_traj_end(TRAJ_FLAGS_SHORT_DISTANCE);
+    if(!TRAJ_SUCCESS(ret)) {
+        if(ret==END_TIMER)
+            return 0;
+        else
+            return 1;
+    }
     trajectory_a_abs(&robot.traj, COLOR_A(DEG(strat.candles[10].angle) - 90)); // XXX check red
-    ret = wait_traj_end(TRAJ_FLAGS_STD);
+    ret = wait_traj_end(TRAJ_FLAGS_SHORT_DISTANCE); 
+    if(!TRAJ_SUCCESS(ret)) {
+        if(ret==END_TIMER)
+            return 0;
+        else
+            return 1;
+    }
 
     arm->shoulder_mode = SHOULDER_BACK;
 
@@ -317,6 +447,18 @@ int strat_do_candles(void) {
         if(i!=10 && i%2==0) {
             trajectory_goto_forward_xy_abs(&robot.traj, robot_x, COLOR_Y(robot_y));
             ret = wait_traj_end(END_TRAJ);
+            if(!TRAJ_SUCCESS(ret)) {
+                if(ret == END_TIMER)
+                    return 0;
+                else {
+                    for(i=1;i<12;i++) {
+                        if(strat.candles[i].color == strat.color && !strat.candles[i].done) {
+                            strat_schedule_job(strat_do_candle, (void *)i);
+                        }
+                    }
+                    break; // jumps out of the first for
+                }
+            }
         }
 
         arm_get_position(arm, &x, &y, &z);
@@ -324,21 +466,22 @@ int strat_do_candles(void) {
         arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 1.); // duration not used 
 
         if(strat.candles[i].color == strat.color) {
-            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 450), z, COORDINATE_TABLE, .3, 135, 100); 
-            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 450), 140., COORDINATE_TABLE, .5, 135, 100); 
-            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * 450 + 1500, COLOR_Y(sin(strat.candles[i].angle) * 450), z, COORDINATE_TABLE, .5, 135, 100); 
-            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle + RAD(7.5)) * 500 + 1500, COLOR_Y(sin(strat.candles[i].angle + RAD(7.5)) * 500), z, COORDINATE_TABLE, .5, 135, 100); 
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[i].angle) * ball_radius), z, COORDINATE_TABLE, .3, 135, 95); 
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[i].angle) * ball_radius), 140., COORDINATE_TABLE, .5, 135, 95); 
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[i].angle) * ball_radius), z, COORDINATE_TABLE, .5, 135, 95); 
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle + RAD(7.5)) * 500 + 1500, COLOR_Y(sin(strat.candles[i].angle + RAD(7.5)) * 500), z, COORDINATE_TABLE, .5, 135, 95); 
 
             arm_execute_movement(arm, &traj);
             while(!arm_trajectory_finished(arm));
             arm_shutdown(arm);
+            strat.candles[i].done = 1;
         }
     }
 
     arm_get_position(arm, &x, &y, &z);
     arm_trajectory_init(&traj); 
     arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 1.); // duration not used 
-    arm_interpolator_append_point(&traj, x, y, 197, COORDINATE_ARM, .5); // duration not used 
+    arm_interpolator_append_point(&traj, x, y, 197, COORDINATE_ARM, .5); 
     arm_execute_movement(arm, &traj);
 
     return 0;
@@ -356,9 +499,6 @@ int strat_do_gift(void *param) {
     const float height = 100; // height of attack
     const float depth = 40; // the length to go out of the table
 
-    WARNING(0, "Doing gift %d from job pool.", gift_index); 
-
-
     if(strat.color == RED)
         arm = &robot.left_arm;
     else
@@ -366,7 +506,7 @@ int strat_do_gift(void *param) {
 
 
     // XXX strat avoid
-    trajectory_goto_forward_xy_abs(&robot.traj, strat.gifts[gift_index].x-50, COLOR_Y(2000-240));
+    trajectory_goto_forward_xy_abs(&robot.traj, strat.gifts[gift_index].x-50, COLOR_Y(2000-230));
     ret = wait_traj_end(TRAJ_FLAGS_STD);        // TODO : is this line really necessary when a copy of it appears 4 lines below?
 
     if(!TRAJ_SUCCESS(ret)) {
@@ -555,11 +695,10 @@ retrydrop:
     
     strat_wait_ms(500);
 
-    trajectory_d_rel(&robot.traj, -300);
-    ret = wait_traj_end(TRAJ_FLAGS_STD);
-
-    if(!TRAJ_SUCCESS(ret))
-        return ret;
+    do {
+        trajectory_goto_backward_xy_abs(&robot.traj, 420, COLOR_Y(1400));
+        ret = wait_traj_end(TRAJ_FLAGS_STD);
+    } while(!TRAJ_SUCCESS(ret));
 
     strat_release_servo(LEFT);
     strat_release_servo(RIGHT);

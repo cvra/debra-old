@@ -79,7 +79,6 @@ int test_traj_end(int why) {
 			return END_NEAR;
     }
 
-    /* TODO when rouven has fixed this fucking beacon. */
     if((why & END_OBSTACLE)) {
         int i;
         for(i=0;i<robot.beacon.nb_beacon;i++) {
@@ -87,16 +86,19 @@ int test_traj_end(int why) {
             if(robot.beacon.beacon[i].distance < 60) { /*cm*/
                 if(robot.distance_qr.previous_var > 0) {
                     if(robot.beacon.beacon[i].direction > -45 && robot.beacon.beacon[i].direction < 45) {
+
+                        trajectory_stop(&robot.traj);
+                        strat_wait_ms(1000);
                         trajectory_hardstop(&robot.traj);
-                        strat_wait_ms(500);
-                        bd_reset(&robot.angle_bd);
+                        bd_reset(&robot.distance_bd);
                         return END_OBSTACLE;
                     }
                 }
                 else if(robot.distance_qr.previous_var < 0) {
                     if(robot.beacon.beacon[i].direction < -45 || robot.beacon.beacon[i].direction > 45) {
+                        trajectory_stop(&robot.traj);
+                        strat_wait_ms(1000);
                         trajectory_hardstop(&robot.traj);
-                        strat_wait_ms(500);
                         bd_reset(&robot.distance_bd);
                         return END_OBSTACLE;
                     }

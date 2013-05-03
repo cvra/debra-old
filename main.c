@@ -136,6 +136,9 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
    //
    
 
+    int robot_size = 150;
+    polygon_set_boundingbox(robot_size, robot_size, 3000-robot_size, 2000-robot_size);
+
     // gain and offset were found experimentally
     cvra_beacon_init(&robot.beacon, AVOIDING_BASE, AVOIDING_IRQ, 127, -5.8618, 109.43);
 
