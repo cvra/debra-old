@@ -17,6 +17,7 @@
 #include "arm.h"
 #include "hardware.h"
 #include "strat_utils.h"
+#include <math.h>
 
 static int calibration_done = 0;
 
@@ -269,6 +270,8 @@ void cmd_forward(int argc, char **argv) {
 
 /** Turns of a given angle. */
 void cmd_turn(int argc, char **argv) {
+
+    while((IORD(PIO_BASE, 0) & 0x1000) == 0);
     if(argc == 2)
         trajectory_a_rel(&robot.traj, atoi(argv[1]));
 
@@ -287,7 +290,6 @@ void cmd_test_uart(int argc, char **argv) {
         return;
     }
 
-    cvra_set_uart_speed(COMBT1_BASE, 9600);
 
     printf("[OK]\n");
 
@@ -487,8 +489,10 @@ void cmd_arm_pid(int argc, char **argv) {
 }
 
 void cmd_calibrate_arm() {
-    printf("Place the arms in position, then press a key\n");
-    getchar();
+    int start_time = uptime_get();
+    printf("Place the arms in position, then wait 3 sec\n");
+
+    while(uptime_get() < start_time + 3 * 1000000);
 
     arm_calibrate();
     calibration_done = 1;
@@ -748,8 +752,7 @@ void cmd_calibrate_cale(void) {
 	bd_reset(&robot.angle_bd);
 	robot.mode = BOARD_MODE_ANGLE_DISTANCE;
 
-    position_set(&robot.pos, 0., 0., 0.);
-
+    position_set(&robot.pos, 0., 0., -0.51);
     trajectory_d_rel(&robot.traj, 50);
     while(!trajectory_finished(&robot.traj));
    // trajectory_a_rel(&robot.traj, 180);

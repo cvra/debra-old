@@ -32,6 +32,7 @@ void strat_ask_for_candles(void) {
 }
 
 void strat_parse_candle_pos(void) {
+    WARNING(0, "Parsing candles.");
     FILE *bluetooth = fopen("/dev/comBT1", "r");
     char buffer[6];
     int i;
@@ -316,54 +317,50 @@ void strat_do_far_glasses(void) {
 /** @brief Take the first two glasses.
  *
  * This function takes the first two glasses on the correct side.
- * @todo Test the starting coordinates.
+ * @return Number of glasses taken.
  */
 static int strat_do_first_glasses(void) {
     WARNING(E_STRAT, "Doing first glasses."); 
 
     int ret;
+    int retry_count=0;
 
     strat_open_servo(LEFT);
     strat_open_servo(RIGHT);
 
 
-retry1:
     trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[2].pos.x, COLOR_Y(strat.glasses[2].pos.y)-50);
 
-    ret = wait_traj_end(TRAJ_FLAGS_NEAR | END_OBSTACLE);
+    ret = wait_traj_end(TRAJ_FLAGS_STD);
 
     if(!(TRAJ_SUCCESS(ret))) {
-        if(ret == END_OBSTACLE) {
-            goto retry1;
-        }
-        else
-            return ret;
+        return 0;
     }
 
-
-
-retry2:
+retry:
     trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[5].pos.x, COLOR_Y(strat.glasses[5].pos.y)+50);
-    ret = wait_traj_end(TRAJ_FLAGS_NEAR | END_OBSTACLE);
-
+    ret = wait_traj_end(TRAJ_FLAGS_STD);
 
     if(!(TRAJ_SUCCESS(ret))) {
-        if(ret == END_OBSTACLE) {
-            goto retry2;
+        if(retry_count == 0) {
+            strat_wait_ms(2000);
+            retry_count++;
+            goto retry;
         }
-        else
-            return ret;
+        else {
+            strat_close_servo(LEFT);
+            strat_close_servo(RIGHT);
+            return 1;
+        }
     }
-
-
 
     trajectory_d_rel(&robot.traj, 100);
     strat_wait_ms(50);
     strat_close_servo(LEFT);
     strat_close_servo(RIGHT);
-    wait_traj_end(TRAJ_FLAGS_STD | END_OBSTACLE);
+    wait_traj_end(TRAJ_FLAGS_STD);
 
-    return END_TRAJ;
+    return 2;
 }
 
 int strat_do_candle(void *param) {
@@ -511,15 +508,15 @@ int strat_do_candles(void) {
             }
         }
 
-        arm_get_position(arm, &x, &y, &z);
         arm_trajectory_init(&traj); 
-        arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 1.); // duration not used 
 
         if(strat.candles[i].color == strat.color) {
-            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[i].angle) * ball_radius), z, COORDINATE_TABLE, .3, 135, 95); 
+            arm_get_position(arm, &x, &y, &z);
+            arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 1.); // duration not used 
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[i].angle) * ball_radius), z, COORDINATE_TABLE, .5, 135, 95); 
             arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[i].angle) * ball_radius), 140., COORDINATE_TABLE, .5, 135, 95); 
             arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[i].angle) * ball_radius), z, COORDINATE_TABLE, .5, 135, 95); 
-            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle + RAD(7.5)) * 500 + 1500, COLOR_Y(sin(strat.candles[i].angle + RAD(7.5)) * 500), z, COORDINATE_TABLE, .5, 135, 95); 
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle + RAD(7.5)) * 520 + 1500, COLOR_Y(sin(strat.candles[i].angle + RAD(7.5)) * 520), z, COORDINATE_TABLE, .5, 135, 95); 
 
             arm_execute_movement(arm, &traj);
             while(!arm_trajectory_finished(arm));
@@ -719,35 +716,40 @@ void strat_set_objects(void) {
 
 int strat_drop(void) {
     int ret;
+    int blocked_time;
     WARNING(0, "Drop it like it is hot !!!");
 
-
-retrydrop:
-
     trajectory_goto_forward_xy_abs(&robot.traj, 400, COLOR_Y(1400));
-    ret = wait_traj_end(TRAJ_FLAGS_NEAR);
+    ret = wait_traj_end(TRAJ_FLAGS_STD);
+
+    if(!(TRAJ_SUCCESS(ret)))
+        return 1;
 
     trajectory_goto_forward_xy_abs(&robot.traj, 120, COLOR_Y(1400));
     ret = wait_traj_end(TRAJ_FLAGS_STD);
 
-    if(!(TRAJ_SUCCESS(ret))) {
-        if(ret == END_OBSTACLE) {
-            goto retrydrop;
-        }
-        else
-            return ret;
-    }
-
-
+    if(!(TRAJ_SUCCESS(ret)))
+        return 1;
 
     strat_open_servo(LEFT);
     strat_open_servo(RIGHT);
     
     strat_wait_ms(500);
 
+    blocked_time = strat_get_time();
     do {
-        trajectory_goto_backward_xy_abs(&robot.traj, 420, COLOR_Y(1400));
-        ret = wait_traj_end(TRAJ_FLAGS_STD);
+        // wait 10s, then bourrine
+        if(strat_get_time() < blocked_time + 10) {
+            trajectory_goto_backward_xy_abs(&robot.traj, 420, COLOR_Y(1400));
+            ret = wait_traj_end(TRAJ_FLAGS_STD);
+        }
+        else {
+            trajectory_goto_backward_xy_abs(&robot.traj, 250, COLOR_Y(1000)); 
+            // we specifically disable obstacle avoidance to gtfo
+            ret = wait_traj_end(TRAJ_FLAGS_STD & ~(END_OBSTACLE));
+            trajectory_goto_backward_xy_abs(&robot.traj, 420, COLOR_Y(1000)); 
+            ret = wait_traj_end(TRAJ_FLAGS_STD);
+        } 
     } while(!TRAJ_SUCCESS(ret));
 
     strat_release_servo(LEFT);
@@ -757,7 +759,6 @@ retrydrop:
 
     return 0;
 }
-
 
 int strat_do_funny_action(void *dummy) {
 
@@ -774,12 +775,12 @@ int strat_do_funny_action(void *dummy) {
 
 void strat_begin(void) {
     int ret;                                // TODO : unused variable
+    int number_of_glasses;
     /* Starts the game timer. */
     strat.time_start = uptime_get();
 
     // eteinds l'electrovanne
     IOWR(PIO_BASE, 0, 0 << 9);
-
 
     /* Prepares the object DB. */
     strat_set_objects();
@@ -788,19 +789,22 @@ void strat_begin(void) {
     /* Ask the computer vision for informations. */
     strat_ask_for_candles();
 
+
     /* Do the two central glasses. */
-/*    strat_do_first_glasses(); 
-    strat_do_far_glasses();
-    strat_do_near_glasses();
-    strat_drop(); // */
+    number_of_glasses = strat_do_first_glasses(); 
+    if(number_of_glasses == 2)
+        strat_do_far_glasses();
+    if(number_of_glasses >= 1) {
+        strat_do_near_glasses();
+        strat_schedule_job(strat_drop, NULL);
+    }
 
     /* Parse computer vision answer. */
-    strat_parse_candle_pos();
- /*    
+   // strat_parse_candle_pos();
+    
     strat_schedule_job(strat_do_gifts, NULL);
-    strat_schedule_job(strat_do_candles, NULL);
+//    strat_schedule_job(strat_do_candles, NULL);
     strat_schedule_job(strat_do_funny_action, NULL);
-    */
 
     strat_do_jobs();
     

@@ -130,6 +130,9 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
 
     strat_release_servo(RIGHT);
 
+
+    cvra_set_uart_speed(COMBT1_BASE, 9600);
+
 	/* Step 7 : Init tout les parametres propres a une certaine edition ainsi que l'evitement d'obstacle. */
     /** FIXME @todo Init des parametres robot a refaire au propre. */
    // cvra_beacon_init(&robot.beacon, AVOIDING_BASE, AVOIDING_IRQ);

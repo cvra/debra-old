@@ -48,7 +48,7 @@ enum servo_e {
  * 
  * @param [in] x, y The starting coordinates, in mm.
  * @param [in] a The starting angle relative to the X-axis, in degrees. 
- * @param epaisseurRobot The distamce between the back of the robot and the wheel axis. 
+ * @param epaisseurRobot The distance between the back of the robot and the wheel axis. 
  */
 void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot);
 

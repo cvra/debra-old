@@ -68,8 +68,8 @@ void cvra_cs_init(void) {
 #ifdef COMPILE_ON_ROBOT
 	rs_set_left_pwm(&robot.rs, cvra_dc_set_pwm0, HEXMOTORCONTROLLER_BASE);
 	rs_set_right_pwm(&robot.rs, cvra_dc_set_pwm5, HEXMOTORCONTROLLER_BASE);
-	rs_set_left_ext_encoder(&robot.rs, cvra_dc_get_encoder0, HEXMOTORCONTROLLER_BASE,1.00104672);
-	rs_set_right_ext_encoder(&robot.rs, cvra_dc_get_encoder5, HEXMOTORCONTROLLER_BASE,-0.99895328);
+	rs_set_left_ext_encoder(&robot.rs, cvra_dc_get_encoder0, HEXMOTORCONTROLLER_BASE, 1.00018549);
+	rs_set_right_ext_encoder(&robot.rs, cvra_dc_get_encoder5, HEXMOTORCONTROLLER_BASE,-0.99981463);
 #endif
 
 	/****************************************************************************/
@@ -79,7 +79,7 @@ void cvra_cs_init(void) {
 	position_init(&robot.pos);
 	/* Links the position manager to the robot system. */
 	position_set_related_robot_system(&robot.pos, &robot.rs);
-	position_set_physical_params(&robot.pos,177.08985901, // Distance between encoding wheels. // 276
+	position_set_physical_params(&robot.pos,177.28167725, 
 			162.); // imp / mm  //
 
 	/****************************************************************************/
@@ -129,7 +129,7 @@ void cvra_cs_init(void) {
 	trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 1600), acc_rd2imp(&robot.traj, 15));
 	
     /* distance window, angle window, angle start */
-	trajectory_set_windows(&robot.traj, 30., 1.0, 20.); // Prod
+	trajectory_set_windows(&robot.traj, 30., 1.0, 1.); // Prod
 
 	// Angle BDM
 	bd_init(&robot.angle_bd, &robot.angle_cs);
@@ -148,7 +148,7 @@ void cvra_cs_init(void) {
 
 	/* ajoute la regulation au multitache. ASSERV_FREQUENCY est dans cvra_cs.h */
 	scheduler_add_periodical_event_priority(cvra_cs_manage, NULL, (1000000
-			/ ASSERV_FREQUENCY) / SCHEDULER_UNIT, 131);
+			/ (ASSERV_FREQUENCY)) / SCHEDULER_UNIT, 131);
 }
 
 /** Logge l'erreur sur les differents regulateurs et l'affiche avec le temps. */

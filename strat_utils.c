@@ -28,7 +28,7 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 
     //position_set(&robot.pos, epaisseurRobot, 0, -1.1778+0.254);
 
-    position_set(&robot.pos, epaisseurRobot, 0, 0.);
+    position_set(&robot.pos, epaisseurRobot, 0, COLOR_A(0.5));
 	/* On se mets a la bonne position en x. */
 	trajectory_d_rel(&robot.traj, (double) (x - epaisseurRobot));
 	while(!trajectory_finished(&robot.traj));
@@ -88,7 +88,7 @@ int test_traj_end(int why) {
                     if(robot.beacon.beacon[i].direction > -45 && robot.beacon.beacon[i].direction < 45) {
 
                         trajectory_stop(&robot.traj);
-                        strat_wait_ms(1000);
+                        while(robot.distance_qr.previous_var > 0);
                         trajectory_hardstop(&robot.traj);
                         bd_reset(&robot.distance_bd);
                         return END_OBSTACLE;
@@ -97,7 +97,7 @@ int test_traj_end(int why) {
                 else if(robot.distance_qr.previous_var < 0) {
                     if(robot.beacon.beacon[i].direction < -45 || robot.beacon.beacon[i].direction > 45) {
                         trajectory_stop(&robot.traj);
-                        strat_wait_ms(1000);
+                        while(robot.distance_qr.previous_var < 0);
                         trajectory_hardstop(&robot.traj);
                         bd_reset(&robot.distance_bd);
                         return END_OBSTACLE;
