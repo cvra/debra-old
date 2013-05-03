@@ -11,6 +11,7 @@
 #include "strat_job.h"
 #include <cvra_beacon.h>
 #include "strat_utils.h"
+#include <stdio.h>
 
 struct strat_info strat;
 
@@ -18,12 +19,61 @@ int strat_get_time(void) {
     return (uptime_get() - strat.time_start) / 1000000;
 }
 
+void strat_ask_for_candles(void) {
+    WARNING(0, "Asking for candles.");
+    FILE *bluetooth = fopen("/dev/comBT1", "w");
+    if(bluetooth == NULL) {
+        ERROR(0, "cannot open /dev/comBT1, aborting.\n");
+    }
+    else {
+        fprintf(bluetooth, "S\n");
+        fclose(bluetooth);
+    } 
+}
+
+void strat_parse_candle_pos(void) {
+    FILE *bluetooth = fopen("/dev/comBT1", "r");
+    char buffer[6];
+    int i;
+    if(bluetooth == NULL) {
+        ERROR(0, "cannot open /dev/comBT1, aborting.\n");
+    }
+    else {
+        fgets(buffer, 6, bluetooth);
+        WARNING(0, "got '%s'\n", buffer);
+        for(i=1;i<6;i++) {
+            if(buffer[i-1] == 'r') {
+                WARNING(0, "Candle %d is red!", i);
+                strat.candles[i].color = RED;
+                strat.candles[11-i].color = RED;
+            }
+            else if(buffer[i-1] == 'b') {
+                WARNING(0, "Candle %d is blue!", i);
+                strat.candles[i].color = RED;
+                strat.candles[11-i].color = RED;
+            }
+            else {
+                ERROR(0, "Got unknown char %d at index %d!!\n", buffer[i], i);
+            }
+        }
+
+        fclose(bluetooth);
+    }
+
+    /* The candle on our side is always ours. */
+    strat.candles[0].color = strat.color;
+
+    /* White candles. */
+    strat.candles[4].color = strat.color;
+    strat.candles[5].color = strat.color;
+    strat.candles[6].color = strat.color;
+    strat.candles[7].color = strat.color;
+}
 
 void strat_da_rel_to_xy_abs(float a_deg, float distance_mm, int *x_mm, int *y_mm) {
     *x_mm = distance_mm * cos(RAD(a_deg)) + position_get_x_s16(&robot.pos);
     *y_mm = distance_mm * sin(RAD(a_deg)) + position_get_y_s16(&robot.pos);
 }
-
 
 void create_opp_polygon(poly_t *pol, int x, int y) {
     const int width = 600; // half width XXX check this, it should be greater IMHO
@@ -734,16 +784,23 @@ void strat_begin(void) {
     /* Prepares the object DB. */
     strat_set_objects();
 
+
+    /* Ask the computer vision for informations. */
+    strat_ask_for_candles();
+
     /* Do the two central glasses. */
-    strat_do_first_glasses(); 
+/*    strat_do_first_glasses(); 
     strat_do_far_glasses();
     strat_do_near_glasses();
     strat_drop(); // */
-    
-    
+
+    /* Parse computer vision answer. */
+    strat_parse_candle_pos();
+ /*    
     strat_schedule_job(strat_do_gifts, NULL);
     strat_schedule_job(strat_do_candles, NULL);
     strat_schedule_job(strat_do_funny_action, NULL);
+    */
 
     strat_do_jobs();
     
