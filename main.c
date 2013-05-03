@@ -47,9 +47,9 @@ void mylog(struct error * e, ...) {
 	va_list ap;
 	va_start(ap, e);	
     /* Prints the filename (not the full path) and line number. */
-    printf("%s:%d ", strrchr(e->file, '/') ? strrchr(e->file, '/')+1:e->file, e->line);
-	vprintf(e->text, ap);
-	printf("\r\n");
+    fprintf(stderr, "%s:%d ", strrchr(e->file, '/') ? strrchr(e->file, '/')+1:e->file, e->line);
+	vfprintf(stderr, e->text, ap);
+	fprintf(stderr, "\r\n");
 	va_end(ap);
 }
 /** Cette variable contient le temps maximum passe dans une boucle du scheduler.
@@ -102,10 +102,10 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
 	/* Step 1 : Setup UART speed. Doit etre en premier car necessaire pour le log. */
 	//cvra_set_uart_speed(COMPC_BASE, 57600);
     //
-    error_register_emerg(mylog);
+    /*error_register_emerg(mylog);
     error_register_error(mylog);
     error_register_warning(mylog);
-    error_register_notice(mylog);
+    error_register_notice(mylog);*/
     //error_register_debug(mylog);
  
 	/* Step 2 : Init de la librairie math de Mathieu. */
@@ -132,6 +132,8 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
 
 
     cvra_set_uart_speed(COMBT1_BASE, 9600);
+    cvra_set_uart_speed(COMBT2_BASE, 9600);
+
 
 	/* Step 7 : Init tout les parametres propres a une certaine edition ainsi que l'evitement d'obstacle. */
     /** FIXME @todo Init des parametres robot a refaire au propre. */
@@ -144,6 +146,8 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
 
     // gain and offset were found experimentally
     cvra_beacon_init(&robot.beacon, AVOIDING_BASE, AVOIDING_IRQ, 127, -5.8618, 109.43);
+
+    WARNING(0, "System boot !");
 
     if((IORD(PIO_BASE, 0) & 0xff) == 0) {
         printf("Hey sac a pain, la commande c'est en option ?\n");

@@ -134,7 +134,7 @@ int wait_traj_end_debug(int why, char *file, int line) {
         ret = test_traj_end(why);
     } while(ret==0); 
 
-//    WARNING(0, "%s:%d got %d", file, line, ret);
+    WARNING(0, "%s:%d got %d", file, line, ret);
 
     return ret;
 }

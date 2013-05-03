@@ -259,8 +259,6 @@ void cmd_forward(int argc, char **argv) {
         return;
     }
 
-	trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 160), acc_rd2imp(&robot.traj, 1.94));
-	trajectory_set_speed(&robot.traj, 200, 200);
 
     while((IORD(PIO_BASE, 0) & 0x1000) == 0);
 
@@ -284,7 +282,7 @@ void cmd_test_uart(int argc, char **argv) {
     if (argc < 2) return;
     sprintf(path, "/dev/%s", argv[1]);
     printf("Trying to open %s...", path);
-    file = fopen(path, "r");
+    file = fopen(path, "w");
     if(file == NULL) {
         printf("[KO]\n");
         return;
@@ -293,10 +291,11 @@ void cmd_test_uart(int argc, char **argv) {
 
     printf("[OK]\n");
 
-    char data[256];
-    fgets(data, 256, file); 
+//    char data[256];
+ //   fgets(data, 256, file); 
+ 
+    fprintf(file, "Hello world !\n"); 
 
-    printf("%s\n", data);
     fclose(file);
 }
 
