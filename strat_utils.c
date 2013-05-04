@@ -120,10 +120,10 @@ int test_traj_end(int why) {
         return END_BLOCKING;
     } 
 
-    /*if((why & END_TIMER) && strat_get_time() >= MATCH_TIME) {
+    if((why & END_TIMER) && strat_get_time() >= MATCH_TIME) {
         trajectory_hardstop(&robot.traj);
         return END_TIMER;
-    } */
+    } 
 
     return 0;	
 }
