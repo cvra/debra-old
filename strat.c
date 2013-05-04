@@ -337,7 +337,7 @@ static int strat_do_first_glasses(void) {
 
     trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[2].pos.x, COLOR_Y(strat.glasses[2].pos.y)-50);
 
-    ret = wait_traj_end(TRAJ_FLAGS_STD);
+    ret = wait_traj_end(TRAJ_FLAGS_NEAR);
 
     if(!(TRAJ_SUCCESS(ret))) {
         return 0;
@@ -345,7 +345,7 @@ static int strat_do_first_glasses(void) {
 
 retry:
     trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[5].pos.x, COLOR_Y(strat.glasses[5].pos.y)+50);
-    ret = wait_traj_end(TRAJ_FLAGS_STD);
+    ret = wait_traj_end(TRAJ_FLAGS_NEAR);
 
     if(!(TRAJ_SUCCESS(ret))) {
         if(retry_count == 0) {
@@ -760,7 +760,7 @@ int strat_drop(void) {
     WARNING(0, "%s()", __FUNCTION__);
 
     trajectory_goto_forward_xy_abs(&robot.traj, 400, COLOR_Y(1400));
-    ret = wait_traj_end(TRAJ_FLAGS_STD);
+    ret = wait_traj_end(TRAJ_FLAGS_NEAR);
 
     if(!(TRAJ_SUCCESS(ret)))
         return 1;
@@ -842,7 +842,7 @@ void strat_begin(void) {
     } 
 
     /* Parse computer vision answer. */
-//    strat_parse_candle_pos();
+    strat_parse_candle_pos();
     
     strat_schedule_job(strat_do_gifts, NULL);
     strat_schedule_job(strat_do_candles, NULL);
