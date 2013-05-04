@@ -45,13 +45,13 @@ void strat_parse_candle_pos(void) {
         for(i=1;i<6;i++) {
             if(buffer[i-1] == 'r') {
                 WARNING(0, "Candle %d is red!", i);
-                strat.candles[i].color = RED;
-                strat.candles[11-i].color = BLUE;
+                strat.candles[11-i].color = RED;
+                strat.candles[i].color = BLUE;
             }
             else if(buffer[i-1] == 'b') {
                 WARNING(0, "Candle %d is blue!", i);
-                strat.candles[i].color = BLUE;
-                strat.candles[11-i].color = RED;
+                strat.candles[11-i].color = BLUE;
+                strat.candles[i].color = RED;
             }
             else {
                 ERROR(0, "Got unknown char %d at index %d!!\n", buffer[i], i);
@@ -62,18 +62,20 @@ void strat_parse_candle_pos(void) {
     }
 
     /* The candle on our side is always ours. */
-    strat.candles[0].color = strat.color;
+    strat.candles[11].color = strat.color;
     if(strat.color == RED)
-        strat.candles[11].color = BLUE;
+        strat.candles[0].color = BLUE;
     else
-        strat.candles[11].color = RED;
+        strat.candles[0].color = RED;
 
+#if 0
     /* White candles. */
     /* TODO change if we get to finals. */
     strat.candles[4].color = strat.color;
     strat.candles[5].color = strat.color;
     strat.candles[6].color = strat.color;
     strat.candles[7].color = strat.color;
+#endif
 
     WARNING(0, "Candle colors : ");
     for(i=0;i<12;i++) fprintf(stderr, "%c", strat.candles[i].color==RED?'r':'b');
@@ -244,14 +246,14 @@ int strat_do_near_glasses(void) {
     WARNING(0, "%s()", __FUNCTION__);
 
     trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[1].pos.x+95, COLOR_Y(strat.glasses[2].pos.y));
-    ret = wait_traj_end(TRAJ_FLAGS_STD);
+    ret = wait_traj_end(END_TRAJ | END_BLOCKING);
 
     if(!TRAJ_SUCCESS(ret))
         return ret;
 
 
     trajectory_a_abs(&robot.traj, 180);
-    ret = wait_traj_end(TRAJ_FLAGS_STD);    // TODO : necessary? the variable is not used later on...
+    ret = wait_traj_end(END_TRAJ);    // TODO : necessary? the variable is not used later on...
 
 
     left_pump(1);
@@ -288,6 +290,50 @@ void strat_wait_ms(int ms) {
 }
 
 
+int strat_do_opp_glasses(void) {
+    int ret;
+
+    robot.left_arm.shoulder_mode = SHOULDER_BACK;
+    robot.right_arm.shoulder_mode = SHOULDER_BACK;
+
+    WARNING(0, "%s() ! opp is faggot !", __FUNCTION__);
+
+    trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[7].pos.x-95, COLOR_Y(strat.glasses[2].pos.y));
+
+
+    strat_wait_ms(100);
+    strat_close_servo(LEFT);
+    strat_close_servo(RIGHT);
+    strat_wait_ms(100);
+    ret = wait_traj_end(TRAJ_FLAGS_STD);
+
+    if(!TRAJ_SUCCESS(ret)) {
+        return ret;
+    }
+
+    left_pump(1);
+    right_pump(1);
+
+    if(strat.color == BLUE) {
+        left_arm_take_glass(7);
+        right_arm_take_glass(8);
+    }
+    else {
+        left_arm_take_glass(8);
+        right_arm_take_glass(7);
+    }
+
+    while(!arm_trajectory_finished(&robot.right_arm) || !arm_trajectory_finished(&robot.left_arm));
+
+    left_pump(-1);
+    right_pump(-1);
+
+    strat_degage_bras();
+
+    return END_TRAJ;
+}
+
+
 void strat_do_far_glasses(void) {
     int ret;
     robot.left_arm.shoulder_mode = SHOULDER_BACK;
@@ -296,13 +342,13 @@ void strat_do_far_glasses(void) {
     WARNING(0, "%s()", __FUNCTION__);
 
     trajectory_goto_backward_xy_abs(&robot.traj, strat.glasses[3].pos.x+95, COLOR_Y(strat.glasses[2].pos.y));
-    ret = wait_traj_end(TRAJ_FLAGS_SHORT_DISTANCE);
+    ret = wait_traj_end(END_TRAJ | END_BLOCKING);
 
     if(!TRAJ_SUCCESS(ret))
         return ret;
 
     trajectory_a_abs(&robot.traj, 180);
-    wait_traj_end(TRAJ_FLAGS_STD);
+    wait_traj_end(END_TRAJ);
 
 
     left_pump(1);
@@ -319,7 +365,6 @@ void strat_do_far_glasses(void) {
     }
 
     while(!arm_trajectory_finished(&robot.right_arm) || !arm_trajectory_finished(&robot.left_arm));
-
 
     left_pump(-1);
     right_pump(-1);
@@ -346,7 +391,7 @@ static int strat_do_first_glasses(void) {
 
     trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[2].pos.x, COLOR_Y(strat.glasses[2].pos.y)-50);
 
-    ret = wait_traj_end(TRAJ_FLAGS_NEAR);
+    ret = wait_traj_end(TRAJ_FLAGS_STD);
 
     if(!(TRAJ_SUCCESS(ret))) {
         return 0;
@@ -354,7 +399,7 @@ static int strat_do_first_glasses(void) {
 
 retry:
     trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[5].pos.x, COLOR_Y(strat.glasses[5].pos.y)+50);
-    ret = wait_traj_end(TRAJ_FLAGS_NEAR);
+    ret = wait_traj_end(TRAJ_FLAGS_STD);
 
     if(!(TRAJ_SUCCESS(ret))) {
         if(retry_count == 0) {
@@ -369,11 +414,15 @@ retry:
         }
     }
 
-    trajectory_d_rel(&robot.traj, 100);
-    strat_wait_ms(50);
+   /* trajectory_d_rel(&robot.traj, 100);
+
+    strat_wait_ms(100);
     strat_close_servo(LEFT);
     strat_close_servo(RIGHT);
+    strat_wait_ms(100);
     wait_traj_end(TRAJ_FLAGS_STD);
+    */
+    
 
     return 2;
 }
@@ -381,7 +430,6 @@ retry:
 
 const float waypoint_radius = 675; // distance from center of cake to robot waypoints
 const float ball_radius = 460;
-
 int strat_do_candle(void *param) {
     int ret;
     float robot_x, robot_y;
@@ -514,7 +562,7 @@ int strat_do_candles(void) {
     arm->shoulder_mode = SHOULDER_BACK;
 
     // we do the candles backward.
-    for(i=11;i>=1;i--) {
+    for(i=11;i>=5;i--) {
         robot_x = cos(strat.candles[i].angle) * waypoint_radius + 1500;
         robot_y = sin(strat.candles[i].angle) * waypoint_radius;
 
@@ -528,7 +576,7 @@ int strat_do_candles(void) {
                     return 0;
                 else {
                     WARNING(0, "Got a problem !!");
-                    for(i=1;i<12;i++) {
+                    for(i=5;i<12;i++) {
                         if(strat.candles[i].color == strat.color && !strat.candles[i].done) {
                             WARNING(0, "Scheduling candle %d\n", i);
                             strat_schedule_job(strat_do_candle, (void *)i);
@@ -547,7 +595,6 @@ int strat_do_candles(void) {
             arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[i].angle) * ball_radius), z, COORDINATE_TABLE, .5, 135, 85); 
             arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[i].angle) * ball_radius), 140., COORDINATE_TABLE, .5, 135, 85); 
             arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[i].angle) * ball_radius), z, COORDINATE_TABLE, .5, 135, 85); 
-    //        arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle + RAD(7.5)) * 520 + 1500, COLOR_Y(sin(strat.candles[i].angle + RAD(7.5)) * 520), z, COORDINATE_TABLE, .5, 135, 95); 
     
             if(strat.color==BLUE)
                 arm_interpolator_append_point_with_length(&traj, 100, 20, z, COORDINATE_ARM, .4, 135, 95); 
@@ -652,6 +699,9 @@ int strat_do_gifts(void *dummy) {
    // for(i=0;i<4;i++)
     //    strat.gifts[i].last_try_time = strat.time;
 
+
+    trajectory_goto_forward_xy_abs(&robot.traj, strat.gifts[0].x+70, COLOR_Y(1000));
+    ret = wait_traj_end(TRAJ_FLAGS_STD);        // TODO : is this line really necessary when a copy of it appears 4 lines below?
     
     arm_get_position(arm, &x, &y, &z);
     arm_trajectory_init(&traj); 
@@ -744,9 +794,8 @@ void strat_set_objects(void) {
         else
             strat.candles[i].color = RED;
 
-        // XXX Tant qu'on a pas de vision
         
-        strat.candles[i].color = strat.color;
+//        strat.candles[i].color = strat.color;
 
         alpha = alpha + 15.;
     }
@@ -756,10 +805,10 @@ void strat_set_objects(void) {
 
     /* White candles. */
     /* XXX Change if we reach finals. */
-    strat.candles[4].color = strat.color;
+    /*strat.candles[4].color = strat.color;
     strat.candles[5].color = strat.color;
     strat.candles[6].color = strat.color;
-    strat.candles[7].color = strat.color; 
+    strat.candles[7].color = strat.color; */
 }
 
 int strat_drop(void) {
@@ -768,14 +817,14 @@ int strat_drop(void) {
 
     WARNING(0, "%s()", __FUNCTION__);
 
-    trajectory_goto_forward_xy_abs(&robot.traj, 400, COLOR_Y(1400));
-    ret = wait_traj_end(TRAJ_FLAGS_NEAR);
+    trajectory_goto_forward_xy_abs(&robot.traj, 400, COLOR_Y(1000));
+    ret = wait_traj_end(END_TRAJ | END_TIMER);
 
     if(!(TRAJ_SUCCESS(ret)))
         return 1;
 
-    trajectory_goto_forward_xy_abs(&robot.traj, 120, COLOR_Y(1400));
-    ret = wait_traj_end(TRAJ_FLAGS_STD);
+    trajectory_goto_forward_xy_abs(&robot.traj, 320, COLOR_Y(1000));
+    ret = wait_traj_end(END_TRAJ | END_TIMER);
 
     if(!(TRAJ_SUCCESS(ret)))
         return 1;
@@ -789,14 +838,14 @@ int strat_drop(void) {
     do {
         // wait 10s, then bourrine
         if(strat_get_time() < blocked_time + 10) {
-            trajectory_goto_backward_xy_abs(&robot.traj, 420, COLOR_Y(1400));
+            trajectory_goto_backward_xy_abs(&robot.traj, 600, COLOR_Y(1000));
             ret = wait_traj_end(TRAJ_FLAGS_STD);
         }
         else {
-            trajectory_goto_backward_xy_abs(&robot.traj, 250, COLOR_Y(1000)); 
+            trajectory_goto_backward_xy_abs(&robot.traj, 250, COLOR_Y(1400)); 
             // we specifically disable obstacle avoidance to gtfo
             ret = wait_traj_end(TRAJ_FLAGS_STD & ~(END_OBSTACLE));
-            trajectory_goto_backward_xy_abs(&robot.traj, 420, COLOR_Y(1000)); 
+            trajectory_goto_backward_xy_abs(&robot.traj, 600, COLOR_Y(1400)); 
             ret = wait_traj_end(TRAJ_FLAGS_STD);
         } 
     } while(!TRAJ_SUCCESS(ret));
@@ -826,9 +875,6 @@ int strat_do_funny_action(void *dummy) {
 
 // strat configuration
 
-#define STRAT_USE_VISION
-//#define STRAT_DO_GLASSES
-
 void strat_begin(void) {
     int ret;                                // TODO : unused variable
     int number_of_glasses;
@@ -845,22 +891,20 @@ void strat_begin(void) {
     /* Ask the computer vision for informations. */
     strat_ask_for_candles();
 
-    /* Do the two central glasses. */
+    /* Do the two central glasses. */ 
     number_of_glasses = strat_do_first_glasses(); 
     if(number_of_glasses == 2)
-        strat_do_far_glasses();
+        strat_do_opp_glasses();
     if(number_of_glasses >= 1) {
         strat_do_near_glasses();
         strat_schedule_job(strat_drop, NULL);
     }  
 
-
     /* Parse computer vision answer. */
-    strat_parse_candle_pos();
+    strat_parse_candle_pos(); // WARNING : blocking
     
-
+    strat_schedule_job(strat_do_gifts, NULL); 
     strat_schedule_job(strat_do_candles, NULL);
-    strat_schedule_job(strat_do_gifts, NULL);
     strat_schedule_job(strat_do_funny_action, NULL);
 
     strat_do_jobs();

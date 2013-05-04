@@ -71,7 +71,7 @@ void cmd_autopos(int argc, char **argv) {
     if(!strcmp("red", argv[1])) strat.color = RED;
     if(!strcmp("blue", argv[1])) strat.color = BLUE;
 
-    strat_autopos(230, 1255, COLOR_A(0), 119);
+    strat_autopos(170, 1255, COLOR_A(0), 119);
 
 
 	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 600), speed_rd2imp(&robot.traj, 4.85) ); /* distance, angle */
@@ -688,6 +688,7 @@ void cmd_wheel_calibrate(int argc, char **argv) {
     while(!trajectory_finished(&robot.traj)); 
 
     while(--count) {
+        WARNING(0, "%d left !", count);
         trajectory_d_rel(&robot.traj, 1150);
         while(!trajectory_finished(&robot.traj));
         trajectory_a_rel(&robot.traj, 180);
