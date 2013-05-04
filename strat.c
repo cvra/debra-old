@@ -50,8 +50,8 @@ void strat_parse_candle_pos(void) {
             }
             else if(buffer[i-1] == 'b') {
                 WARNING(0, "Candle %d is blue!", i);
-                strat.candles[i].color = RED;
-                strat.candles[11-i].color = RED;
+                strat.candles[i].color = BLUE;
+                strat.candles[11-i].color = BLUE;
             }
             else {
                 ERROR(0, "Got unknown char %d at index %d!!\n", buffer[i], i);
