@@ -46,12 +46,12 @@ void strat_parse_candle_pos(void) {
             if(buffer[i-1] == 'r') {
                 WARNING(0, "Candle %d is red!", i);
                 strat.candles[i].color = RED;
-                strat.candles[11-i].color = RED;
+                strat.candles[11-i].color = BLUE;
             }
             else if(buffer[i-1] == 'b') {
                 WARNING(0, "Candle %d is blue!", i);
                 strat.candles[i].color = BLUE;
-                strat.candles[11-i].color = BLUE;
+                strat.candles[11-i].color = RED;
             }
             else {
                 ERROR(0, "Got unknown char %d at index %d!!\n", buffer[i], i);
@@ -63,12 +63,21 @@ void strat_parse_candle_pos(void) {
 
     /* The candle on our side is always ours. */
     strat.candles[0].color = strat.color;
+    if(strat.color == RED)
+        strat.candles[11].color = BLUE;
+    else
+        strat.candles[11].color = RED;
 
     /* White candles. */
+    /* TODO change if we get to finals. */
     strat.candles[4].color = strat.color;
     strat.candles[5].color = strat.color;
     strat.candles[6].color = strat.color;
     strat.candles[7].color = strat.color;
+
+    WARNING(0, "Candle colors : ");
+    for(i=0;i<12;i++) fprintf(stderr, "%c", strat.candles[i].color==RED?'r':'b');
+    fprintf(stderr, "\n");
 }
 
 void strat_da_rel_to_xy_abs(float a_deg, float distance_mm, int *x_mm, int *y_mm) {
@@ -168,13 +177,13 @@ void left_arm_take_glass(int glass_index) {
 
     arm_interpolator_append_point(&traj, -28, -66, z, COORDINATE_ARM, 3.);
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
-                                        COLOR_Y(strat.glasses[glass_index].pos.y)+40, 197, COORDINATE_TABLE, .5, 135, 160);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y)+66, 197, COORDINATE_TABLE, .5, 135, 160);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
-                                        COLOR_Y(strat.glasses[glass_index].pos.y)+40, 17, COORDINATE_TABLE, 1., 135, 160);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y)+66, 17, COORDINATE_TABLE, 1., 135, 160);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x, 
-                                        COLOR_Y(strat.glasses[glass_index].pos.y)-40, 17, COORDINATE_TABLE, 2., 135, 100);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y)-46, 17, COORDINATE_TABLE, 2., 135, 100);
 
     arm_interpolator_append_point(&traj, 150, -150, 202, COORDINATE_ARM, 1.5);
     arm_interpolator_append_point(&traj, -28, -66, 202, COORDINATE_ARM, 1.);
@@ -193,13 +202,13 @@ void right_arm_take_glass(int glass_index) {
 
     arm_interpolator_append_point(&traj, -28, 66, z, COORDINATE_ARM, 3.);
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
-                                        COLOR_Y(strat.glasses[glass_index].pos.y)-40, 197, COORDINATE_TABLE, .5, 135, 160);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y)-46, 197, COORDINATE_TABLE, .5, 135, 160);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x,
-                                        COLOR_Y(strat.glasses[glass_index].pos.y)-40, 17, COORDINATE_TABLE, 1., 135, 160);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y)-46, 17, COORDINATE_TABLE, 1., 135, 160);
 
     arm_interpolator_append_point_with_length(&traj, strat.glasses[glass_index].pos.x, 
-                                        COLOR_Y(strat.glasses[glass_index].pos.y)+40, 17, COORDINATE_TABLE, 2., 135, 100);
+                                        COLOR_Y(strat.glasses[glass_index].pos.y)+66, 17, COORDINATE_TABLE, 2., 135, 100);
 
     
     arm_interpolator_append_point(&traj, 150, 150, 202, COORDINATE_ARM, 1.5);
@@ -430,9 +439,9 @@ int strat_do_candle(void *param) {
     arm_trajectory_init(&traj); 
     arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 1.); // duration not used 
 
-    arm_interpolator_append_point_with_length(&traj, cos(strat.candles[candle].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[candle].angle) * ball_radius), z, COORDINATE_TABLE, .3, 135, 95); 
-    arm_interpolator_append_point_with_length(&traj, cos(strat.candles[candle].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[candle].angle) * ball_radius), 140., COORDINATE_TABLE, .5, 135, 95); 
-    arm_interpolator_append_point_with_length(&traj, cos(strat.candles[candle].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[candle].angle) * ball_radius), z, COORDINATE_TABLE, .5, 135, 95); 
+    arm_interpolator_append_point_with_length(&traj, cos(strat.candles[candle].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[candle].angle) * ball_radius), z, COORDINATE_TABLE, .3, 135, 85); 
+    arm_interpolator_append_point_with_length(&traj, cos(strat.candles[candle].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[candle].angle) * ball_radius), 140., COORDINATE_TABLE, .5, 135, 85); 
+    arm_interpolator_append_point_with_length(&traj, cos(strat.candles[candle].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[candle].angle) * ball_radius), z, COORDINATE_TABLE, .5, 135, 85); 
 
     if(strat.color==BLUE)
         arm_interpolator_append_point_with_length(&traj, 100, 20, z, COORDINATE_ARM, .4, 135, 95); 
@@ -535,9 +544,9 @@ int strat_do_candles(void) {
         if(strat.candles[i].color == strat.color) {
             arm_get_position(arm, &x, &y, &z);
             arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 1.); // duration not used 
-            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[i].angle) * ball_radius), z, COORDINATE_TABLE, .5, 135, 95); 
-            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[i].angle) * ball_radius), 140., COORDINATE_TABLE, .5, 135, 95); 
-            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[i].angle) * ball_radius), z, COORDINATE_TABLE, .5, 135, 95); 
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[i].angle) * ball_radius), z, COORDINATE_TABLE, .5, 135, 85); 
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[i].angle) * ball_radius), 140., COORDINATE_TABLE, .5, 135, 85); 
+            arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle) * ball_radius + 1500, COLOR_Y(sin(strat.candles[i].angle) * ball_radius), z, COORDINATE_TABLE, .5, 135, 85); 
     //        arm_interpolator_append_point_with_length(&traj, cos(strat.candles[i].angle + RAD(7.5)) * 520 + 1500, COLOR_Y(sin(strat.candles[i].angle + RAD(7.5)) * 520), z, COORDINATE_TABLE, .5, 135, 95); 
     
             if(strat.color==BLUE)
@@ -815,6 +824,11 @@ int strat_do_funny_action(void *dummy) {
     return 0;
 }
 
+// strat configuration
+
+#define STRAT_USE_VISION
+//#define STRAT_DO_GLASSES
+
 void strat_begin(void) {
     int ret;                                // TODO : unused variable
     int number_of_glasses;
@@ -831,7 +845,6 @@ void strat_begin(void) {
     /* Ask the computer vision for informations. */
     strat_ask_for_candles();
 
-
     /* Do the two central glasses. */
     number_of_glasses = strat_do_first_glasses(); 
     if(number_of_glasses == 2)
@@ -839,13 +852,15 @@ void strat_begin(void) {
     if(number_of_glasses >= 1) {
         strat_do_near_glasses();
         strat_schedule_job(strat_drop, NULL);
-    } 
+    }  
+
 
     /* Parse computer vision answer. */
     strat_parse_candle_pos();
     
-    strat_schedule_job(strat_do_gifts, NULL);
+
     strat_schedule_job(strat_do_candles, NULL);
+    strat_schedule_job(strat_do_gifts, NULL);
     strat_schedule_job(strat_do_funny_action, NULL);
 
     strat_do_jobs();
