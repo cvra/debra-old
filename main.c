@@ -149,6 +149,11 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
 
     WARNING(0, "System boot !");
 
+//#define FLASH_DEMO
+#ifdef FLASH_DEMO
+    strat_look_cool();
+#endif
+
     if((IORD(PIO_BASE, 0) & 0xff) == 0) {
         printf("Hey sac a pain, la commande c'est en option ?\n");
         while((IORD(PIO_BASE, 0) & 0xff) == 0);

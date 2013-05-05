@@ -99,4 +99,7 @@ void strat_begin(void);
 
 int strat_goto_avoid(int x, int y, int flags);
 
+/** Simple demo app for the arms. */
+void strat_look_cool(void);
+
 #endif

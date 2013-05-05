@@ -15,6 +15,31 @@
 
 struct strat_info strat;
 
+void strat_look_cool(void) {
+    float x, y, z;
+
+    arm_trajectory_t traj;
+    WARNING(0, "%s()", __FUNCTION__);
+
+    strat_wait_ms(3000);
+    arm_calibrate();
+
+    arm_trajectory_init(&traj); 
+    arm_get_position(&robot.left_arm, &x, &y, &z);
+    arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 3.);
+    arm_interpolator_append_point(&traj, 200, 200, z, COORDINATE_TABLE, 1.);
+    arm_execute_movement(&robot.left_arm, &traj);
+
+
+    arm_trajectory_init(&traj); 
+    arm_get_position(&robot.right_arm, &x, &y, &z);
+    arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 3.);
+    arm_interpolator_append_point(&traj, 200, -200, z, COORDINATE_TABLE, 1.);
+    arm_execute_movement(&robot.right_arm, &traj);
+
+    robot.mode = BOARD_MODE_FREE; 
+}
+
 int strat_get_time(void) {
     return (uptime_get() - strat.time_start) / 1000000;
 }

@@ -660,12 +660,14 @@ void cmd_wheel_calibrate(int argc, char **argv) {
 
 	trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 160), acc_rd2imp(&robot.traj, 1.94));
 
+    // Wait for the starting cord to be pulled
     while((IORD(PIO_BASE, 0) & 0x1000) == 0);
     
 	bd_set_thresholds(&robot.distance_bd,  5000, 2);
 	trajectory_set_speed(&robot.traj, 200, 200);
 
 	robot.mode = BOARD_MODE_DISTANCE_ONLY;
+
 	// On recule jusqu'a  qu'on ait touche un mur
 	trajectory_d_rel(&robot.traj, (double) -2000);
 	while(!bd_get(&robot.distance_bd));
