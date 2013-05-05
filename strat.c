@@ -12,6 +12,10 @@
 #include <cvra_beacon.h>
 #include "strat_utils.h"
 #include <stdio.h>
+#include <fcntl.h>
+
+/* Strat config. Comment out to disable specific features. */
+#define STRAT_DO_WHITE_CANDLES
 
 struct strat_info strat;
 
@@ -60,53 +64,74 @@ void strat_ask_for_candles(void) {
 }
 
 void strat_parse_candle_pos(void) {
-    WARNING(0, "Parsing candles.");
-    FILE *bluetooth = fopen("/dev/comBT1", "r");
+    const char path[] = "/dev/comBT1";
+    int bluetooth;
     char buffer[6];
     int i;
-    if(bluetooth == NULL) {
-        ERROR(0, "cannot open /dev/comBT1, aborting.\n");
-    }
-    else {
-        fgets(buffer, 6, bluetooth);
-        WARNING(0, "got '%s'\n", buffer);
-        for(i=1;i<6;i++) {
-            if(buffer[i-1] == 'r') {
-                WARNING(0, "Candle %d is red!", i);
-                strat.candles[11-i].color = RED;
-                strat.candles[i].color = BLUE;
-            }
-            else if(buffer[i-1] == 'b') {
-                WARNING(0, "Candle %d is blue!", i);
-                strat.candles[11-i].color = BLUE;
-                strat.candles[i].color = RED;
-            }
-            else {
-                ERROR(0, "Got unknown char %d at index %d!!\n", buffer[i], i);
-            }
-        }
 
-        fclose(bluetooth);
+    NOTICE(0, "Parsing candles.");
+    /* Zeroes out the buffer. */
+    memset(buffer, 0, 6);
+    
+    /* Try to open the device. */
+    bluetooth = open(path, O_RDONLY | O_NONBLOCK);
+
+    /* In case of failure, log it and return. */
+    if(bluetooth < 0) {
+        ERROR(0, "Cannot open %s, aborting.", path);
+        return;
     }
+
+    /* If we dont get enough char, abort. */
+    if(read(bluetooth, buffer, 5) < 5) {
+        ERROR(0, "Not enough characters in buffer (got '%s') , aborting", buffer);
+        close(bluetooth);
+        return;
+    }
+
+    /* Log the raw data. */
+    NOTICE("Got '%s'", buffer);
+
+    /* Parse candle data. */
+    for(i=1;i<6;i++) {
+        if(buffer[i-1] == 'r') {
+            NOTICE(0, "Candle %d is red!", i);
+            strat.candles[11-i].color = RED;
+            strat.candles[i].color = BLUE;
+        }
+        else if(buffer[i-1] == 'b') {
+            NOTICE(0, "Candle %d is blue!", i);
+            strat.candles[11-i].color = BLUE;
+            strat.candles[i].color = RED;
+        }
+        else {
+            ERROR(0, "Got unknown char %d at index %d!!\n", buffer[i], i);
+        }
+    }
+
+    /* Close the bluetooth device. */
+    close(bluetooth);
 
     /* The candle on our side is always ours. */
     strat.candles[11].color = strat.color;
+
+    /* The candle on opp side is always his. */
     if(strat.color == RED)
         strat.candles[0].color = BLUE;
     else
         strat.candles[0].color = RED;
 
-#if 0
+#ifdef STRAT_DO_WHITE_CANDLES
     /* White candles. */
-    /* TODO change if we get to finals. */
     strat.candles[4].color = strat.color;
     strat.candles[5].color = strat.color;
     strat.candles[6].color = strat.color;
     strat.candles[7].color = strat.color;
 #endif
 
-    WARNING(0, "Candle colors : ");
-    for(i=0;i<12;i++) fprintf(stderr, "%c", strat.candles[i].color==RED?'r':'b');
+    NOTICE(0, "Candle colors : ");
+    for(i=0;i<12;i++)
+        fprintf(stderr, "%c", strat.candles[i].color==RED?'r':'b');
     fprintf(stderr, "\n");
 }
 
@@ -188,10 +213,8 @@ int strat_goto_avoid(int x, int y, int flags) {
 
         // If we managed to go to the last point, exit
         if(ret == END_TRAJ) {
-
-            WARNING(0, "Everything went OK.");
             break;
-            }
+        }
     }
 }
 
@@ -724,10 +747,6 @@ int strat_do_gifts(void *dummy) {
 
     arm->shoulder_mode = SHOULDER_FRONT;
 
-   // for(i=0;i<4;i++)
-    //    strat.gifts[i].last_try_time = strat.time;
-
-
     trajectory_goto_forward_xy_abs(&robot.traj, strat.gifts[0].x+70, COLOR_Y(1000));
     ret = wait_traj_end(TRAJ_FLAGS_STD);        // TODO : is this line really necessary when a copy of it appears 4 lines below?
     
@@ -799,11 +818,10 @@ void strat_set_objects(void) {
     strat.glasses[0].pos.x = 900; strat.glasses[0].pos.y = (1450);
     strat.glasses[1].pos.x = 900; strat.glasses[1].pos.y = (950);
     strat.glasses[2].pos.x = 1050; strat.glasses[2].pos.y = (1200);
-
-    /*XXX Not sure about coordinates of 3 and 4. */
     strat.glasses[3].pos.x = 1200; strat.glasses[3].pos.y = (1450);
     strat.glasses[4].pos.x = 1200; strat.glasses[4].pos.y = (950);
     strat.glasses[5].pos.x = 1350; strat.glasses[5].pos.y = (1200);
+
     strat.glasses[6].pos.x = 1650; strat.glasses[6].pos.y = (1300);
     strat.glasses[7].pos.x = 1800; strat.glasses[7].pos.y = (1550);
     strat.glasses[8].pos.x = 1800; strat.glasses[8].pos.y = (1050);
@@ -822,21 +840,19 @@ void strat_set_objects(void) {
         else
             strat.candles[i].color = RED;
 
-        
-//        strat.candles[i].color = strat.color;
-
         alpha = alpha + 15.;
     }
 
     /* The candle on our side is always our color. */
     strat.candles[11].color = strat.color;
 
+#ifdef STRAT_DO_WHITE_CANDLES
     /* White candles. */
-    /* XXX Change if we reach finals. */
-    /*strat.candles[4].color = strat.color;
+    strat.candles[4].color = strat.color;
     strat.candles[5].color = strat.color;
     strat.candles[6].color = strat.color;
-    strat.candles[7].color = strat.color; */
+    strat.candles[7].color = strat.color;
+#endif
 }
 
 int strat_drop(void) {
