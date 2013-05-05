@@ -24,6 +24,9 @@ void strat_look_cool(void) {
     strat_wait_ms(3000);
     arm_calibrate();
 
+    left_pump(1); 
+    right_pump(1);
+
     arm_trajectory_init(&traj); 
     arm_get_position(&robot.left_arm, &x, &y, &z);
     arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 3.);
