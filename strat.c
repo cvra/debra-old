@@ -296,7 +296,7 @@ int strat_do_near_glasses(void) {
 
     WARNING(0, "%s()", __FUNCTION__);
 
-    trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[1].pos.x+95, COLOR_Y(strat.glasses[2].pos.y));
+    trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[1].pos.x+80, COLOR_Y(strat.glasses[2].pos.y));
     ret = wait_traj_end(END_TRAJ | END_BLOCKING);
 
     if(!TRAJ_SUCCESS(ret))
@@ -392,7 +392,7 @@ void strat_do_far_glasses(void) {
 
     WARNING(0, "%s()", __FUNCTION__);
 
-    trajectory_goto_backward_xy_abs(&robot.traj, strat.glasses[3].pos.x+95, COLOR_Y(strat.glasses[2].pos.y));
+    trajectory_goto_backward_xy_abs(&robot.traj, strat.glasses[3].pos.x+80, COLOR_Y(strat.glasses[2].pos.y));
     ret = wait_traj_end(END_TRAJ | END_BLOCKING);
 
     if(!TRAJ_SUCCESS(ret))
@@ -465,15 +465,14 @@ retry:
         }
     }
 
-   /* trajectory_d_rel(&robot.traj, 100);
+    
+    trajectory_d_rel(&robot.traj, 100);
 
     strat_wait_ms(100);
     strat_close_servo(LEFT);
     strat_close_servo(RIGHT);
     strat_wait_ms(100);
     wait_traj_end(TRAJ_FLAGS_STD);
-    */
-    
 
     return 2;
 }
@@ -858,20 +857,36 @@ void strat_set_objects(void) {
 int strat_drop(void) {
     int ret;
     int blocked_time;
+    int drop_zone = 0; // en partant de l'oppose du gateau
+    int traj_flags = TRAJ_FLAGS_STD;
 
     WARNING(0, "%s()", __FUNCTION__);
 
-    trajectory_goto_forward_xy_abs(&robot.traj, 400, COLOR_Y(1000));
-    ret = wait_traj_end(END_TRAJ | END_TIMER);
+    // We try every drop case
+    for(drop_zone = 0;drop_zone < 3;drop_zone++) {
+        NOTICE(0, "Trying zone %d", drop_zone);
+        trajectory_goto_forward_xy_abs(&robot.traj, 400, COLOR_Y(1400 - 400*drop_zone));
+        ret = wait_traj_end(TRAJ_FLAGS_STD);
 
-    if(!(TRAJ_SUCCESS(ret)))
+        if(!(TRAJ_SUCCESS(ret))) {
+            WARNING(0, "Cannot go to drop zone %d");
+            continue; // on passe a la case suivante
+        }
+
+        
+        if(drop_zone == 0)
+            trajectory_goto_forward_xy_abs(&robot.traj, 120, COLOR_Y(1400 - 400*drop_zone));
+        else
+            trajectory_goto_forward_xy_abs(&robot.traj, 320, COLOR_Y(1400 - 400*drop_zone));
+
+        ret = wait_traj_end(TRAJ_FLAGS_SHORT_DISTANCE);
+        break;
+    }
+
+    if(!(TRAJ_SUCCESS(ret))) {
+        ERROR(0, "Cannot drop !!!");
         return 1;
-
-    trajectory_goto_forward_xy_abs(&robot.traj, 320, COLOR_Y(1000));
-    ret = wait_traj_end(END_TRAJ | END_TIMER);
-
-    if(!(TRAJ_SUCCESS(ret)))
-        return 1;
+    }
 
     strat_open_servo(LEFT);
     strat_open_servo(RIGHT);
@@ -882,17 +897,26 @@ int strat_drop(void) {
     do {
         // wait 10s, then bourrine
         if(strat_get_time() < blocked_time + 10) {
-            trajectory_goto_backward_xy_abs(&robot.traj, 600, COLOR_Y(1000));
-            ret = wait_traj_end(TRAJ_FLAGS_STD);
+            trajectory_goto_backward_xy_abs(&robot.traj, 600, COLOR_Y(1400 - 400*drop_zone));
+            ret = wait_traj_end(traj_flags);
         }
         else {
-            trajectory_goto_backward_xy_abs(&robot.traj, 250, COLOR_Y(1400)); 
+            if(drop_zone == 0) {
+                drop_zone++;
+            }
+            else {
+                drop_zone--;
+            }
+            if(drop_zone == 0)
+                trajectory_goto_backward_xy_abs(&robot.traj, 120, COLOR_Y(1400 - 400*drop_zone)); 
+            else
+                trajectory_goto_backward_xy_abs(&robot.traj, 320, COLOR_Y(1400 - 400*drop_zone)); 
             // we specifically disable obstacle avoidance to gtfo
-            ret = wait_traj_end(TRAJ_FLAGS_STD & ~(END_OBSTACLE));
-            trajectory_goto_backward_xy_abs(&robot.traj, 600, COLOR_Y(1400)); 
-            ret = wait_traj_end(TRAJ_FLAGS_STD);
+            ret = wait_traj_end(TRAJ_FLAGS_SHORT_DISTANCE);
+            trajectory_goto_backward_xy_abs(&robot.traj, 600, COLOR_Y(1400 - 400*drop_zone)); 
+            ret = wait_traj_end(TRAJ_FLAGS_SHORT_DISTANCE);
         } 
-    } while(!TRAJ_SUCCESS(ret));
+    } while(!TRAJ_SUCCESS(ret) && ret != END_TIMER);
 
     strat_release_servo(LEFT);
     strat_release_servo(RIGHT);
@@ -938,7 +962,7 @@ void strat_begin(void) {
     /* Do the two central glasses. */ 
     number_of_glasses = strat_do_first_glasses(); 
     if(number_of_glasses == 2)
-        strat_do_opp_glasses();
+        strat_do_far_glasses();
     if(number_of_glasses >= 1) {
         strat_do_near_glasses();
         strat_schedule_job(strat_drop, NULL);

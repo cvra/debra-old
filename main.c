@@ -47,9 +47,9 @@ void mylog(struct error * e, ...) {
 	va_list ap;
 	va_start(ap, e);	
     /* Prints the filename (not the full path) and line number. */
-    fprintf(stderr, "%s:%d ", strrchr(e->file, '/') ? strrchr(e->file, '/')+1:e->file, e->line);
-	vfprintf(stderr, e->text, ap);
-	fprintf(stderr, "\r\n");
+    fprintf(stdout, "%s:%d ", strrchr(e->file, '/') ? strrchr(e->file, '/')+1:e->file, e->line);
+	vfprintf(stdout, e->text, ap);
+	fprintf(stdout, "\r\n");
 	va_end(ap);
 }
 /** Cette variable contient le temps maximum passe dans une boucle du scheduler.
