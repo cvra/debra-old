@@ -140,7 +140,7 @@ int wait_traj_end_debug(int why, char *file, int line) {
 }
 
 
-void left_pump(int status) {
+void right_pump(int status) {
     if(status > 0)
         cvra_dc_set_pwm4(HEXMOTORCONTROLLER_BASE, 475);
     else if(status < 0)
@@ -149,7 +149,7 @@ void left_pump(int status) {
         cvra_dc_set_pwm4(HEXMOTORCONTROLLER_BASE, 0);
 }
 
-void right_pump(int status) {
+void left_pump(int status) {
     if(status > 0)
         cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, -475);
     else if(status < 0)

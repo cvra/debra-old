@@ -163,22 +163,6 @@ void cmd_error_calibrate(int argc, char **argv) {
 	}
 }
 
-/** Setups arm shoulder mode. */
-void cmd_arm_shoulder_mode(int argc, char **argv) {
-    if(argc < 2)
-        return;
-
-    if(!strcmp("front", argv[1])) {
-        robot.left_arm.shoulder_mode = SHOULDER_FRONT;
-        robot.right_arm.shoulder_mode = SHOULDER_FRONT;
-    }
-    else {
-        robot.left_arm.shoulder_mode = SHOULDER_BACK;
-        robot.right_arm.shoulder_mode = SHOULDER_BACK;
-    }
-
-}
-
 /** Sets or gets right wheel gain. */
 void cmd_right_gain(int argc, char **argv) {
     /** @todo We should be more cautious when handling user input. */
@@ -334,6 +318,83 @@ void cmd_mode(int argc, char **argv) {
     trajectory_hardstop(&robot.traj);
 }
 
+void cmd_shoulder_mode(int argc, char **argv) {
+    if(argc < 2) {
+        printf("usage %s back|front\n", argv[0]);
+        return;
+    }
+
+    if(!strcmp(argv[1], "front")) {
+        robot.left_arm.shoulder_mode = SHOULDER_FRONT; 
+        robot.right_arm.shoulder_mode = SHOULDER_FRONT; 
+    }
+    else {
+        robot.left_arm.shoulder_mode = SHOULDER_BACK; 
+        robot.right_arm.shoulder_mode = SHOULDER_BACK; 
+    }
+
+}
+
+
+void cmd_do_stack(int argc, char **argv) {
+    float x, y, z;
+    arm_t *arm = &robot.left_arm;
+
+    arm_trajectory_t traj;
+    arm_trajectory_init(&traj); 
+    arm_get_position(arm, &x, &y, &z);
+    arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 1.); // duration not used 
+    arm_interpolator_append_point(&traj, 200, 120, z, COORDINATE_TABLE, 1.); 
+    arm_interpolator_append_point(&traj, 200, 120, 17, COORDINATE_TABLE, 1.);
+    arm_execute_movement(arm, &traj);
+    while(!arm_trajectory_finished(arm));
+    left_pump(1);
+    getchar();
+
+
+    arm_trajectory_init(&traj); 
+    arm_interpolator_append_point(&traj, 200, 120, 17, COORDINATE_TABLE, 5.); // duration not used 
+    arm_interpolator_append_point(&traj, 200, 120, 27, COORDINATE_TABLE, 5.); // duration not used 
+    arm_interpolator_append_point(&traj, 200, 200, 27, COORDINATE_TABLE, 4.);
+    arm_interpolator_append_point(&traj, 200, 200, 17, COORDINATE_TABLE, 4.);
+    arm_execute_movement(arm, &traj);
+    while(!arm_trajectory_finished(arm));
+    getchar();
+    left_pump(-1);
+
+    arm_trajectory_init(&traj); 
+    arm_interpolator_append_point(&traj, 200, 200, 17, COORDINATE_TABLE, 4.);
+    arm_interpolator_append_point(&traj, 200, 200, z, COORDINATE_TABLE, 4.);
+    arm_interpolator_append_point(&traj, 200, 120, z, COORDINATE_TABLE, 4.);
+    arm_execute_movement(arm, &traj);
+    while(!arm_trajectory_finished(arm));
+    left_pump(-1);
+    getchar();
+
+
+
+    arm_trajectory_init(&traj); 
+    arm_get_position(arm, &x, &y, &z);
+    arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 1.); // duration not used 
+    arm_interpolator_append_point(&traj, 200, 120, z, COORDINATE_TABLE, 1.); 
+    arm_interpolator_append_point(&traj, 200, 120, 17, COORDINATE_TABLE, 1.);
+    arm_execute_movement(arm, &traj);
+    while(!arm_trajectory_finished(arm));
+    left_pump(1);
+    getchar();
+
+    arm_trajectory_init(&traj); 
+    arm_interpolator_append_point(&traj, 200, 120, 17, COORDINATE_TABLE, 5.); // duration not used 
+    arm_interpolator_append_point(&traj, 200, 120, 193, COORDINATE_TABLE, 4.);
+    arm_interpolator_append_point(&traj, 200, 200, 193, COORDINATE_TABLE, 4.);
+    arm_interpolator_append_point(&traj, 200, 200, 183, COORDINATE_TABLE, 4.);
+    arm_execute_movement(arm, &traj);
+
+    while(!arm_trajectory_finished(arm));
+
+    left_pump(0);
+}
+
 /** Places the arm. */
 void cmd_place_arms(int argc, char **argv) {
     if(argc != 2) {
@@ -376,16 +437,14 @@ void cmd_demo(void) {
 }
 
 void cmd_arm_pos() {
-    printf("Left : %.1f mm %.1f deg %.1f deg\n",  
-            (double)cvra_dc_get_encoder(ARMSMOTORCONTROLLER_BASE, 1) / robot.left_arm.z_axis_imp_per_mm,
-            (double)cvra_dc_get_encoder(ARMSMOTORCONTROLLER_BASE, 0) / robot.left_arm.shoulder_imp_per_rad * 180./M_PI ,
-            (double)cvra_dc_get_encoder(ARMSMOTORCONTROLLER_BASE, 2) / robot.left_arm.elbow_imp_per_rad * 180./M_PI);
+    float x, y, z;
 
-    printf("right : %.1f mm %.1f deg %.1f deg\n",  
-            (double)cvra_dc_get_encoder(ARMSMOTORCONTROLLER_BASE, 4) / robot.right_arm.z_axis_imp_per_mm,
-            (double)cvra_dc_get_encoder(ARMSMOTORCONTROLLER_BASE, 5) / robot.right_arm.shoulder_imp_per_rad * 180./M_PI ,
-            (double)cvra_dc_get_encoder(ARMSMOTORCONTROLLER_BASE, 3) / robot.right_arm.elbow_imp_per_rad * 180./M_PI);
-    printf("\n");
+
+    arm_get_position(&robot.left_arm, &x, &y, &z);
+    printf("left : x=%.1f, y=%.1f, z=%.1f\n", x, y, z);
+
+    arm_get_position(&robot.right_arm, &x, &y, &z);
+    printf("right : x=%.1f, y=%.1f, z=%.1f\n", x, y, z);
 }
 
 void cmd_servo(int argc, char **argv) {
@@ -787,7 +846,7 @@ command_t commands_list[] = {
     COMMAND("choc", cmd_error_calibrate),
     COMMAND("encoders", cmd_encoders),
     COMMAND("position", cmd_position),
-    COMMAND("shoulder_mode", cmd_arm_shoulder_mode),
+    COMMAND("shoulder", cmd_shoulder_mode),
     COMMAND("forward", cmd_forward),
     COMMAND("servo", cmd_servo),
     COMMAND("correction", cmd_right_gain),
@@ -803,6 +862,7 @@ command_t commands_list[] = {
     COMMAND("calibrate_arm", cmd_calibrate_arm),
     COMMAND("cale", cmd_calibrate_cale),
     COMMAND("mode", cmd_mode),
+    COMMAND("stack", cmd_do_stack),
     COMMAND("arm_pos", cmd_arm_pos),
     COMMAND("circle", cmd_circle),
     COMMAND("uart", cmd_test_uart),

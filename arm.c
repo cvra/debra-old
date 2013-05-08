@@ -119,7 +119,7 @@ void arm_init(arm_t *arm) {
     arm->length[0] = 135.5; /* mm */
     arm->length[1] = 136;
 
-    pid_set_gains(&arm->z_axis_pid, 3000, 0, 100);
+    pid_set_gains(&arm->z_axis_pid, 2250, 0, 100);
     pid_set_gains(&arm->elbow_pid, 30, 0, 0);
     pid_set_gains(&arm->shoulder_pid, 30, 0, 0);
 
