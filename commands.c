@@ -813,13 +813,13 @@ void cmd_calibrate_cale(void) {
 	bd_reset(&robot.angle_bd);
 	robot.mode = BOARD_MODE_ANGLE_DISTANCE;
 
-    position_set(&robot.pos, 0., 0., -0.51);
+    position_set(&robot.pos, 0., 0., 0.);
     trajectory_d_rel(&robot.traj, 50);
     while(!trajectory_finished(&robot.traj));
    // trajectory_a_rel(&robot.traj, 180);
     while(!trajectory_finished(&robot.traj));
     
-    trajectory_goto_xy_abs(&robot.traj, 2600, 0);
+    trajectory_goto_xy_abs(&robot.traj, 1500, 0);
     while(!trajectory_finished(&robot.traj)); 
   //  trajectory_a_rel(&robot.traj, -180);
 }

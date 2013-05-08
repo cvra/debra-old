@@ -28,15 +28,19 @@ void strat_look_cool(void) {
     strat_wait_ms(3000);
     arm_calibrate();
 
+    left_pump(1);
+    strat_wait_ms(500);
+    left_pump(0);
+
     arm_trajectory_init(&traj); 
     arm_get_position(&robot.left_arm, &x, &y, &z);
-    arm_interpolator_append_point_with_length(&traj, 200, 200, z, COORDINATE_TABLE, 1., 135.5, 96);
+    arm_interpolator_append_point_with_length(&traj, 200, 200, 202, COORDINATE_TABLE, 1., 135.5, 96);
     arm_execute_movement(&robot.left_arm, &traj);
 
     arm_trajectory_init(&traj); 
     arm_get_position(&robot.right_arm, &x, &y, &z);
     arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 3.);
-    arm_interpolator_append_point_with_length(&traj, 200, -200, z, COORDINATE_TABLE, 1., 135.5, 96);
+    arm_interpolator_append_point_with_length(&traj, 200, -200, 202, COORDINATE_TABLE, 1., 135.5, 96);
     arm_execute_movement(&robot.right_arm, &traj);
 
     robot.mode = BOARD_MODE_FREE; 
@@ -966,11 +970,10 @@ void strat_begin(void) {
     /* Parse computer vision answer. */
     strat_parse_candle_pos(); // WARNING : blocking
    
-   /* 
     strat_schedule_job(strat_do_gifts, NULL); 
     strat_schedule_job(strat_do_candles, NULL);
     strat_schedule_job(strat_do_funny_action, NULL);
-    */
+    
 
     strat_do_jobs();
     

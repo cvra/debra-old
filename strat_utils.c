@@ -28,7 +28,7 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 
     //position_set(&robot.pos, epaisseurRobot, 0, -1.1778+0.254);
 
-    position_set(&robot.pos, epaisseurRobot, 0, COLOR_A(0.5));
+    position_set(&robot.pos, epaisseurRobot, 0, COLOR_A(0.));
 	/* On se mets a la bonne position en x. */
 	trajectory_d_rel(&robot.traj, (double) (x - epaisseurRobot));
 	while(!trajectory_finished(&robot.traj));
