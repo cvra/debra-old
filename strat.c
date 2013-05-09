@@ -943,9 +943,11 @@ int strat_do_funny_action(void *dummy) {
     NOTICE(0, "%s()", __FUNCTION__);
     robot.mode = BOARD_MODE_FREE;
     IOWR(PIO_BASE, 0, 1 << 9);
-    right_pump(1);
+    right_pump(1); 
+    left_pump(1);
     while(strat_get_time() < 100);
     right_pump(0);
+    left_pump(0);
     return 0;
 }
 
