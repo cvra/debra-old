@@ -68,8 +68,8 @@ void cvra_cs_init(void) {
 #ifdef COMPILE_ON_ROBOT
 	rs_set_left_pwm(&robot.rs, cvra_dc_set_pwm0, HEXMOTORCONTROLLER_BASE);
 	rs_set_right_pwm(&robot.rs, cvra_dc_set_pwm5, HEXMOTORCONTROLLER_BASE);
-	rs_set_left_ext_encoder(&robot.rs, cvra_dc_get_encoder0, HEXMOTORCONTROLLER_BASE, 1.00097537);
-	rs_set_right_ext_encoder(&robot.rs, cvra_dc_get_encoder5, HEXMOTORCONTROLLER_BASE,-0.99902499);
+	rs_set_left_ext_encoder(&robot.rs, cvra_dc_get_encoder0, HEXMOTORCONTROLLER_BASE, 1.00070012);
+	rs_set_right_ext_encoder(&robot.rs, cvra_dc_get_encoder5, HEXMOTORCONTROLLER_BASE,-0.9993);
 #endif
 
 	/****************************************************************************/
@@ -79,8 +79,8 @@ void cvra_cs_init(void) {
 	position_init(&robot.pos);
 	/* Links the position manager to the robot system. */
 	position_set_related_robot_system(&robot.pos, &robot.rs);
-	position_set_physical_params(&robot.pos,177.61187744, 
-			162.); // imp / mm  //
+	position_set_physical_params(&robot.pos,177.75691223, 
+			160.396); // imp / mm  //
 
 	/****************************************************************************/
 	/*                       Regulation de l'angle                              */
