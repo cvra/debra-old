@@ -883,7 +883,7 @@ int strat_drop(void) {
         }
         
         if(drop_zone == 0)
-            trajectory_goto_forward_xy_abs(&robot.traj, 120, COLOR_Y(1400 - 400*drop_zone));
+            trajectory_goto_forward_xy_abs(&robot.traj, 170, COLOR_Y(1400 - 400*drop_zone));
         else
             trajectory_goto_forward_xy_abs(&robot.traj, 320, COLOR_Y(1400 - 400*drop_zone));
 
@@ -916,7 +916,7 @@ int strat_drop(void) {
                 drop_zone--;
             }
             if(drop_zone == 0)
-                trajectory_goto_backward_xy_abs(&robot.traj, 120, COLOR_Y(1400 - 400*drop_zone)); 
+                trajectory_goto_backward_xy_abs(&robot.traj, 170, COLOR_Y(1400 - 400*drop_zone)); 
             else
                 trajectory_goto_backward_xy_abs(&robot.traj, 320, COLOR_Y(1400 - 400*drop_zone)); 
             // we specifically disable obstacle avoidance to gtfo
