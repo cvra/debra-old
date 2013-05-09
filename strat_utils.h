@@ -18,7 +18,7 @@
 /** Flags for "standard" trajectories. */
 #define TRAJ_FLAGS_STD (END_TRAJ|END_BLOCKING|END_TIMER|END_ERROR | END_OBSTACLE)
 
-#define TRAJ_FLAGS_SHORT_DISTANCE (END_TRAJ|END_ERROR|END_TIMER)
+#define TRAJ_FLAGS_SHORT_DISTANCE (END_TRAJ|END_ERROR|END_TIMER | END_BLOCKING)
 
 /** Flags for "cutting corners" trajectories.
  * @warning Using this type of trajectories lowers the precision.

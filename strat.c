@@ -444,6 +444,7 @@ static int strat_do_first_glasses(void) {
     ret = wait_traj_end(TRAJ_FLAGS_STD);
 
     if(!(TRAJ_SUCCESS(ret))) {
+        WARNING(0, "Warp detected sir ! Aborting all operations !");
         return 0;
     }
 
@@ -454,17 +455,18 @@ retry:
     if(!(TRAJ_SUCCESS(ret))) {
         if(retry_count == 0) {
             strat_wait_ms(2000);
+            NOTICE(0, "Retrying second glass.");
             retry_count++;
             goto retry;
         }
         else {
+            NOTICE(0, "Retry was useless, aborting.");
             strat_close_servo(LEFT);
             strat_close_servo(RIGHT);
             return 1;
         }
     }
-
-    
+ 
     trajectory_d_rel(&robot.traj, 100);
 
     strat_wait_ms(100);
@@ -487,6 +489,8 @@ int strat_do_candle(void *param) {
     float x, y, z;
     arm_trajectory_t traj;
     int candle = (int)param;
+
+    NOTICE(0, "%s(%d)", __FUNCTION__, candle);
  
 
     if(strat.color == BLUE)
@@ -561,6 +565,8 @@ int strat_do_candles(void) {
     float x, y, z;
     arm_trajectory_t traj;
 
+    NOTICE(0, "%s()", __FUNCTION__);
+
     if(strat.color == BLUE)
         arm = &robot.left_arm;
     else
@@ -611,7 +617,7 @@ int strat_do_candles(void) {
     arm->shoulder_mode = SHOULDER_BACK;
 
     // we do the candles backward.
-    for(i=11;i>=5;i--) {
+    for(i=11;i>=1;i--) {
         robot_x = cos(strat.candles[i].angle) * waypoint_radius + 1500;
         robot_y = sin(strat.candles[i].angle) * waypoint_radius;
 
@@ -625,7 +631,7 @@ int strat_do_candles(void) {
                     return 0;
                 else {
                     WARNING(0, "Got a problem !!");
-                    for(i=5;i<12;i++) {
+                    for(i=1;i<12;i++) {
                         if(strat.candles[i].color == strat.color && !strat.candles[i].done) {
                             WARNING(0, "Scheduling candle %d\n", i);
                             strat_schedule_job(strat_do_candle, (void *)i);
@@ -683,7 +689,7 @@ int strat_do_gift(void *param) {
     else
         arm = &robot.right_arm;
 
-    WARNING(0, "%s(%d)", __FUNCTION__, gift_index);
+    NOTICE(0, "%s(%d)", __FUNCTION__, gift_index);
 
 
     // XXX strat avoid
@@ -691,7 +697,7 @@ int strat_do_gift(void *param) {
     ret = wait_traj_end(TRAJ_FLAGS_STD);        // TODO : is this line really necessary when a copy of it appears 4 lines below?
 
     if(!TRAJ_SUCCESS(ret)) {
-        WARNING(0, "%s() got %d as answer.", __FUNCTION__, ret);
+        NOTICE(0, "%s() got %d as answer.", __FUNCTION__, ret);
         if(ret == END_TIMER)
             return 0;
         else
@@ -703,7 +709,7 @@ int strat_do_gift(void *param) {
 
 
     if(!TRAJ_SUCCESS(ret)) {
-        WARNING(0, "%s() got %d as answer.", __FUNCTION__, ret);
+        NOTICE(0, "%s() got %d as answer.", __FUNCTION__, ret);
         if(ret == END_TIMER)
             return 0;
         else
@@ -735,7 +741,7 @@ int strat_do_gifts(void *dummy) {
     const float depth = 40; // the length to go out of the table
     int i;
 
-    WARNING(0, "%s()", __FUNCTION__);
+    NOTICE(0, "%s()", __FUNCTION__);
 
 
     if(strat.color == RED)
@@ -767,9 +773,8 @@ int strat_do_gifts(void *dummy) {
     while(!arm_trajectory_finished(arm));
 
     for(i=0;i<4;i++) {
-
         trajectory_goto_forward_xy_abs(&robot.traj, strat.gifts[i].x-50, COLOR_Y(2000-240));
-        ret = wait_traj_end(TRAJ_FLAGS_STD);        // TODO : is this line really necessary when a copy of it appears 4 lines below?
+        ret = wait_traj_end(TRAJ_FLAGS_STD);    
 
         if(!TRAJ_SUCCESS(ret))
             break;
@@ -795,7 +800,7 @@ int strat_do_gifts(void *dummy) {
     for(i=3;i>=0;i--) {
         if(!strat.gifts[i].done) {
             strat_schedule_job(strat_do_gift, (void *)i);
-            WARNING(0, "Queuing gift %d", i);
+            NOTICE(0, "Queuing gift %d", i);
         }
     }
 
@@ -805,6 +810,8 @@ int strat_do_gifts(void *dummy) {
 void strat_set_objects(void) {
     memset(&strat.glasses, 0, sizeof(glass_t)*12);
     memset(&strat.gifts, 0, sizeof(gift_t)*4);
+
+    WARNING(0, "%s()", __FUNCTION__);
 
     /* Init gifts position. */ 
     strat.gifts[0].x = 525; /* middle of the gift. */
@@ -837,6 +844,9 @@ void strat_set_objects(void) {
             strat.candles[i].color = BLUE;
         else
             strat.candles[i].color = RED;
+
+        /* Uncomment to do all candles. */
+        strat.candles[i].color = strat.color;
 
         alpha = alpha + 15.;
     }
@@ -871,14 +881,13 @@ int strat_drop(void) {
             WARNING(0, "Cannot go to drop zone %d");
             continue; // on passe a la case suivante
         }
-
         
         if(drop_zone == 0)
             trajectory_goto_forward_xy_abs(&robot.traj, 120, COLOR_Y(1400 - 400*drop_zone));
         else
             trajectory_goto_forward_xy_abs(&robot.traj, 320, COLOR_Y(1400 - 400*drop_zone));
 
-        ret = wait_traj_end(TRAJ_FLAGS_SHORT_DISTANCE);
+        wait_traj_end(TRAJ_FLAGS_SHORT_DISTANCE);
         break;
     }
 
@@ -931,7 +940,7 @@ int strat_do_funny_action(void *dummy) {
         return 1;
 
     
-    WARNING(0, "%s()", __FUNCTION__);
+    NOTICE(0, "%s()", __FUNCTION__);
     robot.mode = BOARD_MODE_FREE;
     IOWR(PIO_BASE, 0, 1 << 9);
     right_pump(1);
@@ -954,13 +963,13 @@ void strat_begin(void) {
     /* Prepares the object DB. */
     strat_set_objects();
 
-
     /* Ask the computer vision for informations. */
     strat_ask_for_candles();
 
     /* Do the two central glasses. */ 
     number_of_glasses = strat_do_first_glasses(); 
-    if(number_of_glasses == 2)
+    NOTICE(0, "First glasses done, got %d glasses.", number_of_glasses); 
+    if(number_of_glasses == 2) 
         strat_do_far_glasses();
     if(number_of_glasses >= 1) {
         strat_do_near_glasses();
@@ -968,13 +977,12 @@ void strat_begin(void) {
     }  
 
     /* Parse computer vision answer. */
-    strat_parse_candle_pos(); // WARNING : blocking
+    //strat_parse_candle_pos();
    
     strat_schedule_job(strat_do_gifts, NULL); 
     strat_schedule_job(strat_do_candles, NULL);
     strat_schedule_job(strat_do_funny_action, NULL);
     
-
     strat_do_jobs();
     
     left_pump(0);

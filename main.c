@@ -47,9 +47,9 @@ void mylog(struct error * e, ...) {
 	va_list ap;
 	va_start(ap, e);	
     /* Prints the filename (not the full path) and line number. */
-    fprintf(stdout, "%s:%d ", strrchr(e->file, '/') ? strrchr(e->file, '/')+1:e->file, e->line);
-	vfprintf(stdout, e->text, ap);
-	fprintf(stdout, "\r\n");
+    fprintf(stderr, "%s:%d ", strrchr(e->file, '/') ? strrchr(e->file, '/')+1:e->file, e->line);
+	vfprintf(stderr, e->text, ap);
+	fprintf(stderr, "\r\n");
 	va_end(ap);
 }
 /** Cette variable contient le temps maximum passe dans une boucle du scheduler.
@@ -79,8 +79,8 @@ void main_timer_interrupt(__attribute__((unused)) void *param) {
 	time = uptime_get() - time;
 
 	/* Si le temps est plus grand que le maximum, on le garde en memoire. */
-	if(time > longest_scheduler_interrupt_time) {
-	 longest_scheduler_interrupt_time = time;
+    if(time > longest_scheduler_interrupt_time) {
+        longest_scheduler_interrupt_time = time;
 	}
 }
 #endif
