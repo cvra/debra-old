@@ -995,7 +995,7 @@ void strat_begin(void) {
     }  
 
     /* Parse computer vision answer. */
-    //strat_parse_candle_pos();
+    strat_parse_candle_pos();
   
     strat_schedule_job(strat_do_gifts, NULL); 
     strat_schedule_job(strat_do_candles, NULL); 
