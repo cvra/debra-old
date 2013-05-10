@@ -776,8 +776,24 @@ int strat_do_gifts(void *dummy) {
         trajectory_goto_forward_xy_abs(&robot.traj, strat.gifts[i].x-50, COLOR_Y(2000-240));
         ret = wait_traj_end(TRAJ_FLAGS_STD);    
 
-        if(!TRAJ_SUCCESS(ret))
+        if(!TRAJ_SUCCESS(ret)) {
+            if(ret == END_BLOCKING) {
+                WARNING(0, "We hit something ! Going backward");
+                trajectory_d_rel(&robot.traj, -70);
+                ret = wait_traj_end(TRAJ_FLAGS_STD);
+
+                // This is a fugly hack, but why not
+                if(strat.color == RED) {
+                    robot.pos.pos_d.y += 20; 
+                    robot.pos.pos_s16.y += 20;
+                }
+                else {
+                    robot.pos.pos_d.y -= 20; 
+                    robot.pos.pos_s16.y -= 20;
+                }
+            }
             break;
+        }
 
         if(i==0) {
             trajectory_a_abs(&robot.traj, 0);
@@ -980,9 +996,9 @@ void strat_begin(void) {
 
     /* Parse computer vision answer. */
     //strat_parse_candle_pos();
-   
+  
     strat_schedule_job(strat_do_gifts, NULL); 
-    strat_schedule_job(strat_do_candles, NULL);
+    strat_schedule_job(strat_do_candles, NULL); 
     strat_schedule_job(strat_do_funny_action, NULL);
     
     strat_do_jobs();
