@@ -441,7 +441,7 @@ static int strat_do_first_glasses(void) {
 
     trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[2].pos.x, COLOR_Y(strat.glasses[2].pos.y)-50);
 
-    ret = wait_traj_end(TRAJ_FLAGS_STD);
+    ret = wait_traj_end(TRAJ_FLAGS_NEAR);
 
     if(!(TRAJ_SUCCESS(ret))) {
         WARNING(0, "Warp detected sir ! Aborting all operations !");
@@ -450,7 +450,7 @@ static int strat_do_first_glasses(void) {
 
 retry:
     trajectory_goto_forward_xy_abs(&robot.traj, strat.glasses[5].pos.x, COLOR_Y(strat.glasses[5].pos.y)+50);
-    ret = wait_traj_end(TRAJ_FLAGS_STD);
+    ret = wait_traj_end(TRAJ_FLAGS_NEAR);
 
     if(!(TRAJ_SUCCESS(ret))) {
         if(retry_count == 0) {
@@ -970,12 +970,12 @@ int strat_do_funny_action(void *dummy) {
 // strat configuration
 
 void strat_begin(void) {
-    int ret;                                // TODO : unused variable
     int number_of_glasses;
+
     /* Starts the game timer. */
     strat.time_start = uptime_get();
 
-    // eteinds l'electrovanne
+    /* Shutdowns the funny action. */
     IOWR(PIO_BASE, 0, 0 << 9);
 
     /* Prepares the object DB. */
@@ -985,7 +985,10 @@ void strat_begin(void) {
     strat_ask_for_candles();
 
     /* Do the two central glasses. */ 
+	trajectory_set_windows(&robot.traj, 15., 1.0, 30.); // enable TRAJ_NEAR
     number_of_glasses = strat_do_first_glasses(); 
+	trajectory_set_windows(&robot.traj, 15., 1.0, 1.); // disable TRAJ_NEAR
+
     NOTICE(0, "First glasses done, got %d glasses.", number_of_glasses); 
     if(number_of_glasses == 2) 
         strat_do_far_glasses();
