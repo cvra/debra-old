@@ -217,6 +217,25 @@ int strat_goto_avoid(int x, int y, int flags) {
     }
 }
 
+void strat_place_arms(void) {
+    arm_trajectory_t traj;
+    float x, y, z;
+    NOTICE("%s()", __FUNCTION__);
+
+    arm_get_position(&robot.left_arm, &x, &y, &z);
+    arm_trajectory_init(&traj); 
+    arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 3.);
+    arm_interpolator_append_point(&traj, x, -66, 202, COORDINATE_ARM, .3);
+    arm_interpolator_append_point(&traj, -8, -66, 202, COORDINATE_ARM, .3);
+    arm_execute_movement(&robot.left_arm, &traj);
+
+    arm_get_position(&robot.right_arm, &x, &y, &z);
+    arm_trajectory_init(&traj); 
+    arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 3.);
+    arm_interpolator_append_point(&traj, x, 66, 202, COORDINATE_ARM, .3);
+    arm_interpolator_append_point(&traj, -8, 66, 202, COORDINATE_ARM, .3);
+    arm_execute_movement(&robot.right_arm, &traj);
+}
 
 void left_arm_take_glass(int glass_index) {
     arm_trajectory_t traj;
@@ -621,7 +640,6 @@ int strat_do_candles(void) {
         robot_x = cos(strat.candles[i].angle) * waypoint_radius + 1500;
         robot_y = sin(strat.candles[i].angle) * waypoint_radius;
 
-        // replace with goto_avoid
 
         if(i!=10 && i%2==0) {
             trajectory_goto_forward_xy_abs(&robot.traj, robot_x, COLOR_Y(robot_y));
@@ -980,6 +998,9 @@ void strat_begin(void) {
 
     /* Prepares the object DB. */
     strat_set_objects();
+
+    /* Puts the arms in an appropriate position. */
+    strat_place_arms();
 
     /* Ask the computer vision for informations. */
     strat_ask_for_candles();

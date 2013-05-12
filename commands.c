@@ -640,6 +640,10 @@ void cmd_calage_test(int argc, char **argv) {
 
 }
 
+void cmd_degage_arms(void) {
+    strat_place_arms();
+}
+
 void cmd_angle_calibrate(int argc, char **argv) {
     int32_t start_angle, delta_angle;
     float factor;
@@ -867,6 +871,7 @@ command_t commands_list[] = {
     COMMAND("circle", cmd_circle),
     COMMAND("uart", cmd_test_uart),
     COMMAND("calage", cmd_calage_test),
+    COMMAND("degage", cmd_degage_arms),
     COMMAND("none",NULL), /* must be last. */
 };
  
