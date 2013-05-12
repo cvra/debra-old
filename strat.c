@@ -887,6 +887,9 @@ void strat_set_objects(void) {
 
     /* The candle on our side is always our color. */
     strat.candles[11].color = strat.color;
+    strat.candles[10].color = strat.color;
+    strat.candles[9].color = !strat.color;
+    strat.candles[8].color = !strat.color;
 
 #ifdef STRAT_DO_WHITE_CANDLES
     /* White candles. */
@@ -894,7 +897,17 @@ void strat_set_objects(void) {
     strat.candles[5].color = strat.color;
     strat.candles[6].color = strat.color;
     strat.candles[7].color = strat.color;
+#else
+    strat.candles[4].color = !strat.color;
+    strat.candles[5].color = strat.color;
+    strat.candles[6].color = !strat.color;
+    strat.candles[7].color = strat.color;
 #endif
+
+    strat.candles[0].color = !strat.color;
+    strat.candles[1].color = !strat.color;
+    strat.candles[2].color = strat.color;
+    strat.candles[3].color = strat.color;
 }
 
 int strat_drop(void) {

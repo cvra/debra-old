@@ -85,7 +85,6 @@ int test_traj_end(int why) {
             if(robot.beacon.beacon[i].distance < 60) { /*cm*/
                 if(robot.distance_qr.previous_var > 0) {
                     if(robot.beacon.beacon[i].direction > -45 && robot.beacon.beacon[i].direction < 45) {
-                        NOTICE(0, "Obstacle, angle = %d", robot.beacon.beacon[i].direction);
 
                         trajectory_stop(&robot.traj);
                         while(robot.distance_qr.previous_var > 0);
