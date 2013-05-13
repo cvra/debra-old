@@ -15,35 +15,74 @@
 #include <fcntl.h>
 
 /* Strat config. Comment out to disable specific features. */
-#define STRAT_DO_WHITE_CANDLES
+//#define STRAT_DO_WHITE_CANDLES
 
 struct strat_info strat;
 
-void strat_look_cool(void) {
+void strat_look_cool(void *dummy) {
     float x, y, z;
-
     arm_trajectory_t traj;
+
     WARNING(0, "%s()", __FUNCTION__);
 
-    strat_wait_ms(3000);
-    arm_calibrate();
+    trajectory_goto_forward_xy_abs(&robot.traj, 1500, 1000);
+    wait_traj_end(TRAJ_FLAGS_STD);
 
-    left_pump(1);
-    strat_wait_ms(500);
-    left_pump(0);
+    trajectory_a_abs(&robot.traj, COLOR_A(90));
+    wait_traj_end(TRAJ_FLAGS_STD);
 
     arm_trajectory_init(&traj); 
     arm_get_position(&robot.left_arm, &x, &y, &z);
-    arm_interpolator_append_point_with_length(&traj, 200, 200, 202, COORDINATE_TABLE, 1., 135.5, 96);
+    arm_interpolator_append_point_with_length(&traj, 1650, COLOR_Y(1175), 202, COORDINATE_TABLE, .5, 135.5, 96);
     arm_execute_movement(&robot.left_arm, &traj);
 
     arm_trajectory_init(&traj); 
     arm_get_position(&robot.right_arm, &x, &y, &z);
     arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 3.);
-    arm_interpolator_append_point_with_length(&traj, 200, -200, 202, COORDINATE_TABLE, 1., 135.5, 96);
+    arm_interpolator_append_point_with_length(&traj, 1350, COLOR_Y(1175), 202, COORDINATE_TABLE, .5, 135.5, 96);
     arm_execute_movement(&robot.right_arm, &traj);
 
-    robot.mode = BOARD_MODE_FREE; 
+    while(!arm_trajectory_finished(&robot.right_arm));
+
+    int i;
+    for(i=0;i<3;i++) {
+        trajectory_d_rel(&robot.traj, 150);
+        wait_traj_end(TRAJ_FLAGS_STD);
+
+        trajectory_d_rel(&robot.traj, -150);
+        wait_traj_end(TRAJ_FLAGS_STD);
+    }
+
+
+    arm_trajectory_init(&traj); 
+    arm_get_position(&robot.right_arm, &x, &y, &z);
+    for(i=0;i<100;i++) {
+        arm_interpolator_append_point(&traj, x-50, y, z, COORDINATE_ARM, .2);
+        arm_interpolator_append_point(&traj, x+50, y, z, COORDINATE_ARM, .2);
+    }
+    arm_execute_movement(&robot.right_arm, &traj);
+
+    arm_trajectory_init(&traj); 
+    arm_get_position(&robot.left_arm, &x, &y, &z);
+    for(i=0;i<100;i++) {
+        arm_interpolator_append_point(&traj, x-50, y, z, COORDINATE_ARM, .2);
+        arm_interpolator_append_point(&traj, x+50, y, z, COORDINATE_ARM, .2);
+    }
+    arm_execute_movement(&robot.left_arm, &traj);
+
+    trajectory_circle_rel(&robot.traj, 1200, 1000, 300, 0, FORWARD | TRIGO);
+    IOWR(PIO_BASE, 0, 1 << 9);
+    right_pump(1); 
+    left_pump(1);
+    strat_wait_ms(10000);
+    right_pump(0);
+    left_pump(0);
+
+    trajectory_stop(&robot.traj);
+    arm_shutdown(&robot.right_arm);
+    arm_shutdown(&robot.left_arm);
+
+    return 1;
 }
 
 int strat_get_time(void) {
@@ -886,6 +925,7 @@ void strat_set_objects(void) {
     }
 
     /* The candle on our side is always our color. */
+#if 0
     strat.candles[11].color = strat.color;
     strat.candles[10].color = strat.color;
     strat.candles[9].color = !strat.color;
@@ -908,6 +948,7 @@ void strat_set_objects(void) {
     strat.candles[1].color = !strat.color;
     strat.candles[2].color = strat.color;
     strat.candles[3].color = strat.color;
+#endif
 }
 
 int strat_drop(void) {
@@ -922,7 +963,7 @@ int strat_drop(void) {
     for(drop_zone = 0;drop_zone < 3;drop_zone++) {
         NOTICE(0, "Trying zone %d", drop_zone);
         trajectory_goto_forward_xy_abs(&robot.traj, 400, COLOR_Y(1400 - 400*drop_zone));
-        ret = wait_traj_end(TRAJ_FLAGS_STD);
+        ret = wait_traj_end(TRAJ_FLAGS_NEAR);
 
         if(!(TRAJ_SUCCESS(ret))) {
             WARNING(0, "Cannot go to drop zone %d");
@@ -946,12 +987,12 @@ int strat_drop(void) {
     strat_open_servo(LEFT);
     strat_open_servo(RIGHT);
     
-    strat_wait_ms(1000);
+    strat_wait_ms(500);
 
     blocked_time = strat_get_time();
     do {
-        // wait 10s, then bourrine
-        if(strat_get_time() < blocked_time + 10) {
+        // wait 5s, then bourrine
+        if(strat_get_time() < blocked_time + 5) {
             trajectory_goto_backward_xy_abs(&robot.traj, 600, COLOR_Y(1400 - 400*drop_zone));
             ret = wait_traj_end(traj_flags);
         }
@@ -1019,26 +1060,33 @@ void strat_begin(void) {
     strat_ask_for_candles();
 
     /* Do the two central glasses. */ 
+#if 1
 	trajectory_set_windows(&robot.traj, 15., 1.0, 30.); // enable TRAJ_NEAR
+	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 700), speed_rd2imp(&robot.traj, 4.85) ); /* distance, angle */
     number_of_glasses = strat_do_first_glasses(); 
-	trajectory_set_windows(&robot.traj, 15., 1.0, 1.); // disable TRAJ_NEAR
 
     NOTICE(0, "First glasses done, got %d glasses.", number_of_glasses); 
     if(number_of_glasses == 2) 
         strat_do_far_glasses();
     if(number_of_glasses >= 1) {
         strat_do_near_glasses();
-        strat_schedule_job(strat_drop, NULL);
     }  
 
+    strat_drop();
+	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 600), speed_rd2imp(&robot.traj, 4.85) ); /* distance, angle */
+	trajectory_set_windows(&robot.traj, 15., 1.0, 1.); // disable TRAJ_NEAR
+
+#endif
+
     /* Parse computer vision answer. */
-    strat_parse_candle_pos();
+    /*strat_parse_candle_pos();
   
     strat_schedule_job(strat_do_gifts, NULL); 
     strat_schedule_job(strat_do_candles, NULL); 
     strat_schedule_job(strat_do_funny_action, NULL);
-    
-    strat_do_jobs();
+    */
+    strat_do_candle((void *)5);
+    strat_look_cool(NULL);
     
     left_pump(0);
     right_pump(0);

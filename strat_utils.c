@@ -84,7 +84,7 @@ int test_traj_end(int why) {
             /* Going forward. */
             if(robot.beacon.beacon[i].distance < 60) { /*cm*/
                 if(robot.distance_qr.previous_var > 0) {
-                    if(robot.beacon.beacon[i].direction > -45 && robot.beacon.beacon[i].direction < 45) {
+                    if(robot.beacon.beacon[i].direction > -30 && robot.beacon.beacon[i].direction < 30) {
 
                         trajectory_stop(&robot.traj);
                         while(robot.distance_qr.previous_var > 0);
@@ -94,7 +94,7 @@ int test_traj_end(int why) {
                     }
                 }
                 else if(robot.distance_qr.previous_var < 0) {
-                    if(robot.beacon.beacon[i].direction < -45 || robot.beacon.beacon[i].direction > 45) {
+                    if(robot.beacon.beacon[i].direction < -30 || robot.beacon.beacon[i].direction > 30) {
                         trajectory_stop(&robot.traj);
                         while(robot.distance_qr.previous_var < 0);
                         trajectory_hardstop(&robot.traj);

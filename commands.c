@@ -73,8 +73,7 @@ void cmd_autopos(int argc, char **argv) {
 
     strat_autopos(170, 1255, COLOR_A(0), 119);
 
-
-	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 600), speed_rd2imp(&robot.traj, 4.85) ); /* distance, angle */
+	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 700), speed_rd2imp(&robot.traj, 4.85) ); /* distance, angle */
 
 	bd_set_thresholds(&robot.distance_bd,  7200, 1);
 	bd_set_thresholds(&robot.angle_bd,  6000, 1);
