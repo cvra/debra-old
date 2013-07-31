@@ -119,10 +119,9 @@ void arm_init(arm_t *arm) {
     arm->length[0] = 135.5; /* mm */
     arm->length[1] = 136;
 
-    pid_set_gains(&arm->z_axis_pid, 1000, 0, 100);
-
-    pid_set_gains(&arm->elbow_pid, 10, 0, 0);
-    pid_set_gains(&arm->shoulder_pid, 10, 0, 0);
+    pid_set_gains(&arm->z_axis_pid, 2250, 0, 100);
+    pid_set_gains(&arm->elbow_pid, 30, 0, 0);
+    pid_set_gains(&arm->shoulder_pid, 30, 0, 0);
 
     arm->z_axis_imp_per_mm = 655*4;
     arm->shoulder_imp_per_rad = -77785;
@@ -162,14 +161,13 @@ void arm_execute_movement(arm_t *arm, arm_trajectory_t *traj) {
     /* Step 2 : Allocates requested memory for our copy of the trajectory. */
     arm->trajectory.frames = malloc(traj->frame_count * sizeof(arm_keyframe_t));
 
-    printf("frame cnt %d\n", traj->frame_count);
-
     if(arm->trajectory.frames == NULL)
         panic();
     
 
     /* Step 3 : Copy the trajectory data. */
     arm->trajectory.frame_count = traj->frame_count;
+
 
     memcpy(arm->trajectory.frames, traj->frames, sizeof(arm_keyframe_t) * traj->frame_count);
 } 
@@ -186,6 +184,7 @@ void arm_manage(void *a) {
      * This allows us to mix different coordinate systems in a single trajectory. */
     float previous_frame_xy[2], next_frame_xy[2];
     float alpha, beta; /* The angles of the arms. */
+    float offset = 0;
 
     /* Lag compensation */
     int32_t compensated_date = 2*current_date - arm->last_loop;
@@ -208,7 +207,6 @@ void arm_manage(void *a) {
         /* Are we past the last frame ? */
         else if(compensated_date > arm->trajectory.frames[arm->trajectory.frame_count-1].date) {
             int f = arm->trajectory.frame_count-1;
-            //printf("f = %d\n", f);
             arm_change_coordinate_system(arm, arm->trajectory.frames[f].position[0], arm->trajectory.frames[f].position[1],
                                          arm->trajectory.frames[f].coordinate_type, &position[0], &position[1]);
             position[2] = arm->trajectory.frames[f].position[2];
@@ -255,6 +253,8 @@ void arm_manage(void *a) {
             position[2] += t * arm->trajectory.frames[i].position[2];
             length[0] += t * arm->trajectory.frames[i].length[0];
             length[1] += t * arm->trajectory.frames[i].length[1];
+            offset = (1. - t) * arm->trajectory.frames[i-1].angle_offset;
+            offset += t * arm->trajectory.frames[i].angle_offset; 
         }
 
 
@@ -284,8 +284,6 @@ void arm_manage(void *a) {
 
 
 void arm_manage_cs(void *a) {
- //   static int i=0;
-//    if(i++%2000 == 0) NOTICE(0, "Science again bitch !!");
     arm_t *arm = (arm_t *)a;
 
     cs_manage(&arm->z_axis_cs);
@@ -328,7 +326,7 @@ int arm_trajectory_finished(arm_t *arm) {
 void arm_shutdown(arm_t *arm) {
     if(arm->trajectory.frame_count != 0) {
         free(arm->trajectory.frames);
-        arm->trajectory.frames = 0;
+        arm->trajectory.frame_count = 0;
     }
 }
 
@@ -401,7 +399,6 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
         chosen = p1;
     }
 
-    //printf("%d;%d;%d;%d;%d;%d\n", (int)x, (int)y, (int)p1.x, (int)p1.y, (int)p2.x, (int)p2.y);
 
     *alpha = atan2f(chosen.y, chosen.x);
     *beta = atan2f(y-chosen.y, x-chosen.x);
@@ -410,15 +407,12 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
 
     if(*beta < -M_PI) {
         *beta = 2*M_PI + *beta;
-        if(arm == &robot.left_arm) putchar('a');
     }
     
     if(*beta > M_PI) {
         *beta = -2*M_PI + *beta; 
-        if(arm == &robot.left_arm) putchar('b');
     }
 
-//    printf("%.1f;%.1f\n", *alpha*180./M_PI, *beta*180./M_PI);
 
     return 0;
 }
@@ -499,16 +493,16 @@ int check_for_obstacle_collision(arm_t *arm, point_t p1, point_t p2, int z) {
 
 void arm_calibrate(void) {
     /* Z axis. */
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 1, 197.5 * robot.left_arm.z_axis_imp_per_mm);
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 4, 197.5 * robot.left_arm.z_axis_imp_per_mm);
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 1, 183 * robot.left_arm.z_axis_imp_per_mm);
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 4, 183 * robot.left_arm.z_axis_imp_per_mm);
 
     /* Shoulders. */
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 0, (M_PI * -55.42 / 180.) * robot.left_arm.shoulder_imp_per_rad); 
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 0, (M_PI * -53.92 / 180.) * robot.left_arm.shoulder_imp_per_rad); 
     cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 5, (M_PI * 55.42 / 180.) * robot.right_arm.shoulder_imp_per_rad); 
 
     
     /* Elbows. */
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 2, (M_PI * -156.36 / 180.) * robot.left_arm.elbow_imp_per_rad); 
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 3, (M_PI * 156.36 / 180.) * robot.right_arm.elbow_imp_per_rad); 
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 2, (M_PI * -157.87 / 180.) * robot.left_arm.elbow_imp_per_rad); 
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 3, (M_PI * 157.87/ 180.) * robot.right_arm.elbow_imp_per_rad); 
 
 }

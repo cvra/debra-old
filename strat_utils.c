@@ -12,7 +12,7 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 	// Pour se recaler, on met le robot en regulation angulaire, on reduit la vitesse et l'acceleration
 	// On diminue la sensibilite on augmente la constante de temps de detection du bloquage
 
-	bd_set_thresholds(&robot.distance_bd,  4000, 2);
+	bd_set_thresholds(&robot.distance_bd,  5000, 2);
 
 	trajectory_set_speed(&robot.traj, 100, 100);
 	robot.mode = BOARD_MODE_DISTANCE_ONLY;
@@ -26,8 +26,9 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 	bd_reset(&robot.angle_bd);
 	robot.mode = BOARD_MODE_ANGLE_DISTANCE;
 
-    position_set(&robot.pos, epaisseurRobot, 0, 0);
+    //position_set(&robot.pos, epaisseurRobot, 0, -1.1778+0.254);
 
+    position_set(&robot.pos, epaisseurRobot, 0, COLOR_A(0.));
 	/* On se mets a la bonne position en x. */
 	trajectory_d_rel(&robot.traj, (double) (x - epaisseurRobot));
 	while(!trajectory_finished(&robot.traj));
@@ -46,9 +47,12 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 
 	/* On reregle la position. */
     /* XXX ze + 100 is just for 2013. */
-	position_set(&robot.pos, position_get_x_s16(&robot.pos), COLOR_Y((epaisseurRobot+100)), COLOR_A(90));
+    robot.pos.pos_d.y = COLOR_Y(epaisseurRobot+100); 
+    robot.pos.pos_s16.y = COLOR_Y(epaisseurRobot+100);
 
 	/* On se met en place a la position demandee. */
+
+	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 300), speed_rd2imp(&robot.traj, 2.5) ); /* distance, angle */
 
 	trajectory_d_rel(&robot.traj, (double) (y - epaisseurRobot));
 	while(!trajectory_finished(&robot.traj));
@@ -74,25 +78,48 @@ int test_traj_end(int why) {
 			return END_NEAR;
     }
 
-    /* TODO when rouven has fixed this fucking beacon. */
-    /*if((why & END_OBSTACLE) && robot.beacon.nb_edges != 0) {
-        trajectory_hardstop(&robot.traj);
-        return END_OBSTACLE;
-    }*/
+    if((why & END_OBSTACLE)) {
+        int i;
+        for(i=0;i<robot.beacon.nb_beacon;i++) {
+            /* Going forward. */
+            if(robot.beacon.beacon[i].distance < 60) { /*cm*/
+                if(robot.distance_qr.previous_var > 0) {
+                    if(robot.beacon.beacon[i].direction > -30 && robot.beacon.beacon[i].direction < 30) {
+
+                        trajectory_stop(&robot.traj);
+                        while(robot.distance_qr.previous_var > 0);
+                        trajectory_hardstop(&robot.traj);
+                        bd_reset(&robot.distance_bd);
+                        return END_OBSTACLE;
+                    }
+                }
+                else if(robot.distance_qr.previous_var < 0) {
+                    if(robot.beacon.beacon[i].direction < -30 || robot.beacon.beacon[i].direction > 30) {
+                        trajectory_stop(&robot.traj);
+                        while(robot.distance_qr.previous_var < 0);
+                        trajectory_hardstop(&robot.traj);
+                        bd_reset(&robot.distance_bd);
+                        return END_OBSTACLE;
+                    }
+                }
+            }
+        }
+    }
 
     if((why & END_BLOCKING) && bd_get(&robot.distance_bd)) {
         trajectory_hardstop(&robot.traj);
+        WARNING(0, "Erreur choc distance !");
         return END_BLOCKING;
     }
 
     if((why & END_BLOCKING) && bd_get(&robot.angle_bd)) {
         trajectory_hardstop(&robot.traj);
+
+        WARNING(0, "Erreur choc angle !");
         return END_BLOCKING;
     } 
 
-    /* XXX Implement END_OBSTACLE when we got our beacons. */
-
-    if((why & END_TIMER) && strat.time >= MATCH_TIME) {
+    if((why & END_TIMER) && strat_get_time() >= MATCH_TIME) {
         trajectory_hardstop(&robot.traj);
         return END_TIMER;
     } 
@@ -100,18 +127,19 @@ int test_traj_end(int why) {
     return 0;	
 }
 
-int wait_traj_end(int why) {
+int wait_traj_end_debug(int why, char *file, int line) {
     int ret;
-    /* Here we could easily insert debugging facilities. */
     do {
         ret = test_traj_end(why);
     } while(ret==0); 
+
+    DEBUG(0, "%s:%d got %d", file, line, ret);
 
     return ret;
 }
 
 
-void left_pump(int status) {
+void right_pump(int status) {
     if(status > 0)
         cvra_dc_set_pwm4(HEXMOTORCONTROLLER_BASE, 475);
     else if(status < 0)
@@ -120,7 +148,7 @@ void left_pump(int status) {
         cvra_dc_set_pwm4(HEXMOTORCONTROLLER_BASE, 0);
 }
 
-void right_pump(int status) {
+void left_pump(int status) {
     if(status > 0)
         cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, -475);
     else if(status < 0)

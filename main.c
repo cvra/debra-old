@@ -47,9 +47,9 @@ void mylog(struct error * e, ...) {
 	va_list ap;
 	va_start(ap, e);	
     /* Prints the filename (not the full path) and line number. */
-    printf("%s:%d ", strrchr(e->file, '/') ? strrchr(e->file, '/')+1:e->file, e->line);
-	vprintf(e->text, ap);
-	printf("\r\n");
+    fprintf(stderr, "%s:%d ", strrchr(e->file, '/') ? strrchr(e->file, '/')+1:e->file, e->line);
+	vfprintf(stderr, e->text, ap);
+	fprintf(stderr, "\r\n");
 	va_end(ap);
 }
 /** Cette variable contient le temps maximum passe dans une boucle du scheduler.
@@ -79,8 +79,8 @@ void main_timer_interrupt(__attribute__((unused)) void *param) {
 	time = uptime_get() - time;
 
 	/* Si le temps est plus grand que le maximum, on le garde en memoire. */
-	if(time > longest_scheduler_interrupt_time) {
-	 longest_scheduler_interrupt_time = time;
+    if(time > longest_scheduler_interrupt_time) {
+        longest_scheduler_interrupt_time = time;
 	}
 }
 #endif
@@ -99,48 +99,72 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
 
 	robot.verbosity_level = ERROR_SEVERITY_NOTICE;
     
-	/* Step 1 : Setup UART speed. Doit etre en premier car necessaire pour le log. */
-	//cvra_set_uart_speed(COMPC_BASE, 57600);
-    //
+	/* Setup UART speed, must be first. */
+    cvra_set_uart_speed(COMBT1_BASE, 9600);
+    cvra_set_uart_speed(COMBT2_BASE, 9600);
+
+    /* Inits the logging system. */
     error_register_emerg(mylog);
     error_register_error(mylog);
     error_register_warning(mylog);
     error_register_notice(mylog);
+
+    /* Enabling this one will cause a lot of logs from subsystems to show up. */
     //error_register_debug(mylog);
  
-	/* Step 2 : Init de la librairie math de Mathieu. */
-    /**FIXME @todo Est-ce qu'on a encore besoin de fast_math_init() dans la version finale ? */
+	/* Inits the custom math lib. */
     fast_math_init();
 
-
-	/* Step 3 : Demare le scheduler pour le multitache. */
+	/* Starts multitasking. */
 	scheduler_init(); 
 
 #ifdef COMPILE_ON_ROBOT
-	/* Step 3 (suite) : Si on est sur le robot on inscrit le tick dans la table des interrupts. */
+	/* Setups system tick. */
 	alt_ic_isr_register(0, TICK_IRQ, main_timer_interrupt, NULL, 0);
 #endif
 
-	/* Step 5 : Init la regulation et l'odometrie. */
-	cvra_cs_init();  // Desactive depuis la casse du moteur.
+	/* Inits all the trajectory stuff, PID, odometry, etc... */
+	cvra_cs_init(); 
 
+    /* Inits the arms. */
     arm_highlevel_init();    
 
+    /* Release the servo in case they were doing something. */
     strat_release_servo(LEFT);
-
     strat_release_servo(RIGHT);
+ 
+    /* Sets the bounding box for the avoidance module. */ 
+    const int robot_size = 150;
+    polygon_set_boundingbox(robot_size, robot_size, 3000-robot_size, 2000-robot_size);
 
-	/* Step 7 : Init tout les parametres propres a une certaine edition ainsi que l'evitement d'obstacle. */
-    /** FIXME @todo Init des parametres robot a refaire au propre. */
-   // cvra_beacon_init(&robot.beacon, AVOIDING_BASE, AVOIDING_IRQ);
-   //
-   
+    /* Inits the beacon system. The 2 coefficients were found by calibration. */
+    cvra_beacon_init(&robot.beacon, AVOIDING_BASE, AVOIDING_IRQ, 127, -5.8618, 109.43);
 
-    IOWR(AVOIDING_BASE, 3, 0xff);
+    /* Tells the user that we are up and running. */
+    WARNING(0, "System boot !");
 
+    /* Optionnal : if this is the default software, load a demo for the arms. */
+//#define FLASH_DEMO
+#ifdef FLASH_DEMO
+    strat_look_cool();
+#endif
+
+    /* If the logic power supply is off, kindly ask the user to turn it on. */
+    if((IORD(PIO_BASE, 0) & 0xff) == 0) {
+        printf("Hey sac a pain, la commande c'est en option ?\n");
+
+        /* We refuse to let the user to a shell before he turns it on. */
+        while((IORD(PIO_BASE, 0) & 0xff) == 0);
+        printf("Merci bien !\n");
+    }
+
+    /* Inits the commandline interface. */
     commandline_init(commands_list);
+
+    /* Runs the commandline system. */
     for(;;) commandline_input_char(getchar());
     	
+    /* We will never reach it. */
 	return 0;
 }
 

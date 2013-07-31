@@ -68,8 +68,8 @@ void cvra_cs_init(void) {
 #ifdef COMPILE_ON_ROBOT
 	rs_set_left_pwm(&robot.rs, cvra_dc_set_pwm0, HEXMOTORCONTROLLER_BASE);
 	rs_set_right_pwm(&robot.rs, cvra_dc_set_pwm5, HEXMOTORCONTROLLER_BASE);
-	rs_set_left_ext_encoder(&robot.rs, cvra_dc_get_encoder0, HEXMOTORCONTROLLER_BASE, 0.999981348555308);
-	rs_set_right_ext_encoder(&robot.rs, cvra_dc_get_encoder5, HEXMOTORCONTROLLER_BASE, -1.00001865144469);
+	rs_set_left_ext_encoder(&robot.rs, cvra_dc_get_encoder0, HEXMOTORCONTROLLER_BASE, 1.00070012);
+	rs_set_right_ext_encoder(&robot.rs, cvra_dc_get_encoder5, HEXMOTORCONTROLLER_BASE,-0.9993);
 #endif
 
 	/****************************************************************************/
@@ -79,8 +79,8 @@ void cvra_cs_init(void) {
 	position_init(&robot.pos);
 	/* Links the position manager to the robot system. */
 	position_set_related_robot_system(&robot.pos, &robot.rs);
-	position_set_physical_params(&robot.pos, 178. * 0.99805932908 * 0.99889012208657 * 0.999800039992002 * 1.00087947650296, // Distance between encoding wheels. // 276
-			162. * 1.002); // imp / mm  //
+	position_set_physical_params(&robot.pos,177.75691223, 
+			160.396); // imp / mm  //
 
 	/****************************************************************************/
 	/*                       Regulation de l'angle                              */
@@ -125,14 +125,22 @@ void cvra_cs_init(void) {
 	trajectory_init(&robot.traj, ASSERV_FREQUENCY);
 	trajectory_set_cs(&robot.traj, &robot.distance_cs, &robot.angle_cs);
 	trajectory_set_robot_params(&robot.traj, &robot.rs, &robot.pos);
+
+    /* Local */
 	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 600), speed_rd2imp(&robot.traj, 4.85) ); /* distance, angle */
-	trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 1600), acc_rd2imp(&robot.traj, 19.4));
-	/* distance window, angle window, angle start */
-	trajectory_set_windows(&robot.traj, 30., 1.0, 45.); // Prod
+    
+	trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 1600), acc_rd2imp(&robot.traj, 15));
+
+    /* Swisseurobot. */
+	trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 1300), acc_rd2imp(&robot.traj, 10));
+	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 800), speed_rd2imp(&robot.traj, 4.85) ); /* distance, angle */
+	
+    /* distance window, angle window, angle start */
+	trajectory_set_windows(&robot.traj, 15., 1.0, 1.); // Prod
 
 	// Angle BDM
 	bd_init(&robot.angle_bd, &robot.angle_cs);
-	bd_set_thresholds(&robot.angle_bd, 1500, 1); /* thresold, duration. */
+	bd_set_thresholds(&robot.angle_bd, 3000, 1); /* thresold, duration. */
 
 	// Distance BDM
 	bd_init(&robot.distance_bd, &robot.distance_cs);
@@ -147,7 +155,7 @@ void cvra_cs_init(void) {
 
 	/* ajoute la regulation au multitache. ASSERV_FREQUENCY est dans cvra_cs.h */
 	scheduler_add_periodical_event_priority(cvra_cs_manage, NULL, (1000000
-			/ ASSERV_FREQUENCY) / SCHEDULER_UNIT, 131);
+			/ (ASSERV_FREQUENCY)) / SCHEDULER_UNIT, 131);
 }
 
 /** Logge l'erreur sur les differents regulateurs et l'affiche avec le temps. */

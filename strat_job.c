@@ -2,30 +2,45 @@
 #include "strat_job.h"
 #include <aversive.h>
 
-SIMPLEQ_HEAD(, strat_job) jobs_queue;
+struct strat_job {
+    int (*f)(void *);
+    void *param;
+    int active;
+};
+
+struct strat_job *jobs = NULL;
+int job_count = 0;
+int active_count = 0;
 
 void strat_schedule_job(void (*f)(void *), void *param) {
-    struct strat_job *s = malloc(sizeof(struct strat_job));
 
-    if(s == NULL)
+    job_count++;
+    active_count++;
+    jobs = realloc(jobs, job_count * sizeof(struct strat_job));
+
+    if(jobs == NULL)
         panic();
 
-    s->f = f;
-    s->param = param;
-
-    SIMPLEQ_INSERT_TAIL(&jobs_queue, s, next);
+    jobs[job_count-1].f = f;
+    jobs[job_count-1].param = param;
 }
 
 int strat_job_pool_is_empty(void) {
-    return SIMPLEQ_EMPTY(&jobs_queue);
+    return active_count == 0;
 }
 
-void strat_do_job(void) { 
-    struct strat_job *s;
-    s = SIMPLEQ_FIRST(&jobs_queue);
-    SIMPLEQ_REMOVE_HEAD(&jobs_queue, next);
+void strat_do_jobs(void) { 
+    int i=0;
+    while(!strat_job_pool_is_empty()) {
+        if(jobs[i].active)
+            if(jobs[i].f(jobs[i].param)==0) {
+                jobs[i].active = 0;
+                active_count--;
+            }
 
-    if(s->f)
-        s->f(s->param);
+        i++;
+        if(i>=job_count)
+            i = 0;
+    }
 }
 

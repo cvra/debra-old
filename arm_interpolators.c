@@ -52,6 +52,9 @@ void arm_interpolator_append_point(arm_trajectory_t *traj, const float x, const 
     if(traj->frame_count == 0) {
         traj->frame_count = 1;
         traj->frames = malloc(sizeof(arm_keyframe_t));
+        if(traj->frames == NULL)
+            panic();
+
         traj->frames[0].position[0] = x;
         traj->frames[0].position[1] = y;
         traj->frames[0].position[2] = z;
@@ -61,11 +64,16 @@ void arm_interpolator_append_point(arm_trajectory_t *traj, const float x, const 
         traj->frames[0].length[0] = 135.5;
         traj->frames[0].length[1] = 136;
 
+        traj->frames[traj->frame_count-1].angle_offset = 0.;
+
 
     }
     else {
         traj->frame_count += 1;
         traj->frames = realloc(traj->frames, traj->frame_count*sizeof(arm_keyframe_t));
+
+        if(traj->frames == NULL)
+            panic();
 
         traj->frames[traj->frame_count-1].position[0] = x; 
         traj->frames[traj->frame_count-1].position[1] = y; 
@@ -75,6 +83,7 @@ void arm_interpolator_append_point(arm_trajectory_t *traj, const float x, const 
 
         traj->frames[traj->frame_count-1].length[0] = 135.5;
         traj->frames[traj->frame_count-1].length[1] = 136;
+        traj->frames[traj->frame_count-1].angle_offset = 0.;
     }
 }
 

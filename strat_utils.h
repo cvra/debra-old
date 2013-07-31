@@ -16,7 +16,9 @@
 #define TRAJ_SUCCESS(f) ((f) & (END_TRAJ|END_NEAR))
 
 /** Flags for "standard" trajectories. */
-#define TRAJ_FLAGS_STD (END_TRAJ|END_BLOCKING|END_TIMER|END_ERROR)
+#define TRAJ_FLAGS_STD (END_TRAJ|END_BLOCKING|END_TIMER|END_ERROR | END_OBSTACLE)
+
+#define TRAJ_FLAGS_SHORT_DISTANCE (END_TRAJ|END_ERROR|END_TIMER | END_BLOCKING)
 
 /** Flags for "cutting corners" trajectories.
  * @warning Using this type of trajectories lowers the precision.
@@ -24,13 +26,15 @@
 #define TRAJ_FLAGS_NEAR (TRAJ_FLAGS_STD|END_NEAR)
 
 /** This enum is used for specifying a team color. */
-typedef enum {BLUE, RED} strat_color_t;
+typedef enum {BLUE=0, RED} strat_color_t;
 
 /** Computes the symmetrical position depending on color. */ 
 #define COLOR_Y(x) (strat.color == RED ? (x) : 2000 - (x))
 
 /** Computes the symmetrical angle depending on color. */
 #define COLOR_A(x) (strat.color == RED ? (x) : -(x))
+
+#define wait_traj_end(why) wait_traj_end_debug(why, __FILE__, __LINE__)
 
 enum servo_e {
     LEFT,
@@ -44,7 +48,7 @@ enum servo_e {
  * 
  * @param [in] x, y The starting coordinates, in mm.
  * @param [in] a The starting angle relative to the X-axis, in degrees. 
- * @param epaisseurRobot The distamce between the back of the robot and the wheel axis. 
+ * @param epaisseurRobot The distance between the back of the robot and the wheel axis. 
  */
 void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot);
 
@@ -60,7 +64,7 @@ int test_traj_end(int why);
  * @param [in] why The allowed reasons to end the trajectory.
  * @returns An error code indicating the reason of the end of the trajectory.
  */
-int wait_traj_end(int why);
+int wait_traj_end_debug(int why, char *file, int line);
 
 
 void left_pump(int status);

@@ -45,6 +45,13 @@ typedef struct {
     int last_try_time; /**< Last time we tried to do this gift, in s since match start. */
 } gift_t;
 
+/** A single candle on the cake. */
+typedef struct {
+    float angle;
+    int done;
+    strat_color_t color;
+} candle_t;
+
 /** This structure holds all the configuration data and state of the strategy. */
 struct strat_info {
     strat_color_t color;				/**< Color of our robot. */
@@ -64,7 +71,9 @@ struct strat_info {
      */
     gift_t gifts[4];
 
-    int time; /**< Time since the beginning of the match, in seconds. */
+    candle_t candles[12];
+
+    int time_start; /**< Time since the beginning of the match, in seconds. */
 
     /* Configuration flags. */
     /** =1 If we should take the 1st glass on the left side, 0 if we take it on the right.*/
@@ -86,5 +95,11 @@ void strat_set_objects(void);
  * so the caller should do it.
  */
 void strat_begin(void);
+
+
+int strat_goto_avoid(int x, int y, int flags);
+
+/** Simple demo app for the arms. */
+void strat_look_cool(void *dummy);
 
 #endif
