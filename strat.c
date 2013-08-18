@@ -85,22 +85,34 @@ void strat_look_cool(void *dummy) {
     return 1;
 }
 
+/** @brief Gets game time. 
+ * @returns Time since start of game, in seconds. */
 int strat_get_time(void) {
     return (uptime_get() - strat.time_start) / 1000000;
 }
 
+/** Asks the smartphone beacon for the candle configuration. */
 void strat_ask_for_candles(void) {
     WARNING(0, "Asking for candles.");
+
+    /* Tries to open the device using the UNIX-Style API. */
     FILE *bluetooth = fopen("/dev/comBT1", "w");
+
+    /* Checks if we managed to open it. */
     if(bluetooth == NULL) {
         ERROR(0, "cannot open /dev/comBT1, aborting.\n");
     }
     else {
+        /* If we opened it, then send the signal. */
         fprintf(bluetooth, "S\n");
+
+        /* Close the UART. */
         fclose(bluetooth);
     } 
 }
 
+/** Parses the answer from the beacon.
+ * @note strat_ask_for_candles() should have been called before. */
 void strat_parse_candle_pos(void) {
     const char path[] = "/dev/comBT1";
     int bluetooth;
@@ -167,12 +179,14 @@ void strat_parse_candle_pos(void) {
     strat.candles[7].color = strat.color;
 #endif
 
+    /* Logs all the candles. */
     NOTICE(0, "Candle colors : ");
     for(i=0;i<12;i++)
         fprintf(stderr, "%c", strat.candles[i].color==RED?'r':'b');
     fprintf(stderr, "\n");
 }
 
+/** Converts relative angle/distance coordinates to absolute. */
 void strat_da_rel_to_xy_abs(float a_deg, float distance_mm, int *x_mm, int *y_mm) {
     *x_mm = distance_mm * cos(RAD(a_deg)) + position_get_x_s16(&robot.pos);
     *y_mm = distance_mm * sin(RAD(a_deg)) + position_get_y_s16(&robot.pos);
@@ -188,6 +202,8 @@ void create_opp_polygon(poly_t *pol, int x, int y) {
     oa_poly_set_point(pol, x-width, y+width, 3);
 }
 
+/** Goes at a given position, with the given flags.
+ * @returns The end of trajectory cause ,such as END_TRAJ. */
 int strat_goto_avoid(int x, int y, int flags) {
     int i, len, ret;
     int retry_count;
@@ -195,65 +211,71 @@ int strat_goto_avoid(int x, int y, int flags) {
     poly_t *pol_opp; 
     point_t *p;
     oa_init();
-//    pol_cake = oa_new_poly(12);
-    // create polygon for cake
-    // ...
 
-    // We retry the trajectory 3 times
+    /* The robot will try 3 times before giving up. */
     for(retry_count=0;retry_count<3;retry_count++) {
+
+        /* Creates one polygon for each opponent robot. */
         for(i=0;i<robot.beacon.nb_beacon;i++) {
             pol_opp = oa_new_poly(4);
 
             strat_da_rel_to_xy_abs(robot.beacon.beacon[i].direction, robot.beacon.beacon[i].distance*10,
                    &opp_x, &opp_y); 
 
-            WARNING(0, "Op is at %d;%d", opp_x, opp_y);
-            WARNING(0, "> implying op is not a fag...");
-
-            // create polygon for opp
-
+            NOTICE(0, "Op is at %d;%d", opp_x, opp_y);
             create_opp_polygon(pol_opp, 800, 0);
 
+            /* Checks if the arrival point is in an opponent. */
             if(is_point_in_poly(pol_opp, x, y)) {
                 WARNING(0, "Destination point is in opponent.");
                 return END_ERROR;
             }
         }
 
-        // Set starting and ending point of the path
+        /* Sets starting and ending point of the path. */
         oa_start_end_points(position_get_x_s16(&robot.pos), position_get_x_s16(&robot.pos), x, y);
 
-        // Compute the path
+        /* Computes the path */
         len = oa_process();
 
-        // If we cannot find a path
+        /* Checks if a path was found. */
         if(len == 0) {
             WARNING(0, "Cannot find a suitable path.");
             return END_ERROR;
         }
 
-        // Do all the path
         p = oa_get_path();
+        /* For all the points in the path. */
         for(i=0;i<len;i++) {
+            /* Goes to the point. */
             trajectory_goto_forward_xy_abs(&robot.traj, p->x, p->y);
+
+            /* Waits for the completion of the trajectory. */
             ret = wait_traj_end(flags);
 
+            /* If we were blocked or met an obstacle, we will retry. */
             if(ret == END_BLOCKING || ret == END_OBSTACLE) {
                 WARNING(0, "Retry");
                 break; // we retry once more
             }
+            /* If it was an other error, we simply abort and return it. */
             else if(!TRAJ_SUCCESS(ret)) {
                 WARNING(0, "Unknown error code : %d", ret);
                 return ret;
             }
+
+            /* Increments pointer to load next point. */
             p++;
         }
 
-        // If we managed to go to the last point, exit
+        /* If we reached last point, no need to retry. */
         if(ret == END_TRAJ) {
-            break;
+            return END_TRAJ;
         }
     }
+
+    /* If we reach here, it means 3 try were not enough. */
+    return END_ERROR;
 }
 
 void strat_place_arms(void) {
