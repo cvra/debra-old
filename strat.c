@@ -915,12 +915,12 @@ void strat_set_objects(void) {
     strat.gifts[3].x = 2325;
 
     /* Init glasses positions. */
-    strat.glasses[0].pos.x = 900; strat.glasses[0].pos.y = (1450);
-    strat.glasses[1].pos.x = 900; strat.glasses[1].pos.y = (950);
-    strat.glasses[2].pos.x = 1050; strat.glasses[2].pos.y = (1200);
-    strat.glasses[3].pos.x = 1200; strat.glasses[3].pos.y = (1450);
-    strat.glasses[4].pos.x = 1200; strat.glasses[4].pos.y = (950);
-    strat.glasses[5].pos.x = 1350; strat.glasses[5].pos.y = (1200);
+    strat.glasses[0].pos.x = 400; strat.glasses[0].pos.y = (850);
+    strat.glasses[1].pos.x = 400; strat.glasses[1].pos.y = (350);
+    strat.glasses[2].pos.x = 550; strat.glasses[2].pos.y = (600);
+    strat.glasses[3].pos.x = 700; strat.glasses[3].pos.y = (850);
+    strat.glasses[4].pos.x = 700; strat.glasses[4].pos.y = (350);
+    strat.glasses[5].pos.x = 850; strat.glasses[5].pos.y = (600);
 
     strat.glasses[6].pos.x = 1650; strat.glasses[6].pos.y = (1300);
     strat.glasses[7].pos.x = 1800; strat.glasses[7].pos.y = (1550);
@@ -974,70 +974,24 @@ void strat_set_objects(void) {
 }
 
 int strat_drop(void) {
-    int ret;
-    int blocked_time;
-    int drop_zone = 0; // en partant de l'oppose du gateau
-    int traj_flags = TRAJ_FLAGS_STD;
 
     WARNING(0, "%s()", __FUNCTION__);
 
-    // We try every drop case
-    for(drop_zone = 0;drop_zone < 3;drop_zone++) {
-        NOTICE(0, "Trying zone %d", drop_zone);
-        trajectory_goto_forward_xy_abs(&robot.traj, 400, COLOR_Y(1400 - 400*drop_zone));
-        ret = wait_traj_end(TRAJ_FLAGS_NEAR);
-
-        if(!(TRAJ_SUCCESS(ret))) {
-            WARNING(0, "Cannot go to drop zone %d");
-            continue; // on passe a la case suivante
-        }
-        
-        if(drop_zone == 0)
-            trajectory_goto_forward_xy_abs(&robot.traj, 170, COLOR_Y(1400 - 400*drop_zone));
-        else
-            trajectory_goto_forward_xy_abs(&robot.traj, 320, COLOR_Y(1400 - 400*drop_zone));
-
-        wait_traj_end(TRAJ_FLAGS_SHORT_DISTANCE);
-        break;
-    }
-
-    if(!(TRAJ_SUCCESS(ret))) {
-        ERROR(0, "Cannot drop !!!");
-        return 1;
-    }
+    trajectory_goto_forward_xy_abs(&robot.traj, 300, COLOR_Y(500));
+    wait_traj_end(TRAJ_FLAGS_STD);
+    trajectory_a_abs(&robot.traj, -180);
+    wait_traj_end(TRAJ_FLAGS_STD);
 
     strat_open_servo(LEFT);
-    strat_open_servo(RIGHT);
-    
-    strat_wait_ms(500);
+    strat_open_servo(RIGHT); 
+    strat_wait_ms(1000);
 
-    blocked_time = strat_get_time();
-    do {
-        // wait 5s, then bourrine
-        if(strat_get_time() < blocked_time + 5) {
-            trajectory_goto_backward_xy_abs(&robot.traj, 600, COLOR_Y(1400 - 400*drop_zone));
-            ret = wait_traj_end(traj_flags);
-        }
-        else {
-            if(drop_zone == 0) {
-                drop_zone++;
-            }
-            else {
-                drop_zone--;
-            }
-            if(drop_zone == 0)
-                trajectory_goto_backward_xy_abs(&robot.traj, 170, COLOR_Y(1400 - 400*drop_zone)); 
-            else
-                trajectory_goto_backward_xy_abs(&robot.traj, 320, COLOR_Y(1400 - 400*drop_zone)); 
-            // we specifically disable obstacle avoidance to gtfo
-            ret = wait_traj_end(TRAJ_FLAGS_SHORT_DISTANCE);
-            trajectory_goto_backward_xy_abs(&robot.traj, 600, COLOR_Y(1400 - 400*drop_zone)); 
-            ret = wait_traj_end(TRAJ_FLAGS_SHORT_DISTANCE);
-        } 
-    } while(!TRAJ_SUCCESS(ret) && ret != END_TIMER);
+    trajectory_d_rel(&robot.traj, -300);
+    wait_traj_end(TRAJ_FLAGS_STD);
 
     strat_release_servo(LEFT);
     strat_release_servo(RIGHT);
+
     left_pump(0);
     right_pump(0);
 
@@ -1066,7 +1020,7 @@ int strat_do_funny_action(void *dummy) {
 void strat_begin(void) {
     int number_of_glasses;
 
-    /* Starts the game timer. */
+    /* Starts the ame timer. */
     strat.time_start = uptime_get();
 
     /* Shutdowns the funny action. */
@@ -1078,38 +1032,18 @@ void strat_begin(void) {
     /* Puts the arms in an appropriate position. */
     strat_place_arms();
 
-    /* Ask the computer vision for informations. */
-    strat_ask_for_candles();
 
     /* Do the two central glasses. */ 
-#if 1
-	trajectory_set_windows(&robot.traj, 15., 1.0, 30.); // enable TRAJ_NEAR
-	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 700), speed_rd2imp(&robot.traj, 4.85) ); /* distance, angle */
+	trajectory_set_windows(&robot.traj, 15., 1.0, 30.); 
+	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 700), speed_rd2imp(&robot.traj, 4.85) ); 
     number_of_glasses = strat_do_first_glasses(); 
 
     NOTICE(0, "First glasses done, got %d glasses.", number_of_glasses); 
-    if(number_of_glasses == 2) 
-        strat_do_far_glasses();
-    if(number_of_glasses >= 1) {
-        strat_do_near_glasses();
-    }  
+    strat_do_far_glasses();
+    strat_do_near_glasses();
 
     strat_drop();
-	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 600), speed_rd2imp(&robot.traj, 4.85) ); /* distance, angle */
-	trajectory_set_windows(&robot.traj, 15., 1.0, 1.); // disable TRAJ_NEAR
 
-#endif
-
-    /* Parse computer vision answer. */
-    /*strat_parse_candle_pos();
-  
-    strat_schedule_job(strat_do_gifts, NULL); 
-    strat_schedule_job(strat_do_candles, NULL); 
-    strat_schedule_job(strat_do_funny_action, NULL);
-    */
-    strat_do_candle((void *)5);
-    strat_look_cool(NULL);
-    
     left_pump(0);
     right_pump(0);
 }

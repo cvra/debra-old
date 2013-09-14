@@ -46,9 +46,8 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 	bd_reset(&robot.angle_bd);
 
 	/* On reregle la position. */
-    /* XXX ze + 100 is just for 2013. */
-    robot.pos.pos_d.y = COLOR_Y(epaisseurRobot+100); 
-    robot.pos.pos_s16.y = COLOR_Y(epaisseurRobot+100);
+    robot.pos.pos_d.y = COLOR_Y(epaisseurRobot); 
+    robot.pos.pos_s16.y = COLOR_Y(epaisseurRobot);
 
 	/* On se met en place a la position demandee. */
 

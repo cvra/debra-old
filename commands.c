@@ -68,10 +68,9 @@ void cmd_autopos(int argc, char **argv) {
         return;
     }
 
-    if(!strcmp("red", argv[1])) strat.color = RED;
-    if(!strcmp("blue", argv[1])) strat.color = BLUE;
+    strat.color = RED; /* only got a half table. */
 
-    strat_autopos(170, 1255, COLOR_A(0), 119);
+    strat_autopos(250, 600,COLOR_A(0), 119);
 
 	trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 700), speed_rd2imp(&robot.traj, 4.85) ); /* distance, angle */
 
