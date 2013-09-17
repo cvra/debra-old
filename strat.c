@@ -356,7 +356,7 @@ void strat_degage_bras(void) {
     arm_get_position(&robot.right_arm, &x, &y, &z);
     arm_trajectory_init(&traj); 
     arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 9.); // duration not used     
-    arm_interpolator_append_point(&traj, x+20, y, z, COORDINATE_ARM, .3); // duration not used     
+    arm_interpolator_append_point(&traj, x+20, y, z, COORDINATE_ARM, .3); // duration not used      
     arm_execute_movement(&robot.right_arm, &traj);
 
     arm_get_position(&robot.left_arm, &x, &y, &z);
@@ -1000,16 +1000,14 @@ int strat_drop(void) {
 
 int strat_do_funny_action(void *dummy) {
 
-    if(strat_get_time() < 95)
-        return 1;
-
+    int start_time = strat_get_time();
     
     NOTICE(0, "%s()", __FUNCTION__);
     robot.mode = BOARD_MODE_FREE;
     IOWR(PIO_BASE, 0, 1 << 9);
     right_pump(1); 
     left_pump(1);
-    while(strat_get_time() < 100);
+    while(strat_get_time()-start_time < 5);
     right_pump(0);
     left_pump(0);
     return 0;
@@ -1043,9 +1041,29 @@ void strat_begin(void) {
     strat_do_near_glasses();
 
     strat_drop();
+    trajectory_a_rel(&robot.traj, 180);
+    wait_traj_end(TRAJ_FLAGS_STD);
+    strat_do_funny_action(NULL);
 
     left_pump(0);
     right_pump(0);
+
+
+    /* remet le bras en place */
+    arm_trajectory_t traj;
+    float x, y, z;
+
+    arm_get_position(&robot.right_arm, &x, &y, &z);
+    arm_trajectory_init(&traj); 
+    arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 9.); // duration not used     
+    arm_interpolator_append_point(&traj, x, y, 183, COORDINATE_ARM, .3); // duration not used      
+    arm_execute_movement(&robot.right_arm, &traj);
+
+    arm_get_position(&robot.left_arm, &x, &y, &z);
+    arm_trajectory_init(&traj); 
+    arm_interpolator_append_point(&traj, x, y, z, COORDINATE_ARM, 9.); // duration not used     
+    arm_interpolator_append_point(&traj, x, y, 183, COORDINATE_ARM, .3);
+    arm_execute_movement(&robot.left_arm, &traj);
 }
 
 

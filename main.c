@@ -158,6 +158,16 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
         printf("Merci bien !\n");
     }
 
+    printf("Salut florian !!!\n");
+    printf("Etapes pour la preparation :\n");
+    printf("1) Allumer la puissance.\n");
+    printf("2) calibrate_arms\n");
+    printf("3) autopos red\n");
+    printf("4) Mettre le start\n");
+    printf("5) start\n");
+    printf("6) Deconnecter l'USB puis tirer sur le start.\n");
+    printf("7) Enjoy !!\n");
+
     /* Inits the commandline interface. */
     commandline_init(commands_list);
 
