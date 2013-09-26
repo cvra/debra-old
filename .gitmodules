@@ -1,0 +1,6 @@
+[submodule "modules"]
+	path = modules
+	url = https://github.com/cvra/modules
+[submodule "nios_files"]
+	path = nios_files
+	url = https://github.com/cvra/nios_files
