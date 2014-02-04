@@ -28,6 +28,15 @@
 /** This enum is used for specifying a team color. */
 typedef enum {BLUE=0, RED} strat_color_t;
 
+/** This structure holds all the configuration data and state of the strategy. */
+struct strat_info {
+    strat_color_t color;				/**< Color of our robot. */
+    int time_start; /**< Time since the beginning of the match, in seconds. */
+};
+
+/** This global var holds everything related to the strat. */
+extern struct strat_info strat;
+
 /** Computes the symmetrical position depending on color. */ 
 #define COLOR_Y(x) (strat.color == RED ? (x) : 2000 - (x))
 
@@ -78,5 +87,27 @@ void strat_open_servo(enum servo_e servo);
 
 /** Releases a servo pressure. */
 void strat_release_servo(enum servo_e servo);
+
+
+/**
+ * Gets game time. 
+ * @returns Time since start of game, in seconds.
+ */ 
+int strat_get_time(void);
+
+/**
+ * Waits for some time.
+ * @param [in] ms The time to wait, in milliseconds.
+ */
+void strat_wait_ms(int ms);
+
+/**
+ * Goes to a given position, with the given flags.
+ * @param [in] x,y Target point
+ * @param [in] flags Some OR'd flag to indicate possible cause for stop, such
+ * as END_TRAJ | END_BLOCKING.
+ * @returns The end of trajectory cause ,such as END_TRAJ.
+ */
+int strat_goto_avoid(int x, int y, int flags);
 
 #endif

@@ -5,6 +5,23 @@
 #include "strat_utils.h"
 #include "cvra_cs.h"
 
+
+struct strat_info strat;
+
+int strat_get_time(void) {
+    return (uptime_get() - strat.time_start) / 1000000;
+}
+
+void strat_wait_ms(int ms) {
+    int32_t time = uptime_get();
+    while(uptime_get() < time + ms*1000);
+}
+
+void strat_timer_reset(void)
+{
+    strat.time_start = uptime_get();
+}
+
 void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 
 	robot.is_aligning = 1;
@@ -64,6 +81,96 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot) {
 	/* On remet le robot dans son etat initial. */
 	robot.mode = BOARD_MODE_ANGLE_DISTANCE;
 	robot.is_aligning = 0;
+}
+
+/** Converts relative angle/distance coordinates to absolute. */
+void strat_da_rel_to_xy_abs(float a_deg, float distance_mm, int *x_mm, int *y_mm) {
+    *x_mm = distance_mm * cos(RAD(a_deg)) + position_get_x_s16(&robot.pos);
+    *y_mm = distance_mm * sin(RAD(a_deg)) + position_get_y_s16(&robot.pos);
+}
+
+void create_opp_polygon(poly_t *pol, int x, int y) {
+    const int width = 600; // half width XXX check this, it should be greater IMHO
+    const int height = width;
+
+    oa_poly_set_point(pol, x+width, y+width, 0);
+    oa_poly_set_point(pol, x+width, y-width, 1);
+    oa_poly_set_point(pol, x-width, y-width, 2);
+    oa_poly_set_point(pol, x-width, y+width, 3);
+}
+
+int strat_goto_avoid(int x, int y, int flags) {
+    int i, len, ret;
+    int retry_count;
+    int opp_x, opp_y;
+    poly_t *pol_opp; 
+    point_t *p;
+    oa_init();
+
+    /* The robot will try 3 times before giving up. */
+    for(retry_count=0;retry_count<3;retry_count++) {
+
+        /* Creates one polygon for each opponent robot. */
+        for(i=0;i<robot.beacon.nb_beacon;i++) {
+            pol_opp = oa_new_poly(4);
+
+            strat_da_rel_to_xy_abs(robot.beacon.beacon[i].direction, robot.beacon.beacon[i].distance*10,
+                   &opp_x, &opp_y); 
+
+            NOTICE(0, "Op is at %d;%d", opp_x, opp_y);
+            create_opp_polygon(pol_opp, 800, 0);
+
+            /* Checks if the arrival point is in an opponent. */
+            if(is_point_in_poly(pol_opp, x, y)) {
+                WARNING(0, "Destination point is in opponent.");
+                return END_ERROR;
+            }
+        }
+
+        /* Sets starting and ending point of the path. */
+        oa_start_end_points(position_get_x_s16(&robot.pos), position_get_x_s16(&robot.pos), x, y);
+
+        /* Computes the path */
+        len = oa_process();
+
+        /* Checks if a path was found. */
+        if(len == 0) {
+            WARNING(0, "Cannot find a suitable path.");
+            return END_ERROR;
+        }
+
+        p = oa_get_path();
+        /* For all the points in the path. */
+        for(i=0;i<len;i++) {
+            /* Goes to the point. */
+            trajectory_goto_forward_xy_abs(&robot.traj, p->x, p->y);
+
+            /* Waits for the completion of the trajectory. */
+            ret = wait_traj_end(flags);
+
+            /* If we were blocked or met an obstacle, we will retry. */
+            if(ret == END_BLOCKING || ret == END_OBSTACLE) {
+                WARNING(0, "Retry");
+                break; // we retry once more
+            }
+            /* If it was an other error, we simply abort and return it. */
+            else if(!TRAJ_SUCCESS(ret)) {
+                WARNING(0, "Unknown error code : %d", ret);
+                return ret;
+            }
+
+            /* Increments pointer to load next point. */
+            p++;
+        }
+
+        /* If we reached last point, no need to retry. */
+        if(ret == END_TRAJ) {
+            return END_TRAJ;
+        }
+    }
+
+    /* If we reach here, it means 3 try were not enough. */
+    return END_ERROR;
 }
 
 int test_traj_end(int why) {
@@ -138,8 +245,7 @@ int wait_traj_end_debug(int why, char *file, int line) {
     return ret;
 }
 
-
-void right_pump(int status) {
+void right_pump(int status){
     if(status > 0)
         cvra_dc_set_pwm4(HEXMOTORCONTROLLER_BASE, 475);
     else if(status < 0)
