@@ -24,7 +24,6 @@
 #include <control_system_manager.h>
 #include <pid.h>
 #include <quadramp.h>
-#include <scheduler.h>
 #include <cvra_dc.h>
 #include <2wheels/trajectory_manager_utils.h>
 
@@ -42,8 +41,13 @@
 
 struct _rob robot;
 
+OS_STK    cs_task_stk[2048];
+OS_STK    odometry_task_stk[2048];
+#define   CS_TASK_PRIORITY            21
+#define   ODOMETRY_TASK_PRIORITY      22
 
-void cvra_cs_init(void) {
+void cvra_cs_init(void)
+{
     robot.mode = BOARD_MODE_ANGLE_DISTANCE;
     /*--------------------------------------------------------------------------*/
     /*                                Motor                                     */
@@ -151,17 +155,30 @@ void cvra_cs_init(void) {
     // Initialisation deplacement:
     position_set(&robot.pos, 0, 0, 0);
 
+    /* Creates the control task. */
+    OSTaskCreateExt(cvra_cs_manage_task,
+                    NULL,
+                    &cs_task_stk[TASK_STACKSIZE-1],
+                    CS_TASK_PRIORITY,
+                    CS_TASK_PRIORITY,
+                    &cs_task_stk[0],
+                    2048, /* stack size */
+                    NULL, NULL);
 
-
-    /* ajoute la regulation au multitache. ASSERV_FREQUENCY est dans cvra_cs.h */
-    scheduler_add_periodical_event_priority(cvra_cs_manage, NULL, (1000000
-            / (ASSERV_FREQUENCY)) / SCHEDULER_UNIT, 131);
+    /* Creates the control task. */
+    OSTaskCreateExt(odometry_manage_task,
+                    NULL,
+                    &odometry_task_stk[TASK_STACKSIZE-1],
+                    ODOMETRY_TASK_PRIORITY,
+                    ODOMETRY_TASK_PRIORITY,
+                    &odometry_task_stk[0],
+                    2048, /* stack size */
+                    NULL, NULL);
 }
 
-void cvra_cs_manage(__attribute__((unused)) void * dummy) {
-    /* Gestion de la position. */
+void cvra_cs_manage_task(__attribute__((unused)) void * dummy)
+{
     rs_update(&robot.rs);
-    position_manage(&robot.pos);
 
     /* Gestion de l'asservissement. */
     if (robot.mode != BOARD_MODE_SET_PWM) {
@@ -181,4 +198,15 @@ void cvra_cs_manage(__attribute__((unused)) void * dummy) {
     /* Gestion du blocage */
     bd_manage(&robot.angle_bd);
     bd_manage(&robot.distance_bd);
+
+    /* Wait 10 milliseconds (100 Hz) */
+    OSTimeDlyHMSM(0, 0, 0, 1000 / ASSERV_FREQUENCY);
+}
+
+void odometry_manage_task(__attribute__((unused)) void *dummy)
+{
+    position_manage(&robot.pos);
+
+    /* Wait 20 milliseconds (50 Hz) */
+    OSTimeDlyHMSM(0, 0, 0, 20);
 }
