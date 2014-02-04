@@ -158,18 +158,6 @@ void cvra_cs_init(void) {
             / (ASSERV_FREQUENCY)) / SCHEDULER_UNIT, 131);
 }
 
-/** Logge l'erreur sur les differents regulateurs et l'affiche avec le temps. */
-static void dump_error(void) {
-    static int time = 0;
-    if (robot.error_dump_enabled) {
-        if (time % 10)
-            fprintf(stderr, "%d;%d;%d\n", time, (int)cs_get_error(&robot.angle_cs), (int)cs_get_error(&robot.distance_cs));
-        time++;
-    } else {
-        time = 0;
-    }
-}
-
 void cvra_cs_manage(__attribute__((unused)) void * dummy) {
     /* Gestion de la position. */
     rs_update(&robot.rs);
@@ -189,9 +177,6 @@ void cvra_cs_manage(__attribute__((unused)) void * dummy) {
             rs_set_distance(&robot.rs, 0); // Sets a distance angle PWM
         }
     }
-
-    /* Affichage des courbes d'asservissement. */
-    dump_error();
 
     /* Gestion du blocage */
     bd_manage(&robot.angle_bd);
