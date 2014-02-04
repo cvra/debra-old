@@ -21,9 +21,6 @@
 #ifndef _STRAT_H_
 #define _STRAT_H_
 
-#include <aversive.h>
-#include <vect_base.h>
-#include "strat_utils.h"
 
 /** @brief Starts a match
  *
@@ -33,5 +30,4 @@
 void strat_begin(void);
 
 
-int strat_goto_avoid(int x, int y, int flags);
 #endif

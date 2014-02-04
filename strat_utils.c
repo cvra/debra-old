@@ -1,4 +1,5 @@
 #include <aversive.h>
+#include <obstacle_avoidance.h>
 #include <aversive/error.h>
 #include <2wheels/trajectory_manager_utils.h>
 #include <cvra_beacon.h>
