@@ -43,7 +43,7 @@
 
 /**
  @brief Type of the regulators
- 
+
  This enum holds the type of regulators : Angle and distance, distance only,
  angle only, etc...
  @note Some values are unused :
@@ -62,8 +62,8 @@ enum board_mode_t {
 
 /**
  @brief Trajectory type
- 
- This enum is used to store informations about the trajectory type, like "x,y 
+
+ This enum is used to store informations about the trajectory type, like "x,y
  forward only" or "angle only", etc...
 
  */
@@ -79,13 +79,13 @@ enum trajectory_type_t {
 
 /**
  @brief contains all global vars.
- 
+
  This structure contains all vars that should be global. This is a clean way to
  group all vars in one place. It also serve as a namespace.
  */
 struct _rob {
     uint8_t verbosity_level;				///< @deprecated Contient le niveau de debug du robot.
-     
+
     struct robot_system rs;                 ///< Robot system (angle & distance).
     struct robot_position pos;              ///< Position manager.
     struct cs angle_cs;                     ///< Control system manager for angle.
@@ -99,26 +99,26 @@ struct _rob {
     struct blocking_detection distance_bd;  ///< Distance blocking detection manager.
 
     volatile cvra_beacon_t beacon;
-        
+
     enum board_mode_t mode;                 ///< The current board mode. @deprecated
- 
-    
+
+
     uint8_t is_aligning:1;                  ///< =1 if the robot is aligning on border
-    
+
     uint8_t error_dump_enabled:1;           ///< =1 if infos should be dumped
     uint8_t is_blocked:1;                   ///< =1 if the robot got blocked
     uint8_t avoiding_enabled:1;
     uint8_t askLog;
-    
+
     arm_t left_arm;					///< Structure representant le bras gauche.
-    arm_t right_arm;					///< Structure representant le bras droit. 
+    arm_t right_arm;					///< Structure representant le bras droit.
 
 };
 
 
 /**
  @brief Contient toutes les variables globales.
- 
+
  Cette structure sert en quelque sorte de namespace pour les variables globales,
  qui peuvent ensuite etre accedees en faisant robot.color par exemple.
  */
@@ -126,7 +126,7 @@ extern struct _rob robot;
 
 /**
  @brief Inits all the regulation related modules.
- 
+
  This function inits and setups the following modules :
  - robot_system
  - encoders_cvra
@@ -140,21 +140,4 @@ extern struct _rob robot;
  */
 void cvra_cs_init(void);
 
-
-/**
- @brief Manages regulation related modules
- 
- This functions starts by reading the coders value (encoders_cvra), then it
- converts it to angle / distance (robot_system), manages the control systems if
- needed (depends of the robot.mode value). It manages a few event depending on
- the blocking_detection module. Finally it computes position and updates the
- x,y consign if we reached the destination.
- 
- @note This function needs to be called often and is compatible with the
- base/scheduler module. The trajectory_manager runs its own task at 10 Hz.
- */        
-void cvra_cs_manage(void * dummy);
-
-
- 
 #endif /* CVRA_CS_H */
