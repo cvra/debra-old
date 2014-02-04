@@ -46,9 +46,23 @@ Useful warnings
 ===============
 * When building for the NIOS 2 system, do not assume that the compiler will zero out memory before giving it to you. It _won't_.
 * Do not do any rebase / rollback of already pushed commits.
-* The NIOS 2 compiler hates you. Really. 
+* The NIOS 2 compiler hates you. Really.
 
+Priority list
+=============
+Here is a list of all tasks that are running on this specific app.
+Remember : The lower the priority number, the higher the priority (i.e., its importance).
+**This list should always be maintained up-to-date.**
+Really bad things can happen when you don't set your priority correctly.
 
+| Task name     | Priority | Notes
+|---------------|----------|-------
+| Init          | 20       | Is self-deleted once init is complete.
+| Motor control | 21       | Main motors (wheels) control. Updates robot system and blocking detection.
+| Odometry      | 22       | Computes the robot position from robot system. 
+| Trajectory    | 23       | Computes the current consigns needed to go to target point.
+| Shell         | 40       | Serial shell used for debug and config.
+| Strategy      | 50       | Must be background task because it doesn't use IPC properly yet.
 
 Contributing
 ============
