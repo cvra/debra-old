@@ -130,8 +130,8 @@ void arm_init(arm_t *arm) {
     /* Distance entre les vis a billes : 158 mm. */
     arm->last_loop = uptime_get();
 
-    scheduler_add_periodical_event(arm_manage_cs, (void *)arm, 1000 / SCHEDULER_UNIT);
-    scheduler_add_periodical_event(arm_manage, (void *)arm, 10000 / SCHEDULER_UNIT);
+//    scheduler_add_periodical_event(arm_manage_cs, (void *)arm, 1000 / SCHEDULER_UNIT);
+ //   scheduler_add_periodical_event(arm_manage, (void *)arm, 10000 / SCHEDULER_UNIT);
 
     arm->shoulder_mode = SHOULDER_BACK;
 }

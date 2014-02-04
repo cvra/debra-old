@@ -29,11 +29,17 @@
 extern command_t commands_list[];
 
 #define   TASK_STACKSIZE          2048
-#define   INIT_TASK_PRIORITY      20
-#define   SHELL_TASK_PRIORITY      50
+#define   INIT_TASK_PRIORITY        20
+#define   SHELL_TASK_PRIORITY       40
+#define   HEARTBEAT_TASK_PRIORITY   41
 
 OS_STK    init_task_stk[TASK_STACKSIZE];
 OS_STK    shell_task_stk[TASK_STACKSIZE];
+OS_STK    heartbeat_task_stk[TASK_STACKSIZE];
+
+void shell_task(void *pdata);
+void init_task(void *pdata);
+void heartbeat_task(void *pdata);
 
 
 /** Logs an event.
@@ -42,7 +48,8 @@ OS_STK    shell_task_stk[TASK_STACKSIZE];
  * modules fills an error structure and calls it.
  * @param [in] e The error structure, filled with every needed info.
  */
-void mylog(struct error * e, ...) {
+void mylog(struct error * e, ...)
+{
     va_list ap;
     va_start(ap, e);
     /* Prints the filename (not the full path) and line number. */
@@ -55,17 +62,20 @@ void mylog(struct error * e, ...) {
 
 void init_task(void *pdata)
 {
+    /* Tells the user that we are up and running. */
+    WARNING(0, "System boot !");
+
+#if 0
     /* Inits the custom math lib. */
+    NOTICE(0, "Fast math init.");
     fast_math_init();
+#endif
 
     /* Release the servo in case they were doing something. */
     strat_release_servo(LEFT);
     strat_release_servo(RIGHT);
 
-
-    /* Tells the user that we are up and running. */
-    WARNING(0, "System boot !");
-
+#if 0
     /* If the logic power supply is off, kindly ask the user to turn it on. */
     if((IORD(PIO_BASE, 0) & 0xff) == 0) {
         printf("Hey sac a pain, la commande c'est en option ?\n");
@@ -74,8 +84,10 @@ void init_task(void *pdata)
         while((IORD(PIO_BASE, 0) & 0xff) == 0);
         printf("Merci bien !\n");
     }
+#endif
 
     /* Inits all the trajectory stuff, PID, odometry, etc... */
+    NOTICE(0, "Main control system init.");
     cvra_cs_init();
 
     /* Sets the bounding box for the avoidance module. */
@@ -91,20 +103,49 @@ void init_task(void *pdata)
                     TASK_STACKSIZE,
                     NULL, NULL);
 
+    OSTaskCreateExt(heartbeat_task,
+                    NULL,
+                    &heartbeat_task_stk[TASK_STACKSIZE-1],
+                    HEARTBEAT_TASK_PRIORITY,
+                    HEARTBEAT_TASK_PRIORITY,
+                    &heartbeat_task_stk[0],
+                    TASK_STACKSIZE,
+                    NULL, NULL);
+
     /* Tasks must delete themselves before exiting. */
     OSTaskDel(OS_PRIO_SELF);
 }
 
+
+
 void shell_task(void *pdata)
 {
-   /* Inits the commandline interface. */
+    /* Inits the commandline interface. */
     commandline_init(commands_list);
 
     /* Runs the commandline system. */
     for(;;) commandline_input_char(getchar());
 }
 
-int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) {
+void heartbeat_task(void *pdata)
+{
+    OS_CPU_SR cpu_sr;
+    int leds;
+    while(1) {
+        OS_ENTER_CRITICAL();
+
+        leds = IORD(LED_BASE, 0);
+        /* toggles bit 0. */
+        leds = leds ^ (1<<0);
+        IOWR(LED_BASE, 0, leds);
+
+        OS_EXIT_CRITICAL();
+        OSTimeDlyHMSM(0, 0, 0, 500);
+    }
+
+}
+
+int main(void) {
 
     robot.verbosity_level = ERROR_SEVERITY_NOTICE;
 
@@ -118,6 +159,7 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
     error_register_warning(mylog);
     error_register_notice(mylog);
 
+
     /* Enabling this one will cause a lot of logs from subsystems to show up. */
     //error_register_debug(mylog);
 
@@ -130,7 +172,11 @@ int main(__attribute__((unused)) int argc, __attribute__((unused)) char **argv) 
                     &init_task_stk[0],
                     TASK_STACKSIZE,
                     NULL, NULL);
+
     OSStart();
+
+
+    for(;;);
 
 
     /* We will never reach it. */

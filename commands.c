@@ -677,7 +677,6 @@ void cmd_calage_test(int argc, char **argv)
 
 void cmd_degage_arms(void)
 {
-    strat_place_arms();
 }
 
 void cmd_angle_calibrate(int argc, char **argv)

@@ -46,6 +46,9 @@ OS_STK    odometry_task_stk[2048];
 #define   CS_TASK_PRIORITY            21
 #define   ODOMETRY_TASK_PRIORITY      22
 
+static void cvra_cs_manage_task(void * dummy);
+static void odometry_manage_task(void *dummy);
+
 void cvra_cs_init(void)
 {
     robot.mode = BOARD_MODE_ANGLE_DISTANCE;

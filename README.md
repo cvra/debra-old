@@ -44,6 +44,7 @@ The source code is organised like this :
 
 Useful warnings
 ===============
+* By default UC/OS-II lowest priority is 20. Increase it to something like 60 with 20 tasks to have some room.
 * When building for the NIOS 2 system, do not assume that the compiler will zero out memory before giving it to you. It _won't_.
 * Do not do any rebase / rollback of already pushed commits.
 * The NIOS 2 compiler hates you. Really.
@@ -62,4 +63,5 @@ Really bad things can happen when you don't set your priority correctly.
 | Odometry      | 22       | Computes the robot position from robot system.
 | Trajectory    | 23       | Computes the current consigns needed to go to target point.
 | Shell         | 40       | Serial shell used for debug and config.
+| Heartbeat     | 41       | Blinks an LED.
 | Strategy      | 50       | Must be background task because it doesn't use IPC properly yet.
