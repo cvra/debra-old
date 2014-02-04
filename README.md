@@ -63,12 +63,3 @@ Really bad things can happen when you don't set your priority correctly.
 | Trajectory    | 23       | Computes the current consigns needed to go to target point.
 | Shell         | 40       | Serial shell used for debug and config.
 | Strategy      | 50       | Must be background task because it doesn't use IPC properly yet.
-
-Contributing
-============
-If you are from CVRA, ask Antoine to give you commiter access. If you come from an external club
-(omg a contributor, welcome!), please open a pull request.
-
-In both cases, it is _really important_ that you configure your Mercurial client to have the right user setting.
-We want your user settings to look like this : `FirstName LastName <email@adress.com>`. The `<` and the `>` must
-be in the username. This is required by Bitbucket to properly match your account to your commits.
