@@ -59,7 +59,7 @@ Really bad things can happen when you don't set your priority correctly.
 |---------------|----------|-------
 | Init          | 20       | Is self-deleted once init is complete.
 | Motor control | 21       | Main motors (wheels) control. Updates robot system and blocking detection.
-| Odometry      | 22       | Computes the robot position from robot system. 
+| Odometry      | 22       | Computes the robot position from robot system.
 | Trajectory    | 23       | Computes the current consigns needed to go to target point.
 | Shell         | 40       | Serial shell used for debug and config.
 | Strategy      | 50       | Must be background task because it doesn't use IPC properly yet.
