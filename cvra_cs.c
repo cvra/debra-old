@@ -158,7 +158,7 @@ void cvra_cs_init(void)
     /* Creates the control task. */
     OSTaskCreateExt(cvra_cs_manage_task,
                     NULL,
-                    &cs_task_stk[TASK_STACKSIZE-1],
+                    &cs_task_stk[2047],
                     CS_TASK_PRIORITY,
                     CS_TASK_PRIORITY,
                     &cs_task_stk[0],
@@ -168,7 +168,7 @@ void cvra_cs_init(void)
     /* Creates the control task. */
     OSTaskCreateExt(odometry_manage_task,
                     NULL,
-                    &odometry_task_stk[TASK_STACKSIZE-1],
+                    &odometry_task_stk[2047],
                     ODOMETRY_TASK_PRIORITY,
                     ODOMETRY_TASK_PRIORITY,
                     &odometry_task_stk[0],
@@ -178,35 +178,39 @@ void cvra_cs_init(void)
 
 void cvra_cs_manage_task(__attribute__((unused)) void * dummy)
 {
-    rs_update(&robot.rs);
+    while(1) {
+        rs_update(&robot.rs);
 
-    /* Gestion de l'asservissement. */
-    if (robot.mode != BOARD_MODE_SET_PWM) {
-        if (robot.mode == BOARD_MODE_ANGLE_DISTANCE || robot.mode == BOARD_MODE_ANGLE_ONLY) {
-            cs_manage(&robot.angle_cs);
-        } else {
-            rs_set_angle(&robot.rs, 0); // Sets a null angle PWM
+        /* Gestion de l'asservissement. */
+        if (robot.mode != BOARD_MODE_SET_PWM) {
+            if (robot.mode == BOARD_MODE_ANGLE_DISTANCE || robot.mode == BOARD_MODE_ANGLE_ONLY) {
+                cs_manage(&robot.angle_cs);
+            } else {
+                rs_set_angle(&robot.rs, 0); // Sets a null angle PWM
+            }
+
+            if (robot.mode == BOARD_MODE_ANGLE_DISTANCE || robot.mode == BOARD_MODE_DISTANCE_ONLY) {
+                cs_manage(&robot.distance_cs);
+            } else {
+                rs_set_distance(&robot.rs, 0); // Sets a distance angle PWM
+            }
         }
 
-        if (robot.mode == BOARD_MODE_ANGLE_DISTANCE || robot.mode == BOARD_MODE_DISTANCE_ONLY) {
-            cs_manage(&robot.distance_cs);
-        } else {
-            rs_set_distance(&robot.rs, 0); // Sets a distance angle PWM
-        }
+        /* Gestion du blocage */
+        bd_manage(&robot.angle_bd);
+        bd_manage(&robot.distance_bd);
+
+        /* Wait 10 milliseconds (100 Hz) */
+        OSTimeDlyHMSM(0, 0, 0, 1000 / ASSERV_FREQUENCY);
     }
-
-    /* Gestion du blocage */
-    bd_manage(&robot.angle_bd);
-    bd_manage(&robot.distance_bd);
-
-    /* Wait 10 milliseconds (100 Hz) */
-    OSTimeDlyHMSM(0, 0, 0, 1000 / ASSERV_FREQUENCY);
 }
 
 void odometry_manage_task(__attribute__((unused)) void *dummy)
 {
-    position_manage(&robot.pos);
+    while(1) {
+        position_manage(&robot.pos);
 
-    /* Wait 20 milliseconds (50 Hz) */
-    OSTimeDlyHMSM(0, 0, 0, 20);
+        /* Wait 20 milliseconds (50 Hz) */
+        OSTimeDlyHMSM(0, 0, 0, 20);
+    }
 }
