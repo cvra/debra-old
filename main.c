@@ -75,16 +75,14 @@ void init_task(void *pdata)
     strat_release_servo(LEFT);
     strat_release_servo(RIGHT);
 
-#if 0
     /* If the logic power supply is off, kindly ask the user to turn it on. */
-    if((IORD(PIO_BASE, 0) & 0xff) == 0) {
+    if ((IORD(PIO_BASE, 0) & 0xff) == 0) {
         printf("Hey sac a pain, la commande c'est en option ?\n");
 
         /* We refuse to let the user to a shell before he turns it on. */
-        while((IORD(PIO_BASE, 0) & 0xff) == 0);
+        while ((IORD(PIO_BASE, 0) & 0xff) == 0);
         printf("Merci bien !\n");
     }
-#endif
 
     /* Inits all the trajectory stuff, PID, odometry, etc... */
     NOTICE(0, "Main control system init.");
@@ -124,14 +122,14 @@ void shell_task(void *pdata)
     commandline_init(commands_list);
 
     /* Runs the commandline system. */
-    for(;;) commandline_input_char(getchar());
+    for (;;) commandline_input_char(getchar());
 }
 
 void heartbeat_task(void *pdata)
 {
     OS_CPU_SR cpu_sr;
     int leds;
-    while(1) {
+    while (1) {
         OS_ENTER_CRITICAL();
 
         leds = IORD(LED_BASE, 0);
@@ -145,7 +143,8 @@ void heartbeat_task(void *pdata)
 
 }
 
-int main(void) {
+int main(void)
+{
 
     robot.verbosity_level = ERROR_SEVERITY_NOTICE;
 
@@ -176,7 +175,7 @@ int main(void) {
     OSStart();
 
 
-    for(;;);
+    for (;;);
 
 
     /* We will never reach it. */
