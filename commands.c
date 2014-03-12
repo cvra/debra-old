@@ -96,6 +96,44 @@ void cmd_pwm(int argc, char **argv)
     }
 }
 
+/** Tests all 6 motors channel. */
+void cmd_motor_test(int argc, char **argv)
+{
+    int *device = HEXMOTORCONTROLLER_BASE;
+    int encoders_values[6];
+    int i;
+    int value = 500;
+
+
+    if (argc > 1)
+        if (!strcmp(argv[1], "arms"))
+            device = ARMSMOTORCONTROLLER_BASE;
+        else
+            device = HEXMOTORCONTROLLER_BASE;
+
+    if (argc > 2)
+        value = atoi(argv[2]);
+
+    for (i = 0; i < 6; i++) {
+        encoders_values[i] = cvra_dc_get_encoder(device, i);
+        cvra_dc_set_pwm(device, i, value);
+    }
+
+    strat_wait_ms(2000);
+
+    printf("test results\n------------\n");
+
+    for (i = 0; i < 6; i++) {
+        if (encoders_values[i] == cvra_dc_get_encoder(device, i))
+            printf("Channel %d FAIL.\n");
+        else
+            printf("Channel %d OK.\n");
+
+        cvra_dc_set_pwm(device, i, 0);
+    }
+
+}
+
 /** Gets the encoder values. */
 void cmd_encoders(void)
 {
@@ -892,6 +930,7 @@ command_t commands_list[] = {
     COMMAND("forward", cmd_forward),
     COMMAND("servo", cmd_servo),
     COMMAND("correction", cmd_right_gain),
+    COMMAND("autotest", cmd_motor_test),
     COMMAND("wheel_calibrate", cmd_wheel_calibrate),
     COMMAND("angle_calibrate", cmd_angle_calibrate),
     COMMAND("error", cmd_error_dump),
