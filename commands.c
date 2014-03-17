@@ -53,10 +53,12 @@ void cmd_reset(void)
 /** starts the strategy. */
 void cmd_start()
 {
+#if 0
     if(!calibration_done) {
         printf("Niveau calibration des bras, ca se passe comment?\n");
         return;
     }
+#endif
 
     printf("Pull starter to start the robot.");
     while((IORD(PIO_BASE, 0) & 0x1000) == 0);
