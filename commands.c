@@ -920,7 +920,7 @@ command_t commands_list[] = {
     COMMAND("autopos", cmd_autopos),
     COMMAND("arm_shutdown",cmd_arm_shutdown),
     COMMAND("arm_pid", cmd_arm_pid),
-    COMMAND("electro", cmd_pio_write),
+    COMMAND("pio_write", cmd_pio_write),
     COMMAND("start",cmd_start),
     COMMAND("pio_read", cmd_pio_read),
     COMMAND("beacon", cmd_beacon),
