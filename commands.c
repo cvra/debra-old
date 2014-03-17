@@ -44,12 +44,6 @@ void cmd_arm_shutdown(int argc, char **argv)
     }
 }
 
-/** resets the robot. */
-void cmd_reset(void)
-{
-    reset();
-}
-
 /** starts the strategy. */
 void cmd_start()
 {
@@ -927,7 +921,6 @@ command_t commands_list[] = {
     COMMAND("arm_shutdown",cmd_arm_shutdown),
     COMMAND("arm_pid", cmd_arm_pid),
     COMMAND("electro", cmd_pio_write),
-//    COMMAND("reset", cmd_reset),
     COMMAND("start",cmd_start),
     COMMAND("pio_read", cmd_pio_read),
     COMMAND("beacon", cmd_beacon),
