@@ -668,9 +668,25 @@ void cmd_beacon(void)
 
 void cmd_circle(int argc, char **argv)
 {
-      trajectory_circle_rel(&robot.traj, 0, 400, 400, 90, atoi(argv[1]));
-      getchar();
-      trajectory_hardstop(&robot.traj);
+    int radius, angle;
+    if (argc < 3) {
+        printf("usage : %s radius angle\n", argv[0]);
+        return;
+    }
+
+    radius = atoi(argv[1]);
+    angle = atoi(argv[2]);
+
+    /* Waits for starting cord pull. */
+    while ((IORD(PIO_BASE, 0) & 0x1000) == 0);
+
+    /* Starts the circular trajectory. */
+    trajectory_circle_rel(&robot.traj, 0, radius, radius, angle, FORWARD|TRIGO);
+
+    /* XXX What is the stopping condition. */
+    while (position_get_a_deg_s16(&robot.pos) >= 0);
+    while (position_get_a_deg_s16(&robot.pos) <= 0);
+    trajectory_hardstop(&robot.traj);
 }
 
 void cmd_calage_test(int argc, char **argv)
