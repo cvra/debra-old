@@ -61,7 +61,7 @@ void cmd_start()
 #endif
 
     printf("Pull starter to start the robot.");
-    while((IORD(PIO_BASE, 0) & 0x1000) == 0);
+    cvra_wait_starter_pull();
     strat_begin();
     printf("Match done. Hope you enjoyed it !\n");
 }
@@ -298,9 +298,7 @@ void cmd_forward(int argc, char **argv)
         return;
     }
 
-
-    while((IORD(PIO_BASE, 0) & 0x1000) == 0);
-
+    cvra_wait_starter_pull();
     trajectory_d_rel(&robot.traj, atoi(argv[1]));
 }
 
@@ -308,11 +306,9 @@ void cmd_forward(int argc, char **argv)
 /** Turns of a given angle. */
 void cmd_turn(int argc, char **argv)
 {
-
-    while((IORD(PIO_BASE, 0) & 0x1000) == 0);
+    cvra_wait_starter_pull();
     if(argc == 2)
         trajectory_a_rel(&robot.traj, atoi(argv[1]));
-
 }
 
 /** Test UART. */
@@ -360,8 +356,7 @@ void cmd_goto(int argc, char **argv)
         return;
     }
 
-
-    while((IORD(PIO_BASE, 0) & 0x1000) == 0);
+    cvra_wait_starter_pull();
     strat_goto_avoid(atoi(argv[1]), atoi(argv[2]), END_TRAJ);
 }
 
@@ -679,8 +674,7 @@ void cmd_circle(int argc, char **argv)
     radius = atoi(argv[1]);
     angle = atoi(argv[2]);
 
-    /* Waits for starting cord pull. */
-    while ((IORD(PIO_BASE, 0) & 0x1000) == 0);
+    cvra_wait_starter_pull();
 
     /* Starts the circular trajectory. */
     trajectory_circle_rel(&robot.traj, 0, radius, radius, angle, FORWARD|TRIGO);
@@ -714,7 +708,8 @@ void cmd_calage_test(int argc, char **argv)
     trajectory_d_rel(&robot.traj, 10);
     while(!trajectory_finished(&robot.traj));
 
-    while((IORD(PIO_BASE, 0) & 0x1000) == 0);
+    cvra_wait_starter_pull();
+
 
     robot.mode = BOARD_MODE_DISTANCE_ONLY;
     // On recule jusqu'a  qu'on ait touche un mur
@@ -750,8 +745,8 @@ void cmd_angle_calibrate(int argc, char **argv)
     trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 160), acc_rd2imp(&robot.traj, 1.94));
     trajectory_set_speed(&robot.traj, 200, 200);
 
-    while((IORD(PIO_BASE, 0) & 0x1000) == 0);
 
+    cvra_wait_starter_pull();
 
     bd_set_thresholds(&robot.distance_bd,  5000, 2);
 
@@ -816,8 +811,7 @@ void cmd_wheel_calibrate(int argc, char **argv)
 
     trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 160), acc_rd2imp(&robot.traj, 1.94));
 
-    // Wait for the starting cord to be pulled
-    while((IORD(PIO_BASE, 0) & 0x1000) == 0);
+    cvra_wait_starter_pull();
 
     bd_set_thresholds(&robot.distance_bd,  5000, 2);
     trajectory_set_speed(&robot.traj, 200, 200);
@@ -897,7 +891,7 @@ void cmd_calibrate_cale(void)
 {
     trajectory_set_acc(&robot.traj, acc_mm2imp(&robot.traj, 160), acc_rd2imp(&robot.traj, 1.94));
 
-    while((IORD(PIO_BASE, 0) & 0x1000) == 0);
+    cvra_wait_starter_pull();
 
     bd_set_thresholds(&robot.distance_bd,  5000, 2);
     trajectory_set_speed(&robot.traj, 200, 200);

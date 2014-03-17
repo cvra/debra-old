@@ -30,6 +30,7 @@
 
 // UART are in an another avalon io clock domain
 #define UART_FREQ PIO_FREQ  
+#define STARTER_BITMASK 0x1000
 
 void cvra_set_uart_speed(int32_t *uart_adress, int baudrate) {
 #ifdef COMPILE_ON_ROBOT
@@ -39,4 +40,14 @@ void cvra_set_uart_speed(int32_t *uart_adress, int baudrate) {
         IOWR(uart_adress, 0x04, divisor); // ecrit le diviseur dans le bon registre
 #endif
     DEBUG(E_UART, "Changed UART speed to %d at adress %p\n", baudrate, uart_adress);
+}
+
+int cvra_get_starter_cord(void)
+{
+    return ((IORD(PIO_BASE, 0) & STARTER_BITMASK) == 0);
+}
+
+void cvra_wait_starter_pull(void)
+{
+    while(cvra_get_starter_cord());
 }

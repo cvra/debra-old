@@ -37,4 +37,13 @@
  */
 void cvra_set_uart_speed(int32_t *uart_adress, int baudrate);
 
+/** Reads the starting cord.
+ *
+ * @return 1 if the starting cord is present, zero otherwise.
+ */
+int cvra_get_starter_cord(void);
+
+/** Waits for the starting cord to be pulled. */
+void cvra_wait_starter_pull(void);
+
 #endif
