@@ -33,42 +33,42 @@ typedef struct {
  * should be in front of the hand or behind it ?".
  */
 typedef enum {
-	SHOULDER_FRONT,
-	SHOULDER_BACK,
+    SHOULDER_FRONT,
+    SHOULDER_BACK,
 } shoulder_mode_t;
 
-/** Struct holding everything that is related to a single arm.  
+/** Struct holding everything that is related to a single arm.
  * \image html arm_change_coordinate.png "The offset_* parameters."
  * @todo Are the blocking managers really useful ? To be tested.
  * */
 typedef struct {
-    vect2_cart offset_xy; /**< Offset vector between center of robot and shoulder. */ 
+    vect2_cart offset_xy; /**< Offset vector between center of robot and shoulder. */
     float offset_rotation; /**< Rotation between the robot base and shoulder in rad. */
 
     /* Control systems */
     struct cs z_axis_cs;    /**< Control System of Z axis. */
-    struct cs shoulder_cs;  /**< Control System of the soulder. */ 
+    struct cs shoulder_cs;  /**< Control System of the soulder. */
     struct cs elbow_cs;     /**< Control System of the elbow */
- 
+
     struct pid_filter z_axis_pid;   /**< Z axis PID */
-    struct pid_filter shoulder_pid; /**< Shoulder PID. */ 
+    struct pid_filter shoulder_pid; /**< Shoulder PID. */
     struct pid_filter elbow_pid;    /**< Elbow PID. */
-    
+
     struct blocking_detection z_axis_bd;    /**< Z axis blocking detector. */
     struct blocking_detection shoulder_bd;  /**< Shoulder blocking detector. */
-    struct blocking_detection elbow_bd;     /**< Elbow blocking detector. */ 
+    struct blocking_detection elbow_bd;     /**< Elbow blocking detector. */
 
     /* Physical parameters. */
     int32_t z_axis_imp_per_mm;      /**< Z axis encoder impulsion per mm. */
-    int32_t shoulder_imp_per_rad;   /**< Shoulder impulsions per rad. */ 
+    int32_t shoulder_imp_per_rad;   /**< Shoulder impulsions per rad. */
     int32_t elbow_imp_per_rad;      /**< Elbow impulsions per rad. */
     float length[2];                  /**< Length of the 2 arms elements. */
 
     /* Path informations */
-    arm_trajectory_t trajectory;    /**< Current trajectory of the arm. */ 
+    arm_trajectory_t trajectory;    /**< Current trajectory of the arm. */
     int32_t last_loop;              /**< Timestamp of the last loop execution, in us since boot. */
 
-    /* Obstacles */ 
+    /* Obstacles */
     arm_obstacle_t *obstacles;       /**< All the obstacles to watch for. */
     int obstacle_count;              /**< The number of obstacles. */
     shoulder_mode_t shoulder_mode;
@@ -80,32 +80,32 @@ typedef struct {
  */
 void arm_highlevel_init(void);
 
-/** Init all the regulators of a given arm. 
+/** Init all the regulators of a given arm.
  * @param [in, out] arm The arm to initialize.
  */
 void arm_init(arm_t *arm);
 
-/** Connects all the IO of an arm to the correct regulators. 
+/** Connects all the IO of an arm to the correct regulators.
  * @param [in,out] arm The arm to connect.
  *
- * @param [in] *z_set_pwm Z axis PWM setter. 
- * @param [in] *z_set_pwm_param This will be passed as first argument to z_set_pwm. 
- * @param [in] *z_get_coder Z axis encoder getter. 
- * @param [in] *z_get_coder_param This will be passed as first argument to z_get_coder. 
+ * @param [in] *z_set_pwm Z axis PWM setter.
+ * @param [in] *z_set_pwm_param This will be passed as first argument to z_set_pwm.
+ * @param [in] *z_get_coder Z axis encoder getter.
+ * @param [in] *z_get_coder_param This will be passed as first argument to z_get_coder.
  *
- * @param [in] *shoulder_set_pwm Shoulder axis PWM setter. 
- * @param [in] *shoulder_set_pwm_param This will be passed as first argument to shoulder_set_pwm. 
- * @param [in] *shoulder_get_coder Shoulder axis encoder getter. 
- * @param [in] shoulder_get_coder_param This will be passed as first argument to shoulder_get_coder. 
+ * @param [in] *shoulder_set_pwm Shoulder axis PWM setter.
+ * @param [in] *shoulder_set_pwm_param This will be passed as first argument to shoulder_set_pwm.
+ * @param [in] *shoulder_get_coder Shoulder axis encoder getter.
+ * @param [in] shoulder_get_coder_param This will be passed as first argument to shoulder_get_coder.
  *
- * @param [in] *elbow_set_pwm Elbow axis PWM setter. 
- * @param [in] *elbow_set_pwm_param This will be passed as first argument to elbow_set_pwm. 
- * @param [in] *elbow_get_coder Elbow axis encoder getter. 
- * @param [in] *elbow_get_coder_param This will be passed as first argument to elbow_get_coder.  
+ * @param [in] *elbow_set_pwm Elbow axis PWM setter.
+ * @param [in] *elbow_set_pwm_param This will be passed as first argument to elbow_set_pwm.
+ * @param [in] *elbow_get_coder Elbow axis encoder getter.
+ * @param [in] *elbow_get_coder_param This will be passed as first argument to elbow_get_coder.
  *
- * @note arm_init() must be called before calling arm_connect_io. 
- */ 
-void arm_connect_io(arm_t *arm, 
+ * @note arm_init() must be called before calling arm_connect_io.
+ */
+void arm_connect_io(arm_t *arm,
                     void (*z_set_pwm)(void *, int32_t), void *z_set_pwm_param,
                     int32_t (*z_get_coder)(void *), void *z_get_coder_param,
                     void (*shoulder_set_pwm)(void *, int32_t), void *shoulder_set_pwm_param,
@@ -127,7 +127,7 @@ void arm_connect_io(arm_t *arm,
  * @warning No verification on the trajectory is done prior to moving. Therefore
  * violent and uncontrolled movements can happen in case of bad prepared data.
  */
-void arm_execute_movement(arm_t *arm, arm_trajectory_t *traj); 
+void arm_execute_movement(arm_t *arm, arm_trajectory_t *traj);
 
 /** Manages an arm.
  *
@@ -141,7 +141,7 @@ void arm_execute_movement(arm_t *arm, arm_trajectory_t *traj);
  *
  * @note This function should be called at a fixed rate, even if it integrates
  * some lag compensation
- * 
+ *
  * @note This function doesn't do any regulation. You have to call arm_manage_cs
  * for the regulation to happen.
  *
@@ -204,7 +204,7 @@ void arm_shutdown(arm_t *arm);
  * @param [in] system The coordinate system of the point.
  * @param [out] arm_x, arm_y The point in arm coordinates.
  */
-void arm_change_coordinate_system(arm_t *arm, float x, float y, 
+void arm_change_coordinate_system(arm_t *arm, float x, float y,
              arm_coordinate_t system, float *arm_x, float *arm_y);
 
 

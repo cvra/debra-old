@@ -18,20 +18,20 @@
 /** Computes the inverse cinematics of an arm.
  *
  * The computation is done using the simplest algorithm : The intersection of
- * two circles, one being centered on shoulder, the other being centered on 
+ * two circles, one being centered on shoulder, the other being centered on
  * target coordinates.
  *
  * When the intersection is known, computing angles is a simple matter of using
  * atan2 in a correct way.
  *
  * @param [in] arm The arm instance.
- * @param [in] x, y, z The coordinates of the target. 
- * @param [out] alpha, beta Pointers where angles will be stored. 
+ * @param [in] x, y, z The coordinates of the target.
+ * @param [out] alpha, beta Pointers where angles will be stored.
  *
  * @return 0 en cas de succes, -1 en cas d'erreur.
  *
  * @todo We need an algorithm to choose between the 2 positions in case there
- * are multiple possibilities. 
+ * are multiple possibilities.
  */
 static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha, float *beta, const float l1, const float l2);
 
@@ -45,12 +45,12 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
  * @returns 1 if this arm position crosses an obstacle.
  * @todo Implements conversion of obstacles coordinates.
  */
-int check_for_obstacle_collision(arm_t *arm, point_t p1, point_t p2, int z); 
+int check_for_obstacle_collision(arm_t *arm, point_t p1, point_t p2, int z);
 
 inline float smoothstep(float t) {
-	if(t < 0.0f) return 0.0f;
-	if(t > 1.0f) return 1.0f;
-	return t*t*t*(t*(6.0f*t-15.0f)+10.0f);
+    if(t < 0.0f) return 0.0f;
+    if(t > 1.0f) return 1.0f;
+    return t*t*t*(t*(6.0f*t-15.0f)+10.0f);
 }
 
 void arm_highlevel_init(void) {
@@ -85,7 +85,7 @@ void arm_highlevel_init(void) {
             cvra_dc_set_pwm2, ARMSMOTORCONTROLLER_BASE,
             cvra_dc_get_encoder2, ARMSMOTORCONTROLLER_BASE);
 
-    arm_connect_io(&robot.right_arm, 
+    arm_connect_io(&robot.right_arm,
             /* Z */
             cvra_dc_set_pwm4, ARMSMOTORCONTROLLER_BASE,
             cvra_dc_get_encoder4, ARMSMOTORCONTROLLER_BASE,
@@ -98,7 +98,7 @@ void arm_highlevel_init(void) {
 }
 
 void arm_init(arm_t *arm) {
-    memset(arm, 0, sizeof(arm_t)); 
+    memset(arm, 0, sizeof(arm_t));
 
     cs_init(&arm->z_axis_cs);
     pid_init(&arm->z_axis_pid);
@@ -115,7 +115,7 @@ void arm_init(arm_t *arm) {
     pid_set_out_shift(&arm->elbow_pid, 6);
     cs_set_correct_filter(&arm->elbow_cs, pid_do_filter, &arm->elbow_pid);
 
-    /* Physical constants, not magic numbers. */ 
+    /* Physical constants, not magic numbers. */
     arm->length[0] = 135.5; /* mm */
     arm->length[1] = 136;
 
@@ -136,7 +136,7 @@ void arm_init(arm_t *arm) {
     arm->shoulder_mode = SHOULDER_BACK;
 }
 
-void arm_connect_io(arm_t *arm, 
+void arm_connect_io(arm_t *arm,
                     void (*z_set_pwm)(void *, int32_t), void *z_set_pwm_param,
                     int32_t (*z_get_coder)(void *), void *z_get_coder_param,
                     void (*shoulder_set_pwm)(void *, int32_t), void *shoulder_set_pwm_param,
@@ -156,30 +156,30 @@ void arm_execute_movement(arm_t *arm, arm_trajectory_t *traj) {
     /* Step 1 : If we had a previous trajectory in memory, release it. */
     if(arm->trajectory.frame_count != 0) {
         free(arm->trajectory.frames);
-    } 
+    }
 
     /* Step 2 : Allocates requested memory for our copy of the trajectory. */
     arm->trajectory.frames = malloc(traj->frame_count * sizeof(arm_keyframe_t));
 
     if(arm->trajectory.frames == NULL)
         panic();
-    
+
 
     /* Step 3 : Copy the trajectory data. */
     arm->trajectory.frame_count = traj->frame_count;
 
 
     memcpy(arm->trajectory.frames, traj->frames, sizeof(arm_keyframe_t) * traj->frame_count);
-} 
+}
 
 void arm_manage(void *a) {
 
     arm_t *arm = (arm_t *) a;
-    int32_t current_date = uptime_get(); 
+    int32_t current_date = uptime_get();
     float position[3];
 
     float length[2];
-    
+
     /* The coordinates of the previous frames in arm coordinates.
      * This allows us to mix different coordinate systems in a single trajectory. */
     float previous_frame_xy[2], next_frame_xy[2];
@@ -196,7 +196,7 @@ void arm_manage(void *a) {
         cs_enable(&arm->elbow_cs);
 
         /* Are we before the first frame ? */
-        if(compensated_date < arm->trajectory.frames[0].date) { 
+        if(compensated_date < arm->trajectory.frames[0].date) {
             arm_change_coordinate_system(arm, arm->trajectory.frames[0].position[0], arm->trajectory.frames[0].position[1],
                                          arm->trajectory.frames[0].coordinate_type, &position[0], &position[1]);
             position[2] = arm->trajectory.frames[0].position[2];
@@ -248,13 +248,13 @@ void arm_manage(void *a) {
             length[0] = (1. - t) * arm->trajectory.frames[i-1].length[0];
             length[1] = (1. - t) * arm->trajectory.frames[i-1].length[1];
 
-            position[0] += t * next_frame_xy[0]; 
-            position[1] += t * next_frame_xy[1]; 
+            position[0] += t * next_frame_xy[0];
+            position[1] += t * next_frame_xy[1];
             position[2] += t * arm->trajectory.frames[i].position[2];
             length[0] += t * arm->trajectory.frames[i].length[0];
             length[1] += t * arm->trajectory.frames[i].length[1];
             offset = (1. - t) * arm->trajectory.frames[i-1].angle_offset;
-            offset += t * arm->trajectory.frames[i].angle_offset; 
+            offset += t * arm->trajectory.frames[i].angle_offset;
         }
 
 
@@ -265,21 +265,21 @@ void arm_manage(void *a) {
             cs_set_consign(&arm->elbow_cs, beta * arm->elbow_imp_per_rad);
             /** XXX @todo What does happen if an arm must move faster than
              * it can ? Is it caller responsibility ? */
-        } 
+        }
         else {
             /* If we did not find a path, disable the motors. */
-            /** XXX @todo We should probably notify an error or something. */ 
+            /** XXX @todo We should probably notify an error or something. */
             cs_disable(&arm->z_axis_cs);
             cs_disable(&arm->shoulder_cs);
             cs_disable(&arm->elbow_cs);
-        } 
+        }
     }
     else {
         cs_disable(&arm->z_axis_cs);
         cs_disable(&arm->shoulder_cs);
         cs_disable(&arm->elbow_cs);
     }
-    arm->last_loop = current_date; 
+    arm->last_loop = current_date;
 }
 
 
@@ -314,8 +314,8 @@ void arm_get_position(arm_t *arm, float *x, float *y, float *z) {
 int arm_trajectory_finished(arm_t *arm) {
    if(arm->trajectory.frame_count == 0) {
         return 1;
-   } 
-  
+   }
+
    if(uptime_get() > arm->trajectory.frames[arm->trajectory.frame_count-1].date) {
         return 1;
    }
@@ -339,29 +339,29 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
     c1.x = 0;
     c1.y = 0;
     c1.r = l1;
-    
+
     c2.x = x;
     c2.y = y;
     c2.r = l2;
-    
+
     int nbPos = circle_intersect(&c1, &c2, &p1, &p2);
 
     if(nbPos == 0) {
         /* It means there is no way to find an intersection... */
-    	return -1;
+        return -1;
     }
 
     /* Checks if one of the two possibilities crosses an obstacle. */
     else if(nbPos == 2) {
-    	if(x < 0.) {
+        if(x < 0.) {
             if(p1.x > 0.)
                 chosen = p1;
             else if(p2.x > 0.)
                 chosen = p2;
             else
                 chosen = p1;
-    	}
-    	else {
+        }
+        else {
             if(arm->offset_rotation > 0.) {
                 if(arm->shoulder_mode == SHOULDER_BACK) {
                     /* TODO the left arm is mirrored when compared to the right arm. */
@@ -409,16 +409,16 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
     if(*beta < -M_PI) {
         *beta = 2*M_PI + *beta;
     }
-    
+
     if(*beta > M_PI) {
-        *beta = -2*M_PI + *beta; 
+        *beta = -2*M_PI + *beta;
     }
 
 
     return 0;
 }
 
-void arm_change_coordinate_system(arm_t *arm, float x, float y, 
+void arm_change_coordinate_system(arm_t *arm, float x, float y,
              arm_coordinate_t system, float *arm_x, float *arm_y) {
 
     if(system == COORDINATE_ARM) {
@@ -430,12 +430,12 @@ void arm_change_coordinate_system(arm_t *arm, float x, float y,
         vect2_pol target_pol;
         target.x = x;
         target.y = y;
-        vect2_sub_cart(&target, &arm->offset_xy, &target); 
+        vect2_sub_cart(&target, &arm->offset_xy, &target);
         vect2_cart2pol(&target, &target_pol);
         target_pol.theta -= arm->offset_rotation;
         vect2_pol2cart(&target_pol, &target);
         *arm_x = target.x;
-        *arm_y = target.y; 
+        *arm_y = target.y;
     }
     else {
         vect2_cart target;
@@ -458,14 +458,14 @@ arm_obstacle_t *arm_create_obstacle(arm_t *arm, int points_count) {
         WARNING(E_ARM, "Trying to create a degenerate obstacle, aborting.");
         return NULL;
     }
-    arm->obstacle_count++; 
+    arm->obstacle_count++;
     arm->obstacles = realloc(arm->obstacles, arm->obstacle_count*sizeof(arm_obstacle_t));
     if(arm->obstacles == NULL)
         panic();
 
     arm->obstacles[arm->obstacle_count-1].base.pts = malloc(points_count*sizeof(point_t));
     arm->obstacles[arm->obstacle_count-1].base.l = points_count;
-    return &arm->obstacles[arm->obstacle_count-1]; 
+    return &arm->obstacles[arm->obstacle_count-1];
 }
 
 int check_for_obstacle_collision(arm_t *arm, point_t p1, point_t p2, int z) {
@@ -484,13 +484,13 @@ int check_for_obstacle_collision(arm_t *arm, point_t p1, point_t p2, int z) {
             return 1;
 
         if(is_crossing_poly(p1, p2, &intersect_point, &arm->obstacles[i].base))
-           return 1; 
+           return 1;
 
         if(is_crossing_poly(origin, p1, &intersect_point, &arm->obstacles[i].base))
-           return 1; 
+           return 1;
     }
     return 0;
-} 
+}
 
 void arm_calibrate(void) {
     /* Z axis. */
@@ -498,12 +498,12 @@ void arm_calibrate(void) {
     cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 4, 183 * robot.left_arm.z_axis_imp_per_mm);
 
     /* Shoulders. */
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 0, (M_PI * -53.92 / 180.) * robot.left_arm.shoulder_imp_per_rad); 
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 5, (M_PI * 55.42 / 180.) * robot.right_arm.shoulder_imp_per_rad); 
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 0, (M_PI * -53.92 / 180.) * robot.left_arm.shoulder_imp_per_rad);
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 5, (M_PI * 55.42 / 180.) * robot.right_arm.shoulder_imp_per_rad);
 
-    
+
     /* Elbows. */
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 2, (M_PI * -157.87 / 180.) * robot.left_arm.elbow_imp_per_rad); 
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 3, (M_PI * 157.87/ 180.) * robot.right_arm.elbow_imp_per_rad); 
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 2, (M_PI * -157.87 / 180.) * robot.left_arm.elbow_imp_per_rad);
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 3, (M_PI * 157.87/ 180.) * robot.right_arm.elbow_imp_per_rad);
 
 }
