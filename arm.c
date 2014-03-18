@@ -35,18 +35,6 @@
  */
 static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha, float *beta, const float l1, const float l2);
 
-/** Checks if an arm crosses an obstacle.
- *
- * @param [in] arm The arm instance.
- * @param [in] p1 The elbow coordinate in arm coordinates.
- * @param [in] p2 The hand coordinate in arm coordinates.
- * @param [in] z The height of the arm, in mm.
- *
- * @returns 1 if this arm position crosses an obstacle.
- * @todo Implements conversion of obstacles coordinates.
- */
-int check_for_obstacle_collision(arm_t *arm, point_t p1, point_t p2, int z);
-
 inline float smoothstep(float t)
 {
     if(t < 0.0f) return 0.0f;
@@ -458,45 +446,6 @@ void arm_change_coordinate_system(arm_t *arm, float x, float y,
         arm_change_coordinate_system(arm, target.x, target.y, COORDINATE_ROBOT,
             arm_x, arm_y);
     }
-}
-
-arm_obstacle_t *arm_create_obstacle(arm_t *arm, int points_count) {
-    if(points_count < 3) {
-        WARNING(E_ARM, "Trying to create a degenerate obstacle, aborting.");
-        return NULL;
-    }
-    arm->obstacle_count++;
-    arm->obstacles = realloc(arm->obstacles, arm->obstacle_count*sizeof(arm_obstacle_t));
-    if(arm->obstacles == NULL)
-        panic();
-
-    arm->obstacles[arm->obstacle_count-1].base.pts = malloc(points_count*sizeof(point_t));
-    arm->obstacles[arm->obstacle_count-1].base.l = points_count;
-    return &arm->obstacles[arm->obstacle_count-1];
-}
-
-int check_for_obstacle_collision(arm_t *arm, point_t p1, point_t p2, int z) {
-    /* XXX Implement obstacle coordinates converstion. */
-    int i;
-    point_t intersect_point;
-    point_t origin = {.x = 0, .y=0};
-    for(i=0;i<arm->obstacle_count;i++) {
-        if(arm->obstacles[i].height < z)
-            continue;
-
-        if(is_in_poly(&p1, &arm->obstacles[i].base))
-            return 1;
-
-        if(is_in_poly(&p2, &arm->obstacles[i].base))
-            return 1;
-
-        if(is_crossing_poly(p1, p2, &intersect_point, &arm->obstacles[i].base))
-           return 1;
-
-        if(is_crossing_poly(origin, p1, &intersect_point, &arm->obstacles[i].base))
-           return 1;
-    }
-    return 0;
 }
 
 void arm_calibrate(void) {

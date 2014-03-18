@@ -68,9 +68,6 @@ typedef struct {
     arm_trajectory_t trajectory;    /**< Current trajectory of the arm. */
     int32_t last_loop;              /**< Timestamp of the last loop execution, in us since boot. */
 
-    /* Obstacles */
-    arm_obstacle_t *obstacles;       /**< All the obstacles to watch for. */
-    int obstacle_count;              /**< The number of obstacles. */
     shoulder_mode_t shoulder_mode;
 } arm_t;
 
@@ -207,17 +204,6 @@ void arm_shutdown(arm_t *arm);
 void arm_change_coordinate_system(arm_t *arm, float x, float y,
              arm_coordinate_t system, float *arm_x, float *arm_y);
 
-
-/** Creates an obstacle for the given arm.
- *
- * This function allocates memory for a given arm, adds it to its obstacle
- * list and returns a pointer to it for configuration.
- *
- * @param [in] arm The arm which will get the obstacle.
- * @param [in] points_count The number of point in the obstacle base polygon.
- * @returns The allocated obstacle or null if less that 3 points are given.
- */
-arm_obstacle_t *arm_create_obstacle(arm_t *arm, int points_count);
 
 /** Tells the arms to assume they are at a known position. */
 void arm_calibrate(void);
