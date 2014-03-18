@@ -53,4 +53,24 @@ TEST(CinematicsTestGroup, SimpleElbowAngle)
     DOUBLES_EQUAL(RAD(45), angle, 1e-3);
 }
 
+TEST(CinematicsTestGroup, ModeMirrorIdentity)
+{
+    shoulder_mode_t m = SHOULDER_FRONT;
+    float angle = 1;
+    CHECK_EQUAL(m, mode_for_orientation(m, angle));
+}
+
+TEST(CinematicsTestGroup, ModeMirrorInvert)
+{
+    shoulder_mode_t m = SHOULDER_FRONT;
+    float angle = -1;
+    CHECK_EQUAL(SHOULDER_BACK, mode_for_orientation(m, angle));
+}
+
+TEST(CinematicsTestGroup, ModeMirrorInvertBack)
+{
+    shoulder_mode_t m = SHOULDER_BACK;
+    float angle = -1;
+    CHECK_EQUAL(SHOULDER_FRONT, mode_for_orientation(m, angle));
+}
 

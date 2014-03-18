@@ -3,6 +3,11 @@
 
 #include <vect_base.h>
 
+typedef enum {
+    SHOULDER_FRONT,
+    SHOULDER_BACK,
+} shoulder_mode_t;
+
 
 /** Computes the inverse cinematics of an arm.
  *
@@ -34,6 +39,13 @@ int compute_inverse_cinematics(float x, float y,
  * @returns The number of possible positons (0, 1 or 2).
  */
 int compute_possible_elbow_positions(float x, float y, float l1, float l2, point_t *p1, point_t *p2);
+
+/**Inverts the shoulder mode depending on wheter the arm is facing the
+ * left or right side of the robot. This is needed as "forward" and "backward"
+ * are in robot frame while the transformations should be applied in arm frame.
+ */
+shoulder_mode_t mode_for_orientation(shoulder_mode_t mode, float arm_angle_offset);
+
 
 float compute_shoulder_angle(point_t elbow, point_t hand);
 float compute_elbow_angle(point_t elbow, point_t hand);

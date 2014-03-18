@@ -1,6 +1,7 @@
 #include <platform.h>
 #include <math.h>
 #include <circles.h>
+#include "arm_cinematics.h"
 
 
 
@@ -58,6 +59,17 @@ int compute_possible_elbow_positions(float x, float y, float l1, float l2,
     c2.r = l2;
 
     return circle_intersect(&c1, &c2, p1, p2);
+}
+
+shoulder_mode_t mode_for_orientation(shoulder_mode_t mode, float arm_angle_offset)
+{
+    if (arm_angle_offset > 0.)
+        return mode;
+
+    if (mode == SHOULDER_BACK)
+        return SHOULDER_FRONT;
+
+    return SHOULDER_BACK;
 }
 
 float compute_shoulder_angle(point_t elbow, point_t hand)
