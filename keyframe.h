@@ -1,6 +1,7 @@
 #ifndef _KEYFRAME_H_
 #define _KEYFRAME_H_
-#include <aversive.h>
+
+#include <platform.h>
 
 /** This typedef stores the type of the coordinate system used for a trajectory. */
 typedef enum {

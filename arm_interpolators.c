@@ -1,7 +1,7 @@
-#include <aversive.h>
 #include "arm_interpolators.h"
-#include <uptime.h>
 #include <stdlib.h>
+#include <string.h>
+#include <uptime.h>
 
 
 void arm_trajectory_init(arm_trajectory_t *traj) {
