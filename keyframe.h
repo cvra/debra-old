@@ -15,7 +15,6 @@ typedef struct {
     float position[3];  /**< Position of the arm at the data. */
     arm_coordinate_t coordinate_type; /**< The coordinate system of this trajectory. */
     float length[2]; /**< The length of the arm to use. */
-    float angle_offset; /* ugly hack because 2013 grippers are ugly. */
 } arm_keyframe_t;
 
 

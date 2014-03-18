@@ -64,7 +64,6 @@ void arm_interpolator_append_point(arm_trajectory_t *traj, const float x, const 
 
     traj->frames[traj->frame_count-1].length[0] = 135.5;
     traj->frames[traj->frame_count-1].length[1] = 136;
-    traj->frames[traj->frame_count-1].angle_offset = 0.;
 }
 
 void arm_interpolator_append_point_with_length(arm_trajectory_t *traj, const float x, const float y, const float z,

@@ -47,10 +47,16 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
  */
 int check_for_obstacle_collision(arm_t *arm, point_t p1, point_t p2, int z);
 
-inline float smoothstep(float t) {
+inline float smoothstep(float t)
+{
     if(t < 0.0f) return 0.0f;
     if(t > 1.0f) return 1.0f;
     return t*t*t*(t*(6.0f*t-15.0f)+10.0f);
+}
+
+float interpolate(float t, float a, float b)
+{
+    return (1 - t) * a + t * b;
 }
 
 static void arm_init_control_loops(arm_t *arm)
@@ -195,95 +201,90 @@ void arm_manage(void *a) {
     int32_t compensated_date = 2*current_date - arm->last_loop;
 
     /* If we dont have a trajectory data, disabled everything. */
-    if(arm->trajectory.frame_count != 0) {
-        cs_enable(&arm->z_axis_cs);
-        cs_enable(&arm->shoulder_cs);
-        cs_enable(&arm->elbow_cs);
-
-        /* Are we before the first frame ? */
-        if(compensated_date < arm->trajectory.frames[0].date) {
-            arm_change_coordinate_system(arm, arm->trajectory.frames[0].position[0], arm->trajectory.frames[0].position[1],
-                                         arm->trajectory.frames[0].coordinate_type, &position[0], &position[1]);
-            position[2] = arm->trajectory.frames[0].position[2];
-
-            length[0] = arm->trajectory.frames[0].length[0];
-            length[1] = arm->trajectory.frames[0].length[1];
-        }
-        /* Are we past the last frame ? */
-        else if(compensated_date > arm->trajectory.frames[arm->trajectory.frame_count-1].date) {
-            int f = arm->trajectory.frame_count-1;
-            arm_change_coordinate_system(arm, arm->trajectory.frames[f].position[0], arm->trajectory.frames[f].position[1],
-                                         arm->trajectory.frames[f].coordinate_type, &position[0], &position[1]);
-            position[2] = arm->trajectory.frames[f].position[2];
-
-
-            length[0] = arm->trajectory.frames[f].length[0];
-            length[1] = arm->trajectory.frames[f].length[1];
-        }
-        else {
-            float t; /* interpolation factor, between 0 and 1 */
-            int i = 1;
-            /* We are between frame i-1 et i. i > 1 */
-            while(arm->trajectory.frames[i].date < compensated_date)
-                i++;
-
-
-            t = compensated_date - arm->trajectory.frames[i-1].date;
-            t = t / (float)(arm->trajectory.frames[i].date - arm->trajectory.frames[i-1].date);
-
-
-            /* Changes the coordinate systems to arm coordinates */
-            arm_change_coordinate_system(arm, arm->trajectory.frames[i-1].position[0],
-                                         arm->trajectory.frames[i-1].position[1],
-                                         arm->trajectory.frames[i-1].coordinate_type,
-                                         &previous_frame_xy[0], &previous_frame_xy[1]);
-
-            arm_change_coordinate_system(arm, arm->trajectory.frames[i].position[0],
-                                         arm->trajectory.frames[i].position[1],
-                                         arm->trajectory.frames[i].coordinate_type,
-                                         &next_frame_xy[0], &next_frame_xy[1]);
-
-
-
-            /* Smoothstep interpolation between the 2 frames. */
-            t = smoothstep(t);
-            position[0] = (1. - t) * previous_frame_xy[0];
-            position[1] = (1. - t) * previous_frame_xy[1];
-            position[2] = (1. - t) * arm->trajectory.frames[i-1].position[2];
-            length[0] = (1. - t) * arm->trajectory.frames[i-1].length[0];
-            length[1] = (1. - t) * arm->trajectory.frames[i-1].length[1];
-
-            position[0] += t * next_frame_xy[0];
-            position[1] += t * next_frame_xy[1];
-            position[2] += t * arm->trajectory.frames[i].position[2];
-            length[0] += t * arm->trajectory.frames[i].length[0];
-            length[1] += t * arm->trajectory.frames[i].length[1];
-            offset = (1. - t) * arm->trajectory.frames[i-1].angle_offset;
-            offset += t * arm->trajectory.frames[i].angle_offset;
-        }
-
-
-        /* Computes the inverse cinematics and send the consign to the control systems. */
-        if(compute_inverse_cinematics(arm, position[0], position[1], &alpha, &beta, length[0], length[1]) == 0) {
-            cs_set_consign(&arm->z_axis_cs, position[2] * arm->z_axis_imp_per_mm);
-            cs_set_consign(&arm->shoulder_cs, alpha * arm->shoulder_imp_per_rad);
-            cs_set_consign(&arm->elbow_cs, beta * arm->elbow_imp_per_rad);
-            /** XXX @todo What does happen if an arm must move faster than
-             * it can ? Is it caller responsibility ? */
-        }
-        else {
-            /* If we did not find a path, disable the motors. */
-            /** XXX @todo We should probably notify an error or something. */
-            cs_disable(&arm->z_axis_cs);
-            cs_disable(&arm->shoulder_cs);
-            cs_disable(&arm->elbow_cs);
-        }
-    }
-    else {
+    if (arm->trajectory.frame_count == 0) {
         cs_disable(&arm->z_axis_cs);
         cs_disable(&arm->shoulder_cs);
         cs_disable(&arm->elbow_cs);
+        arm->last_loop = current_date;
+        return;
     }
+
+
+    /* Are we before the first frame ? */
+    if(compensated_date < arm->trajectory.frames[0].date) {
+        arm_change_coordinate_system(arm, arm->trajectory.frames[0].position[0], arm->trajectory.frames[0].position[1],
+                arm->trajectory.frames[0].coordinate_type, &position[0], &position[1]);
+        position[2] = arm->trajectory.frames[0].position[2];
+
+        length[0] = arm->trajectory.frames[0].length[0];
+        length[1] = arm->trajectory.frames[0].length[1];
+    }
+    /* Are we past the last frame ? */
+    else if(compensated_date > arm->trajectory.frames[arm->trajectory.frame_count-1].date) {
+        int f = arm->trajectory.frame_count-1;
+        arm_change_coordinate_system(arm, arm->trajectory.frames[f].position[0], arm->trajectory.frames[f].position[1],
+                arm->trajectory.frames[f].coordinate_type, &position[0], &position[1]);
+        position[2] = arm->trajectory.frames[f].position[2];
+
+        length[0] = arm->trajectory.frames[f].length[0];
+        length[1] = arm->trajectory.frames[f].length[1];
+    }
+    else {
+        float t; /* interpolation factor, between 0 and 1 */
+        int i = 1;
+        float previous_z, next_z;
+        float *previous_length, *next_length;
+        /* We are between frame i-1 et i. i > 1 */
+        while(arm->trajectory.frames[i].date < compensated_date)
+            i++;
+
+
+        /* Changes the coordinate systems to arm coordinates */
+        arm_change_coordinate_system(arm, arm->trajectory.frames[i-1].position[0],
+                arm->trajectory.frames[i-1].position[1],
+                arm->trajectory.frames[i-1].coordinate_type,
+                &previous_frame_xy[0], &previous_frame_xy[1]);
+
+        arm_change_coordinate_system(arm, arm->trajectory.frames[i].position[0],
+                arm->trajectory.frames[i].position[1],
+                arm->trajectory.frames[i].coordinate_type,
+                &next_frame_xy[0], &next_frame_xy[1]);
+
+        previous_z = arm->trajectory.frames[i-1].position[2];
+        next_z = arm->trajectory.frames[i].position[2];
+
+        previous_length = arm->trajectory.frames[i-1].length;
+        next_length = arm->trajectory.frames[i].length;
+
+        /* Smoothstep interpolation between the 2 frames. */
+        t = compensated_date - arm->trajectory.frames[i-1].date;
+        t = t / (float)(arm->trajectory.frames[i].date - arm->trajectory.frames[i-1].date);
+        t = smoothstep(t);
+
+        position[0] = interpolate(t, previous_frame_xy[0], next_frame_xy[0]);
+        position[1] = interpolate(t, previous_frame_xy[1], next_frame_xy[1]);
+        position[2] = interpolate(t, previous_z, next_z);
+        length[0] = interpolate(t, previous_length[0], next_length[0]);
+        length[1] = interpolate(t, previous_length[1], next_length[1]);
+    }
+
+
+    /* Computes the inverse cinematics and send the consign to the control systems. */
+    if (compute_inverse_cinematics(arm, position[0], position[1], &alpha, &beta, length[0], length[1]) < 0) {
+        cs_disable(&arm->z_axis_cs);
+        cs_disable(&arm->shoulder_cs);
+        cs_disable(&arm->elbow_cs);
+        return;
+    }
+
+    cs_set_consign(&arm->z_axis_cs, position[2] * arm->z_axis_imp_per_mm);
+    cs_set_consign(&arm->shoulder_cs, alpha * arm->shoulder_imp_per_rad);
+    cs_set_consign(&arm->elbow_cs, beta * arm->elbow_imp_per_rad);
+
+    cs_enable(&arm->z_axis_cs);
+    cs_enable(&arm->shoulder_cs);
+    cs_enable(&arm->elbow_cs);
+
     arm->last_loop = current_date;
 }
 
