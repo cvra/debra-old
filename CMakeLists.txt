@@ -2,44 +2,25 @@ cmake_minimum_required(VERSION 2.6)
 
 project(cvra-simu)
 
+# Check for CppUTest and bail out if they don't have it
+if(DEFINED ENV{CPPUTEST_HOME})
+    message("Using CppUTest found in $ENV{CPPUTEST_HOME}")
+else()
+    message("CPPUTEST_HOME is not set; You must tell CMake where to find CppUTest")
 
+endif()
 
 set(CMAKE_BUILD_TYPE Debug)
-file(GLOB_RECURSE
-    nastya_source
-	nastya/arm.c
-	nastya/armFunc.c
-	nastya/com_balises.c
-	nastya/comm_pc.c
-	nastya/cvra_cs.c
-	nastya/fifo.c
-	nastya/hardware.c
-	nastya/main.c
-	nastya/posFunction.c
-	nastya/strat.c
-    nastya/move_queue.c
-    nastya/commands.c
-)
 
-file(GLOB_RECURSE
-	debra_source
-	debra/arm.c
-    debra/arm_interpolators.c
-	debra/com_balises.c
-	debra/comm_pc.c
-	debra/cvra_cs.c
-	debra/fifo.c
-	debra/hardware.c
-	debra/main.c
-	debra/posFunction.c
-	debra/strat.c
-    debra/move_queue.c
-    debra/commands.c
-)
 
 file(GLOB_RECURSE
     modules_source
     modules/*
+)
+
+file(GLOB_RECURSE
+    tests_source
+    tests/*
 )
 
 include_directories(include/)
@@ -74,34 +55,20 @@ include_directories(modules/cvra_pio)
 include_directories(modules/cvra_servo)
 include_directories(modules/commandline)
 
+include_directories($ENV{CPPUTEST_HOME}/include)
+link_directories($ENV{CPPUTEST_HOME}/lib)
+
+
 add_executable(
 	debra
-	${debra_source}
-    ${modules_source}
+    #${debra_source}
+    #${modules_source}
+    ${tests_source}
 )
 
 target_link_libraries(
 	debra
 	m
+    CppUTest
+    CppUTestExt
 )
-
-add_executable(
-	nastya
-	${nastya_source}
-    ${modules_source}
-)
-
-target_link_libraries(
-	nastya
-	m
-)
-
-if(MSVC)
-    if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
-        string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-    else()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
-    endif()
-elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wno-long-long -Wno-unused-value")
-endif()
