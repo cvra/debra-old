@@ -36,7 +36,6 @@
 
 #include "cvra_cs.h"
 #include "hardware.h"
-#include "cvra_param_robot.h"
 
 
 struct _rob robot;

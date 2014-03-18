@@ -25,7 +25,6 @@
 
 #include "arm.h"
 #include "strat.h"
-#include "cvra_param_robot.h"
 
 
 
