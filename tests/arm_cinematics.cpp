@@ -5,7 +5,7 @@ extern "C" {
 #include "../arm_cinematics.h"
 }
 
-#define RAD(x) ((x/180.)*PI)
+#define RAD(x) ((x/180.)*M_PI)
 
 TEST_GROUP(CinematicsTestGroup)
 {
@@ -32,7 +32,7 @@ TEST(CinematicsTestGroup, FailsWhenTooFar)
     CHECK_EQUAL(0, status);
 }
 
-TEST(CinematicsTestGroup, SimpleElbowAngle)
+TEST(CinematicsTestGroup, SimpleShoulderAngle)
 {
     float angle;
     point_t elbow, hand;
@@ -41,6 +41,16 @@ TEST(CinematicsTestGroup, SimpleElbowAngle)
     angle = compute_shoulder_angle(elbow, hand);
 
     DOUBLES_EQUAL(0, angle, 1e-3);
+}
+
+TEST(CinematicsTestGroup, SimpleElbowAngle)
+{
+    float angle;
+    point_t elbow = {.x=10, .y=10};
+    point_t hand =  {.x=20, .y=20};
+
+    angle = compute_elbow_angle(elbow, hand);
+    DOUBLES_EQUAL(RAD(45), angle, 1e-3);
 }
 
 

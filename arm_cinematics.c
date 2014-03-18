@@ -64,3 +64,11 @@ float compute_shoulder_angle(point_t elbow, point_t hand)
 {
     return atan2f(elbow.y, elbow.x);
 }
+
+float compute_elbow_angle(point_t elbow, point_t hand)
+{
+    float dx, dy;
+    dx = hand.x - elbow.x;
+    dy = hand.y - elbow.y;
+    return atan2f(dy, dx); // tres tres sensible aux erreurs d'arrondis
+}
