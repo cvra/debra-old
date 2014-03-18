@@ -24,7 +24,7 @@ file(GLOB_RECURSE
     modules/modules/math/geometry/vect_base.c
     modules/modules/math/geometry/lines.c
     modules/modules/math/geometry/polygon.c
-    odules/modules/quadramp/quadramp.c
+    #modules/modules/quadramp/quadramp.c
 
     modules/modules/cvra_dc/cvra_dc.c
     modules/modules/platform/platform_host.c
@@ -39,6 +39,7 @@ file(GLOB_RECURSE
     debra_source
     arm_interpolators.c
     arm_cinematics.c
+    hardware.c
 )
 
 
