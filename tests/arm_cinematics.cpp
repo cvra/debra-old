@@ -77,3 +77,71 @@ TEST(CinematicsTestGroup, ModeMirrorInvertBack)
     CHECK_EQUAL(SHOULDER_FRONT, mode_for_orientation(m, angle));
 }
 
+TEST(CinematicsTestGroup, ChooseElbowSolutionOutsideRobot)
+{
+    // First test case : target_x < 0 ('inside' the robot)
+    point_t elbow1 = {.x=10, .y=10};
+    point_t elbow2 = {.x=-10, .y=10};
+    point_t target = {.x=-10, .y=20};
+    point_t chosen;
+
+    chosen = choose_shoulder_solution(target, elbow1, elbow2, SHOULDER_FRONT);
+    CHECK_EQUAL(elbow1.x, chosen.x);
+}
+
+TEST(CinematicsTestGroup, ChooseElbowSolutionOutsideRobotBis)
+{
+    // First test case : target_x < 0 ('inside' the robot)
+    point_t elbow1 = {.x=-10, .y=10};
+    point_t elbow2 = {.x=10, .y=10};
+    point_t target = {.x=-10, .y=20};
+    point_t chosen;
+
+    chosen = choose_shoulder_solution(target, elbow1, elbow2, SHOULDER_FRONT);
+    CHECK_EQUAL(elbow2.x, chosen.x);
+}
+
+TEST(CinematicsTestGroup, ChooseElbowBackward)
+{
+    point_t elbow1 = {.x=10, .y=10};
+    point_t elbow2 = {.x=10, .y=-10};
+    point_t target = {.x=10, .y=0};
+    point_t chosen;
+
+    chosen = choose_shoulder_solution(target, elbow1, elbow2, SHOULDER_BACK);
+    CHECK_EQUAL(elbow1.y, chosen.y);
+}
+
+TEST(CinematicsTestGroup, ChooseElbowBackwardBis)
+{
+    point_t elbow1 = {.x=10, .y=-10};
+    point_t elbow2 = {.x=10, .y=10};
+    point_t target = {.x=10, .y=0};
+    point_t chosen;
+
+    chosen = choose_shoulder_solution(target, elbow1, elbow2, SHOULDER_BACK);
+    CHECK_EQUAL(elbow2.y, chosen.y);
+}
+
+TEST(CinematicsTestGroup, ChooseElbowForward)
+{
+    point_t elbow1 = {.x=10, .y=-10};
+    point_t elbow2 = {.x=10, .y=10};
+    point_t target = {.x=10, .y=0};
+    point_t chosen;
+
+    chosen = choose_shoulder_solution(target, elbow1, elbow2, SHOULDER_FRONT);
+    CHECK_EQUAL(elbow1.y, chosen.y);
+}
+
+TEST(CinematicsTestGroup, ChooseElbowForwardBis)
+{
+    point_t elbow1 = {.x=10, .y=10};
+    point_t elbow2 = {.x=10, .y=-10};
+    point_t target = {.x=10, .y=0};
+    point_t chosen;
+
+    chosen = choose_shoulder_solution(target, elbow1, elbow2, SHOULDER_FRONT);
+    CHECK_EQUAL(elbow2.y, chosen.y);
+}
+

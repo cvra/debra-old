@@ -72,6 +72,31 @@ shoulder_mode_t mode_for_orientation(shoulder_mode_t mode, float arm_angle_offse
     return SHOULDER_BACK;
 }
 
+point_t choose_shoulder_solution(point_t target, point_t elbow1,
+                                 point_t elbow2, shoulder_mode_t mode)
+{
+
+    if (target.x < 0) {
+        if (elbow1.x > elbow2.x)
+            return elbow1;
+        else
+            return elbow2;
+    }
+
+    if (mode == SHOULDER_BACK) {
+        if (elbow1.y > elbow2.y)
+            return elbow1;
+        else
+            return elbow2;
+    } else {
+        if (elbow2.y > elbow1.y)
+            return elbow1;
+        else
+            return elbow2;
+    }
+
+}
+
 float compute_shoulder_angle(point_t elbow, point_t hand)
 {
     return atan2f(elbow.y, elbow.x);

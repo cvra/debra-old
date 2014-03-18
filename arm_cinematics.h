@@ -46,6 +46,12 @@ int compute_possible_elbow_positions(point_t target, float l1, float l2, point_t
  */
 shoulder_mode_t mode_for_orientation(shoulder_mode_t mode, float arm_angle_offset);
 
+/** Choose the correct elbow solution to avoid colision with the robot and to
+ * respect the given mode.
+ * @note The mode is for angle_offset > 0. Use mode_for_orientation to change it
+ * if needed.
+ */
+point_t choose_shoulder_solution(point_t target, point_t elbow1, point_t elbow2, shoulder_mode_t mode);
 
 float compute_shoulder_angle(point_t elbow, point_t hand);
 float compute_elbow_angle(point_t elbow, point_t hand);
