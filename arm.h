@@ -82,35 +82,6 @@ void arm_highlevel_init(void);
  */
 void arm_init(arm_t *arm);
 
-/** Connects all the IO of an arm to the correct regulators.
- * @param [in,out] arm The arm to connect.
- *
- * @param [in] *z_set_pwm Z axis PWM setter.
- * @param [in] *z_set_pwm_param This will be passed as first argument to z_set_pwm.
- * @param [in] *z_get_coder Z axis encoder getter.
- * @param [in] *z_get_coder_param This will be passed as first argument to z_get_coder.
- *
- * @param [in] *shoulder_set_pwm Shoulder axis PWM setter.
- * @param [in] *shoulder_set_pwm_param This will be passed as first argument to shoulder_set_pwm.
- * @param [in] *shoulder_get_coder Shoulder axis encoder getter.
- * @param [in] shoulder_get_coder_param This will be passed as first argument to shoulder_get_coder.
- *
- * @param [in] *elbow_set_pwm Elbow axis PWM setter.
- * @param [in] *elbow_set_pwm_param This will be passed as first argument to elbow_set_pwm.
- * @param [in] *elbow_get_coder Elbow axis encoder getter.
- * @param [in] *elbow_get_coder_param This will be passed as first argument to elbow_get_coder.
- *
- * @note arm_init() must be called before calling arm_connect_io.
- */
-void arm_connect_io(arm_t *arm,
-                    void (*z_set_pwm)(void *, int32_t), void *z_set_pwm_param,
-                    int32_t (*z_get_coder)(void *), void *z_get_coder_param,
-                    void (*shoulder_set_pwm)(void *, int32_t), void *shoulder_set_pwm_param,
-                    int32_t (*shoulder_get_coder)(void *), void *shoulder_get_coder_param,
-                    void (*elbow_set_pwm)(void *, int32_t), void *elbow_set_pwm_param,
-                    int32_t (*elbow_get_coder)(void *), void *elbow_get_coder_param);
-
-
 /** Executes a trajectory on given arm.
  *
  * @param [in] arm The arm to move.

@@ -78,6 +78,35 @@ static void arm_set_physical_parameters(arm_t *arm)
     arm->elbow_imp_per_rad = -56571;
 }
 
+/** Connects the current function pointers for PWN set and encoder get on z axis. */
+static void arm_connect_motor_z(arm_t *arm,
+                         void (*z_set_pwm)(void *, int32_t), void *z_set_pwm_param,
+                         int32_t (*z_get_coder)(void *), void *z_get_coder_param)
+{
+    cs_set_process_in(&arm->z_axis_cs, z_set_pwm, z_set_pwm_param);
+    cs_set_process_out(&arm->z_axis_cs, z_get_coder, z_get_coder_param);
+}
+
+/** Connects the current function pointers for PWN set and encoder get on
+ * shoulder axis. */
+static void arm_connect_motor_shoulder(arm_t *arm,
+                         void (*shoulder_set_pwm)(void *, int32_t), void *shoulder_set_pwm_param,
+                         int32_t (*shoulder_get_coder)(void *), void *shoulder_get_coder_param)
+{
+    cs_set_process_in(&arm->shoulder_cs, shoulder_set_pwm, shoulder_set_pwm_param);
+    cs_set_process_out(&arm->shoulder_cs, shoulder_get_coder, shoulder_get_coder_param);
+}
+
+/** Connects the current function pointers for PWN set and encoder get on
+ * elbow axis. */
+static void arm_connect_motor_elbow(arm_t *arm,
+                         void (*elbow_set_pwm)(void *, int32_t), void *elbow_set_pwm_param,
+                         int32_t (*elbow_get_coder)(void *), void *elbow_get_coder_param)
+{
+    cs_set_process_in(&arm->elbow_cs, elbow_set_pwm, elbow_set_pwm_param);
+    cs_set_process_out(&arm->elbow_cs, elbow_get_coder, elbow_get_coder_param);
+}
+
 void arm_highlevel_init(void) {
 #ifdef COMPILE_ON_ROBOT
     int i;
@@ -98,28 +127,29 @@ void arm_highlevel_init(void) {
     robot.left_arm.offset_rotation = M_PI / 2.;
     robot.right_arm.offset_rotation = -M_PI / 2.;
 
+    arm_connect_motor_z(&robot.left_arm,
+                        cvra_dc_set_pwm1, ARMSMOTORCONTROLLER_BASE,
+                        cvra_dc_get_encoder1, ARMSMOTORCONTROLLER_BASE);
 
-    arm_connect_io(&robot.left_arm,
-            /* Z */
-            cvra_dc_set_pwm1, ARMSMOTORCONTROLLER_BASE,
-            cvra_dc_get_encoder1, ARMSMOTORCONTROLLER_BASE,
-            /* Shoulder */
-            cvra_dc_set_pwm0, ARMSMOTORCONTROLLER_BASE,
-            cvra_dc_get_encoder0, ARMSMOTORCONTROLLER_BASE,
-            /* Elbow */
-            cvra_dc_set_pwm2, ARMSMOTORCONTROLLER_BASE,
-            cvra_dc_get_encoder2, ARMSMOTORCONTROLLER_BASE);
+    arm_connect_motor_z(&robot.right_arm,
+                        cvra_dc_set_pwm4, ARMSMOTORCONTROLLER_BASE,
+                        cvra_dc_get_encoder4, ARMSMOTORCONTROLLER_BASE);
 
-    arm_connect_io(&robot.right_arm,
-            /* Z */
-            cvra_dc_set_pwm4, ARMSMOTORCONTROLLER_BASE,
-            cvra_dc_get_encoder4, ARMSMOTORCONTROLLER_BASE,
-            /* Shoulder */
-            cvra_dc_set_pwm5, ARMSMOTORCONTROLLER_BASE,
-            cvra_dc_get_encoder5, ARMSMOTORCONTROLLER_BASE,
-            /* Elbow */
-            cvra_dc_set_pwm3, ARMSMOTORCONTROLLER_BASE,
-            cvra_dc_get_encoder3, ARMSMOTORCONTROLLER_BASE);
+    arm_connect_motor_shoulder(&robot.left_arm,
+                               cvra_dc_set_pwm0, ARMSMOTORCONTROLLER_BASE,
+                               cvra_dc_get_encoder0, ARMSMOTORCONTROLLER_BASE);
+
+    arm_connect_motor_shoulder(&robot.right_arm,
+                               cvra_dc_set_pwm5, ARMSMOTORCONTROLLER_BASE,
+                               cvra_dc_get_encoder5, ARMSMOTORCONTROLLER_BASE);
+
+    arm_connect_motor_elbow(&robot.left_arm,
+                            cvra_dc_set_pwm2, ARMSMOTORCONTROLLER_BASE,
+                            cvra_dc_get_encoder2, ARMSMOTORCONTROLLER_BASE);
+
+    arm_connect_motor_elbow(&robot.right_arm,
+                            cvra_dc_set_pwm3, ARMSMOTORCONTROLLER_BASE,
+                            cvra_dc_get_encoder3, ARMSMOTORCONTROLLER_BASE);
 }
 
 void arm_init(arm_t *arm) {
@@ -140,21 +170,6 @@ void arm_init(arm_t *arm) {
     arm->shoulder_mode = SHOULDER_BACK;
 }
 
-void arm_connect_io(arm_t *arm,
-                    void (*z_set_pwm)(void *, int32_t), void *z_set_pwm_param,
-                    int32_t (*z_get_coder)(void *), void *z_get_coder_param,
-                    void (*shoulder_set_pwm)(void *, int32_t), void *shoulder_set_pwm_param,
-                    int32_t (*shoulder_get_coder)(void *), void *shoulder_get_coder_param,
-                    void (*elbow_set_pwm)(void *, int32_t), void *elbow_set_pwm_param,
-                    int32_t (*elbow_get_coder)(void *), void *elbow_get_coder_param) {
-
-    cs_set_process_in(&arm->z_axis_cs, z_set_pwm, z_set_pwm_param);
-    cs_set_process_out(&arm->z_axis_cs, z_get_coder, z_get_coder_param);
-    cs_set_process_in(&arm->shoulder_cs, shoulder_set_pwm, shoulder_set_pwm_param);
-    cs_set_process_out(&arm->shoulder_cs, shoulder_get_coder, shoulder_get_coder_param);
-    cs_set_process_in(&arm->elbow_cs, elbow_set_pwm, elbow_set_pwm_param);
-    cs_set_process_out(&arm->elbow_cs, elbow_get_coder, elbow_get_coder_param);
-}
 
 void arm_execute_movement(arm_t *arm, arm_trajectory_t *traj)
 {
