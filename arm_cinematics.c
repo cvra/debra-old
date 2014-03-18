@@ -44,7 +44,7 @@ int compute_inverse_cinematics(float x, float y, float *alpha, float *beta, cons
     return 0;
 }
 
-int compute_possible_elbow_positions(float x, float y, float l1, float l2,
+int compute_possible_elbow_positions(point_t target, float l1, float l2,
                                         point_t *p1, point_t *p2)
 {
     circle_t c1, c2;
@@ -54,8 +54,8 @@ int compute_possible_elbow_positions(float x, float y, float l1, float l2,
     c1.y = 0;
     c1.r = l1;
 
-    c2.x = x;
-    c2.y = y;
+    c2.x = target.x;
+    c2.y = target.y;
     c2.r = l2;
 
     return circle_intersect(&c1, &c2, p1, p2);

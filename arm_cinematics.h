@@ -38,7 +38,7 @@ int compute_inverse_cinematics(float x, float y,
  * @param [out] p1, p2 The possible positions.
  * @returns The number of possible positons (0, 1 or 2).
  */
-int compute_possible_elbow_positions(float x, float y, float l1, float l2, point_t *p1, point_t *p2);
+int compute_possible_elbow_positions(point_t target, float l1, float l2, point_t *p1, point_t *p2);
 
 /**Inverts the shoulder mode depending on wheter the arm is facing the
  * left or right side of the robot. This is needed as "forward" and "backward"
