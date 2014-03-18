@@ -11,7 +11,6 @@
 #include <cvra_pio.h>
 #include <stdio.h>
 
-#include "adresses.h"
 #include "cvra_cs.h"
 #include "arm_interpolators.h"
 #include "arm.h"

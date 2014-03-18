@@ -10,8 +10,6 @@
 #include <scheduler.h>
 #include <aversive/error.h>
 
-#include "adresses.h"
-
 #include "arm.h"
 #include <math.h>
 
