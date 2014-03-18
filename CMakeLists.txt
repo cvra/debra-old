@@ -18,13 +18,14 @@ file(GLOB_RECURSE
     modules/modules/uptime/uptime.c
     odules/modules/pid/pid.c
     odules/modules/control_system_manager/control_system_manager.c
+    odules/modules/control_system_manager/control_system_manager.c
     modules/modules/math/vect2/vect2.c
     modules/modules/math/fast_math/fast_math.c
     modules/modules/math/geometry/circles.c
     modules/modules/math/geometry/vect_base.c
     modules/modules/math/geometry/lines.c
     modules/modules/math/geometry/polygon.c
-    #modules/modules/quadramp/quadramp.c
+    modules/modules/quadramp/quadramp.c
 
     modules/modules/cvra_dc/cvra_dc.c
     modules/modules/platform/platform_host.c
