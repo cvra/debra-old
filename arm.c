@@ -338,6 +338,49 @@ void arm_shutdown(arm_t *arm)
     }
 }
 
+/** @brief Chooses the correct shoulder position.
+ * @param [in] x, y Target position.
+ * @param [in] p1, p2 The two possible shoulder positions.
+ * @param [in] mode The shoulder mode
+ */
+static point_t choose_shoulder_solution(float x, float y, point_t p1, point_t p2, shoulder_mode_t mode, float offset_rotation)
+{
+    if(x < 0.) {
+        if(p1.x > 0.)
+            return p1;
+        else if(p2.x > 0.)
+            return p2;
+        else
+            return p1;
+    } else {
+        if(offset_rotation > 0.) {
+            if(mode == SHOULDER_BACK) {
+                if(p2.y > p1.y)
+                    return p2;
+                else
+                    return p1;
+            } else {
+                if(p2.y < p1.y)
+                    return p2;
+                else
+                    return p1;
+            }
+        } else { /* offset_rotation > 0 */
+            if(mode == SHOULDER_FRONT) {
+                if(p2.y > p1.y)
+                    return p2;
+                else
+                    return p1;
+            } else {
+                if(p2.y < p1.y)
+                    return p2;
+                else
+                    return p1;
+            }
+        }
+    }
+}
+
 
 static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha, float *beta, const float l1, const float l2) {
     circle_t c1, c2;
@@ -353,59 +396,13 @@ static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha
 
     int nbPos = circle_intersect(&c1, &c2, &p1, &p2);
 
-    if(nbPos == 0) {
-        /* It means there is no way to find an intersection... */
+    if(nbPos == 0)
         return -1;
-    }
 
-    /* Checks if one of the two possibilities crosses an obstacle. */
-    else if(nbPos == 2) {
-        if(x < 0.) {
-            if(p1.x > 0.)
-                chosen = p1;
-            else if(p2.x > 0.)
-                chosen = p2;
-            else
-                chosen = p1;
-        }
-        else {
-            if(arm->offset_rotation > 0.) {
-                if(arm->shoulder_mode == SHOULDER_BACK) {
-                    /* TODO the left arm is mirrored when compared to the right arm. */
-                    if(p2.y > p1.y)
-                        chosen = p2;
-                    else
-                        chosen = p1;
-                }
-                else {
-                    /* TODO the left arm is mirrored when compared to the right arm. */
-                    if(p2.y < p1.y)
-                        chosen = p2;
-                    else
-                        chosen = p1;
-                }
-            }
-            else {
-                if(arm->shoulder_mode == SHOULDER_FRONT) {
-                    /* TODO the left arm is mirrored when compared to the right arm. */
-                    if(p2.y > p1.y)
-                        chosen = p2;
-                    else
-                        chosen = p1;
-                }
-                else {
-                    /* TODO the left arm is mirrored when compared to the right arm. */
-                    if(p2.y < p1.y)
-                        chosen = p2;
-                    else
-                        chosen = p1;
-                }
-            }
-        }
-    }
-    else {
+    if (nbPos == 1)
         chosen = p1;
-    }
+    else
+        chosen = choose_shoulder_solution(x, y, p1, p2, arm->shoulder_mode, arm->offset_rotation);
 
 
     *alpha = atan2f(chosen.y, chosen.x);
