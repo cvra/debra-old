@@ -32,4 +32,15 @@ TEST(CinematicsTestGroup, FailsWhenTooFar)
     CHECK_EQUAL(0, status);
 }
 
+TEST(CinematicsTestGroup, SimpleElbowAngle)
+{
+    float angle;
+    point_t elbow, hand;
+    elbow.x = 100;
+    elbow.y = 0;
+    angle = compute_shoulder_angle(elbow, hand);
+
+    DOUBLES_EQUAL(0, angle, 1e-3);
+}
+
 

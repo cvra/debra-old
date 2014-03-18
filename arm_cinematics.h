@@ -35,4 +35,6 @@ int compute_inverse_cinematics(float x, float y,
  */
 int compute_possible_elbow_positions(float x, float y, float l1, float l2, point_t *p1, point_t *p2);
 
+float compute_shoulder_angle(point_t elbow, point_t hand);
+
 #endif

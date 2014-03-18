@@ -59,3 +59,8 @@ int compute_possible_elbow_positions(float x, float y, float l1, float l2,
 
     return circle_intersect(&c1, &c2, p1, p2);
 }
+
+float compute_shoulder_angle(point_t elbow, point_t hand)
+{
+    return atan2f(elbow.y, elbow.x);
+}
