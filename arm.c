@@ -164,23 +164,16 @@ void arm_connect_io(arm_t *arm,
     cs_set_process_out(&arm->elbow_cs, elbow_get_coder, elbow_get_coder_param);
 }
 
-void arm_execute_movement(arm_t *arm, arm_trajectory_t *traj) {
-    /* Step 1 : If we had a previous trajectory in memory, release it. */
-    if(arm->trajectory.frame_count != 0) {
-        free(arm->trajectory.frames);
-    }
+void arm_execute_movement(arm_t *arm, arm_trajectory_t *traj)
+{
+    arm_shutdown(arm);
 
-    /* Step 2 : Allocates requested memory for our copy of the trajectory. */
     arm->trajectory.frames = malloc(traj->frame_count * sizeof(arm_keyframe_t));
 
-    if(arm->trajectory.frames == NULL)
+    if (arm->trajectory.frames == NULL)
         panic();
 
-
-    /* Step 3 : Copy the trajectory data. */
     arm->trajectory.frame_count = traj->frame_count;
-
-
     memcpy(arm->trajectory.frames, traj->frames, sizeof(arm_keyframe_t) * traj->frame_count);
 }
 
@@ -335,8 +328,9 @@ int arm_trajectory_finished(arm_t *arm) {
    return 0;
 }
 
-void arm_shutdown(arm_t *arm) {
-    if(arm->trajectory.frame_count != 0) {
+void arm_shutdown(arm_t *arm)
+{
+    if (arm->trajectory.frame_count != 0) {
         free(arm->trajectory.frames);
         arm->trajectory.frames = NULL;
         arm->trajectory.frame_count = 0;
