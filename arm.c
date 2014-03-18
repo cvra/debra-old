@@ -11,27 +11,9 @@
 #include <aversive/error.h>
 
 #include "arm.h"
+#include "arm_cinematics.h"
 #include <math.h>
 
-/** Computes the inverse cinematics of an arm.
- *
- * The computation is done using the simplest algorithm : The intersection of
- * two circles, one being centered on shoulder, the other being centered on
- * target coordinates.
- *
- * When the intersection is known, computing angles is a simple matter of using
- * atan2 in a correct way.
- *
- * @param [in] arm The arm instance.
- * @param [in] x, y, z The coordinates of the target.
- * @param [out] alpha, beta Pointers where angles will be stored.
- *
- * @return 0 en cas de succes, -1 en cas d'erreur.
- *
- * @todo We need an algorithm to choose between the 2 positions in case there
- * are multiple possibilities.
- */
-static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha, float *beta, const float l1, const float l2);
 
 inline float smoothstep(float t)
 {
@@ -395,45 +377,6 @@ static point_t choose_shoulder_solution(float x, float y, point_t p1, point_t p2
 }
 
 
-static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha, float *beta, const float l1, const float l2) {
-    circle_t c1, c2;
-    point_t p1, p2, chosen;
-
-    c1.x = 0;
-    c1.y = 0;
-    c1.r = l1;
-
-    c2.x = x;
-    c2.y = y;
-    c2.r = l2;
-
-    int nbPos = circle_intersect(&c1, &c2, &p1, &p2);
-
-    if(nbPos == 0)
-        return -1;
-
-    if (nbPos == 1)
-        chosen = p1;
-    else
-        chosen = choose_shoulder_solution(x, y, p1, p2, arm->shoulder_mode, arm->offset_rotation);
-
-
-    *alpha = atan2f(chosen.y, chosen.x);
-    *beta = atan2f(y-chosen.y, x-chosen.x);
-    *beta = *beta - *alpha;
-
-
-    if(*beta < -M_PI) {
-        *beta = 2*M_PI + *beta;
-    }
-
-    if(*beta > M_PI) {
-        *beta = -2*M_PI + *beta;
-    }
-
-
-    return 0;
-}
 
 void arm_change_coordinate_system(arm_t *arm, float x, float y,
              arm_coordinate_t system, float *arm_x, float *arm_y) {

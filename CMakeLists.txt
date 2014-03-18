@@ -27,12 +27,20 @@ file(GLOB_RECURSE
     odules/modules/quadramp/quadramp.c
 
     modules/modules/cvra_dc/cvra_dc.c
+    modules/modules/platform/platform_host.c
 )
 
 file(GLOB_RECURSE
     tests_source
     tests/*
 )
+
+file(GLOB_RECURSE
+    debra_source
+    arm_interpolators.c
+    arm_cinematics.c
+)
+
 
 include_directories(modules/include/)
 include_directories(modules/modules/scheduler)
@@ -73,7 +81,7 @@ link_directories($ENV{CPPUTEST_HOME}/lib)
 
 add_executable(
 	debra
-    #${debra_source}
+    ${debra_source}
     ${modules_source}
     ${tests_source}
 )
