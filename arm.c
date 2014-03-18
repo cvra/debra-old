@@ -53,6 +53,39 @@ inline float smoothstep(float t) {
     return t*t*t*(t*(6.0f*t-15.0f)+10.0f);
 }
 
+static void arm_init_control_loops(arm_t *arm)
+{
+    cs_init(&arm->z_axis_cs);
+    pid_init(&arm->z_axis_pid);
+    pid_set_out_shift(&arm->z_axis_pid, 12);
+    cs_set_correct_filter(&arm->z_axis_cs, pid_do_filter, &arm->z_axis_pid);
+
+    cs_init(&arm->shoulder_cs);
+    pid_init(&arm->shoulder_pid);
+    pid_set_out_shift(&arm->shoulder_pid, 6);
+    cs_set_correct_filter(&arm->shoulder_cs, pid_do_filter, &arm->shoulder_pid);
+
+    cs_init(&arm->elbow_cs);
+    pid_init(&arm->elbow_pid);
+    pid_set_out_shift(&arm->elbow_pid, 6);
+    cs_set_correct_filter(&arm->elbow_cs, pid_do_filter, &arm->elbow_pid);
+}
+
+static void arm_set_physical_parameters(arm_t *arm)
+{
+    /* Physical constants, not magic numbers. */
+    arm->length[0] = 135.5; /* mm */
+    arm->length[1] = 136;
+
+    pid_set_gains(&arm->z_axis_pid, 2250, 0, 100);
+    pid_set_gains(&arm->elbow_pid, 30, 0, 0);
+    pid_set_gains(&arm->shoulder_pid, 30, 0, 0);
+
+    arm->z_axis_imp_per_mm = 655*4;
+    arm->shoulder_imp_per_rad = -77785;
+    arm->elbow_imp_per_rad = -56571;
+}
+
 void arm_highlevel_init(void) {
 #ifdef COMPILE_ON_ROBOT
     int i;
@@ -100,38 +133,17 @@ void arm_highlevel_init(void) {
 void arm_init(arm_t *arm) {
     memset(arm, 0, sizeof(arm_t));
 
-    cs_init(&arm->z_axis_cs);
-    pid_init(&arm->z_axis_pid);
-    pid_set_out_shift(&arm->z_axis_pid, 12);
-    cs_set_correct_filter(&arm->z_axis_cs, pid_do_filter, &arm->z_axis_pid);
+    arm_init_control_loops(arm);
+    arm_set_physical_parameters(arm);
 
-    cs_init(&arm->shoulder_cs);
-    pid_init(&arm->shoulder_pid);
-    pid_set_out_shift(&arm->shoulder_pid, 6);
-    cs_set_correct_filter(&arm->shoulder_cs, pid_do_filter, &arm->shoulder_pid);
-
-    cs_init(&arm->elbow_cs);
-    pid_init(&arm->elbow_pid);
-    pid_set_out_shift(&arm->elbow_pid, 6);
-    cs_set_correct_filter(&arm->elbow_cs, pid_do_filter, &arm->elbow_pid);
-
-    /* Physical constants, not magic numbers. */
-    arm->length[0] = 135.5; /* mm */
-    arm->length[1] = 136;
-
-    pid_set_gains(&arm->z_axis_pid, 2250, 0, 100);
-    pid_set_gains(&arm->elbow_pid, 30, 0, 0);
-    pid_set_gains(&arm->shoulder_pid, 30, 0, 0);
-
-    arm->z_axis_imp_per_mm = 655*4;
-    arm->shoulder_imp_per_rad = -77785;
-    arm->elbow_imp_per_rad = -56571;
-
-    /* Distance entre les vis a billes : 158 mm. */
+    /* Sets last loop run date for lag compensation. */
     arm->last_loop = uptime_get();
 
-//    scheduler_add_periodical_event(arm_manage_cs, (void *)arm, 1000 / SCHEDULER_UNIT);
- //   scheduler_add_periodical_event(arm_manage, (void *)arm, 10000 / SCHEDULER_UNIT);
+    /* Needs to be reworked for UC/OS-II, because we cannot have one task per arm with the same prio */
+#if 0
+    scheduler_add_periodical_event(arm_manage_cs, (void *)arm, 1000 / SCHEDULER_UNIT);
+    scheduler_add_periodical_event(arm_manage, (void *)arm, 10000 / SCHEDULER_UNIT);
+#endif
 
     arm->shoulder_mode = SHOULDER_BACK;
 }
