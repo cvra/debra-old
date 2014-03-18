@@ -326,6 +326,7 @@ int arm_trajectory_finished(arm_t *arm) {
 void arm_shutdown(arm_t *arm) {
     if(arm->trajectory.frame_count != 0) {
         free(arm->trajectory.frames);
+        arm->trajectory.frames = NULL;
         arm->trajectory.frame_count = 0;
     }
 }
