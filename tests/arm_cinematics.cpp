@@ -10,28 +10,26 @@ extern "C" {
 TEST_GROUP(CinematicsTestGroup)
 {
     float alpha, beta;
-
+    point_t p1, p2;
+    int status;
 };
 
 TEST(CinematicsTestGroup, FindsASolution)
 {
-    int status;
-    status = compute_inverse_cinematics(100., 100., &alpha, &beta, 100., 100.);
-    CHECK_EQUAL(0, status);
+    status = compute_possible_elbow_positions(100., 100., 100., 100., &p1, &p2);
+    CHECK_EQUAL(2, status);
+}
+
+TEST(CinematicsTestGroup, FindsSingleSolution)
+{
+    status = compute_possible_elbow_positions(100., 0., 50., 50., &p1, &p2);
+    CHECK_EQUAL(1, status);
 }
 
 TEST(CinematicsTestGroup, FailsWhenTooFar)
 {
-    int status;
-    status = compute_inverse_cinematics(100., 100., &alpha, &beta, 10., 10.);
-    CHECK(status < 0);
+    status = compute_possible_elbow_positions(100., 100., 10., 10., &p1, &p2);
+    CHECK_EQUAL(0, status);
 }
 
-TEST(CinematicsTestGroup, TrivialCase)
-{
-    int status = compute_inverse_cinematics(100., 100., &alpha, &beta, 50., 50.);
-    CHECK_EQUAL(0, status);
-    DOUBLES_EQUAL(0, beta, 0.01);
-    DOUBLES_EQUAL(0, alpha, 0.01);
-}
 

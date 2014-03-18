@@ -1,6 +1,8 @@
 #ifndef _ARM_CINEMATICS_H_
 #define _ARM_CINEMATICS_H_
 
+#include <vect_base.h>
+
 
 /** Computes the inverse cinematics of an arm.
  *
@@ -22,4 +24,15 @@
  */
 int compute_inverse_cinematics(float x, float y,
             float *alpha, float *beta, const float l1, const float l2);
+
+
+/** Computes the possible positions for the elbow.
+ *
+ * @param [in] x,y The coordinates of the hand.
+ * @param [in] l1,l2 The length of the two parts of the arm.
+ * @param [out] p1, p2 The possible positions.
+ * @returns The number of possible positons (0, 1 or 2).
+ */
+int compute_possible_elbow_positions(float x, float y, float l1, float l2, point_t *p1, point_t *p2);
+
 #endif
