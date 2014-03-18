@@ -171,6 +171,79 @@ void arm_execute_movement(arm_t *arm, arm_trajectory_t *traj)
     memcpy(arm->trajectory.frames, traj->frames, sizeof(arm_keyframe_t) * traj->frame_count);
 }
 
+/** @brief Interpolates 2 arms frames and outputs result in arm coordinate frame.
+ * @param [in] arm The arm to use for interpolation.
+ * @param [in] date The time to use for interpolation.
+ * @param [out] position The interpolated position.
+ * @param [out] length The interpolated length.
+ * */
+static void arm_interpolate_frames(arm_t *arm, int32_t date, float *position, float *length)
+{
+    float t; /* interpolation factor, between 0 and 1 */
+    int i = 1;
+    float previous_z, next_z;
+
+    /* The coordinates of the previous frames in arm coordinates.
+     * This allows us to mix different coordinate systems in a single trajectory. */
+    float previous_frame_xy[2], next_frame_xy[2];
+    float *previous_length, *next_length;
+
+    /* Are we before the first frame ? */
+    if (date < arm->trajectory.frames[0].date) {
+        arm_change_coordinate_system(arm, arm->trajectory.frames[0].position[0], arm->trajectory.frames[0].position[1],
+                arm->trajectory.frames[0].coordinate_type, &position[0], &position[1]);
+        position[2] = arm->trajectory.frames[0].position[2];
+
+        length[0] = arm->trajectory.frames[0].length[0];
+        length[1] = arm->trajectory.frames[0].length[1];
+        return;
+    }
+
+    if (date > arm->trajectory.frames[arm->trajectory.frame_count-1].date) {
+        int f = arm->trajectory.frame_count-1;
+        arm_change_coordinate_system(arm, arm->trajectory.frames[f].position[0], arm->trajectory.frames[f].position[1],
+                arm->trajectory.frames[f].coordinate_type, &position[0], &position[1]);
+        position[2] = arm->trajectory.frames[f].position[2];
+
+        length[0] = arm->trajectory.frames[f].length[0];
+        length[1] = arm->trajectory.frames[f].length[1];
+        return;
+    }
+
+    /* We are between frame i-1 et i. i > 1 */
+    while(arm->trajectory.frames[i].date < date)
+        i++;
+
+
+    /* Changes the coordinate systems to arm coordinates */
+    arm_change_coordinate_system(arm, arm->trajectory.frames[i-1].position[0],
+            arm->trajectory.frames[i-1].position[1],
+            arm->trajectory.frames[i-1].coordinate_type,
+            &previous_frame_xy[0], &previous_frame_xy[1]);
+
+    arm_change_coordinate_system(arm, arm->trajectory.frames[i].position[0],
+            arm->trajectory.frames[i].position[1],
+            arm->trajectory.frames[i].coordinate_type,
+            &next_frame_xy[0], &next_frame_xy[1]);
+
+    previous_z = arm->trajectory.frames[i-1].position[2];
+    next_z = arm->trajectory.frames[i].position[2];
+
+    previous_length = arm->trajectory.frames[i-1].length;
+    next_length = arm->trajectory.frames[i].length;
+
+    /* Smoothstep interpolation between the 2 frames. */
+    t = date - arm->trajectory.frames[i-1].date;
+    t = t / (float)(arm->trajectory.frames[i].date - arm->trajectory.frames[i-1].date);
+    t = smoothstep(t);
+
+    position[0] = interpolate(t, previous_frame_xy[0], next_frame_xy[0]);
+    position[1] = interpolate(t, previous_frame_xy[1], next_frame_xy[1]);
+    position[2] = interpolate(t, previous_z, next_z);
+    length[0] = interpolate(t, previous_length[0], next_length[0]);
+    length[1] = interpolate(t, previous_length[1], next_length[1]);
+}
+
 void arm_manage(void *a) {
 
     arm_t *arm = (arm_t *) a;
@@ -179,11 +252,7 @@ void arm_manage(void *a) {
 
     float length[2];
 
-    /* The coordinates of the previous frames in arm coordinates.
-     * This allows us to mix different coordinate systems in a single trajectory. */
-    float previous_frame_xy[2], next_frame_xy[2];
     float alpha, beta; /* The angles of the arms. */
-    float offset = 0;
 
     /* Lag compensation */
     int32_t compensated_date = 2*current_date - arm->last_loop;
@@ -197,71 +266,14 @@ void arm_manage(void *a) {
         return;
     }
 
-
-    /* Are we before the first frame ? */
-    if(compensated_date < arm->trajectory.frames[0].date) {
-        arm_change_coordinate_system(arm, arm->trajectory.frames[0].position[0], arm->trajectory.frames[0].position[1],
-                arm->trajectory.frames[0].coordinate_type, &position[0], &position[1]);
-        position[2] = arm->trajectory.frames[0].position[2];
-
-        length[0] = arm->trajectory.frames[0].length[0];
-        length[1] = arm->trajectory.frames[0].length[1];
-    }
-    /* Are we past the last frame ? */
-    else if(compensated_date > arm->trajectory.frames[arm->trajectory.frame_count-1].date) {
-        int f = arm->trajectory.frame_count-1;
-        arm_change_coordinate_system(arm, arm->trajectory.frames[f].position[0], arm->trajectory.frames[f].position[1],
-                arm->trajectory.frames[f].coordinate_type, &position[0], &position[1]);
-        position[2] = arm->trajectory.frames[f].position[2];
-
-        length[0] = arm->trajectory.frames[f].length[0];
-        length[1] = arm->trajectory.frames[f].length[1];
-    }
-    else {
-        float t; /* interpolation factor, between 0 and 1 */
-        int i = 1;
-        float previous_z, next_z;
-        float *previous_length, *next_length;
-        /* We are between frame i-1 et i. i > 1 */
-        while(arm->trajectory.frames[i].date < compensated_date)
-            i++;
-
-
-        /* Changes the coordinate systems to arm coordinates */
-        arm_change_coordinate_system(arm, arm->trajectory.frames[i-1].position[0],
-                arm->trajectory.frames[i-1].position[1],
-                arm->trajectory.frames[i-1].coordinate_type,
-                &previous_frame_xy[0], &previous_frame_xy[1]);
-
-        arm_change_coordinate_system(arm, arm->trajectory.frames[i].position[0],
-                arm->trajectory.frames[i].position[1],
-                arm->trajectory.frames[i].coordinate_type,
-                &next_frame_xy[0], &next_frame_xy[1]);
-
-        previous_z = arm->trajectory.frames[i-1].position[2];
-        next_z = arm->trajectory.frames[i].position[2];
-
-        previous_length = arm->trajectory.frames[i-1].length;
-        next_length = arm->trajectory.frames[i].length;
-
-        /* Smoothstep interpolation between the 2 frames. */
-        t = compensated_date - arm->trajectory.frames[i-1].date;
-        t = t / (float)(arm->trajectory.frames[i].date - arm->trajectory.frames[i-1].date);
-        t = smoothstep(t);
-
-        position[0] = interpolate(t, previous_frame_xy[0], next_frame_xy[0]);
-        position[1] = interpolate(t, previous_frame_xy[1], next_frame_xy[1]);
-        position[2] = interpolate(t, previous_z, next_z);
-        length[0] = interpolate(t, previous_length[0], next_length[0]);
-        length[1] = interpolate(t, previous_length[1], next_length[1]);
-    }
-
+    arm_interpolate_frames(arm, compensated_date, position, length);
 
     /* Computes the inverse cinematics and send the consign to the control systems. */
     if (compute_inverse_cinematics(arm, position[0], position[1], &alpha, &beta, length[0], length[1]) < 0) {
         cs_disable(&arm->z_axis_cs);
         cs_disable(&arm->shoulder_cs);
         cs_disable(&arm->elbow_cs);
+        arm->last_loop = current_date;
         return;
     }
 
