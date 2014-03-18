@@ -23,7 +23,12 @@ void arm_interpolator_append_point(arm_trajectory_t *traj, const float x, const 
     traj->frames[traj->frame_count-1].position[1] = y;
     traj->frames[traj->frame_count-1].position[2] = z;
     traj->frames[traj->frame_count-1].coordinate_type = system;
-    traj->frames[traj->frame_count-1].date = traj->frames[traj->frame_count-2].date+1000000*duration;
+
+    if (traj->frame_count == 1)
+        traj->frames[0].date = uptime_get();
+    else
+        traj->frames[traj->frame_count-1].date = traj->frames[traj->frame_count-2].date+1000000*duration;
+
 
     traj->frames[traj->frame_count-1].length[0] = 135.5;
     traj->frames[traj->frame_count-1].length[1] = 136;
