@@ -47,14 +47,10 @@ void arm_init(arm_t *arm)
     arm_cs_init_loop(&arm->elbow);
     arm_cs_init_loop(&arm->z_axis);
 
-#if 0
-    arm_set_physical_parameters(arm);
-
     /* Sets last loop run date for lag compensation. */
     arm->last_loop = uptime_get();
 
     arm->shoulder_mode = SHOULDER_BACK;
-#endif
 }
 
 #if 0
