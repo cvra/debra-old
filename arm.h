@@ -37,6 +37,8 @@ typedef struct {
 
 void arm_init(arm_t *arm);
 
+void arm_set_physical_parameters(arm_t *arm);
+
 int arm_trajectory_finished(arm_t *arm);
 
 void arm_get_position(arm_t *arm, float *x, float *y, float *z);

@@ -18,25 +18,23 @@ float interpolate(float t, float a, float b)
     return (1 - t) * a + t * b;
 }
 
-static void arm_set_physical_parameters(arm_t *arm)
+void arm_set_physical_parameters(arm_t *arm)
 {
-#if 0
     /* Physical constants, not magic numbers. */
     arm->length[0] = 135.5; /* mm */
     arm->length[1] = 136;
 
-    pid_set_gains(&arm->z_axis_pid, 2250, 0, 100);
-    pid_set_gains(&arm->elbow_pid, 30, 0, 0);
-    pid_set_gains(&arm->shoulder_pid, 30, 0, 0);
+    pid_set_gains(&arm->z_axis.pid, 2250, 0, 100);
+    pid_set_gains(&arm->elbow.pid, 30, 0, 0);
+    pid_set_gains(&arm->shoulder.pid, 30, 0, 0);
 
-    pid_set_out_shift(&arm->z_axis_pid, 12);
-    pid_set_out_shift(&arm->shoulder_pid, 6);
-    pid_set_out_shift(&arm->elbow_pid, 6);
+    pid_set_out_shift(&arm->z_axis.pid, 12);
+    pid_set_out_shift(&arm->shoulder.pid, 6);
+    pid_set_out_shift(&arm->elbow.pid, 6);
 
     arm->z_axis_imp_per_mm = 655*4;
     arm->shoulder_imp_per_rad = -77785;
     arm->elbow_imp_per_rad = -56571;
-#endif
 }
 
 void arm_init(arm_t *arm)
