@@ -42,4 +42,13 @@ void arm_trajectory_append_point_with_length(arm_trajectory_t *traj, const float
     traj->frames[traj->frame_count-1].length[1] = l2;
 }
 
+void arm_trajectory_delete(arm_trajectory_t *traj)
+{
+    if (traj->frame_count != 0) {
+        free(traj->frames);
+        traj->frames = NULL;
+        traj->frame_count = 0;
+    }
+}
+
 

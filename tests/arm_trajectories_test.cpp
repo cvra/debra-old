@@ -44,7 +44,11 @@ TEST(ArmTrajectoriesBuilderTest, DateIsCorrectlyComputed)
     CHECK_EQUAL(traj.frames[2].date, 25*1000000);
 }
 
-IGNORE_TEST(ArmTrajectoriesBuilderTest, DeleteDate)
+TEST(ArmTrajectoriesBuilderTest, DeleteTrajectory)
 {
-
+    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 10.);
+    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 15.);
+    arm_trajectory_delete(&traj);
+    CHECK_EQUAL(0, traj.frame_count);
 }
