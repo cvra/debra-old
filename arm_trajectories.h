@@ -27,4 +27,6 @@ void arm_trajectory_append_point_with_length(arm_trajectory_t *traj, const float
 
 void arm_trajectory_delete(arm_trajectory_t *traj);
 
+void arm_trajectory_copy(arm_trajectory_t *dest, arm_trajectory_t *src);
+
 #endif

@@ -52,3 +52,17 @@ TEST(ArmTrajectoriesBuilderTest, DeleteTrajectory)
     arm_trajectory_delete(&traj);
     CHECK_EQUAL(0, traj.frame_count);
 }
+
+TEST(ArmTrajectoriesBuilderTest, CopyTrajectory)
+{
+    arm_trajectory_t copy;
+    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 10.);
+
+    arm_trajectory_copy(&copy, &traj);
+    CHECK_EQUAL(traj.frame_count, copy.frame_count);
+    CHECK_EQUAL(traj.frames[0].position[0], copy.frames[0].position[0]);
+
+    /* Check that it is a full copy. */
+    CHECK(traj.frames[0].position != copy.frames[0].position);
+}

@@ -51,4 +51,11 @@ void arm_trajectory_delete(arm_trajectory_t *traj)
     }
 }
 
+void arm_trajectory_copy(arm_trajectory_t *dest, arm_trajectory_t *src)
+{
+    dest->frame_count = src->frame_count;
+    dest->frames = malloc(dest->frame_count * sizeof(arm_keyframe_t));
+    memcpy(dest->frames, src->frames, dest->frame_count * sizeof(arm_keyframe_t));
+}
+
 
