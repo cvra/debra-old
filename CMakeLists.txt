@@ -41,7 +41,7 @@ file(GLOB_RECURSE
     arm_trajectories.c
     arm_cinematics.c
     arm_utils.c
-    #arm.c
+    arm.c
     hardware.c
     arm_cs.c
 )
