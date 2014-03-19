@@ -11,4 +11,8 @@ typedef struct {
 
 void arm_cs_init_loop(arm_control_loop_t *loop);
 
+void arm_cs_connect_motor(arm_control_loop_t *loop,  void (*pwm)(void *, int32_t), void *pwm_param);
+void arm_cs_connect_encoder(arm_control_loop_t *loop,  int32_t (*encoder)(void *), void *encoder_param);
+void arm_cs_manage(arm_control_loop_t *loop);
+
 #endif

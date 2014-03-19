@@ -285,14 +285,6 @@ void arm_manage(void *a) {
 }
 
 
-void arm_manage_cs(void *a) {
-    arm_t *arm = (arm_t *)a;
-
-    cs_manage(&arm->z_axis_cs);
-    cs_manage(&arm->shoulder_cs);
-    cs_manage(&arm->elbow_cs);
-    /* XXX Insert the blocking managers. */
-}
 
 
 void arm_get_position(arm_t *arm, float *x, float *y, float *z) {
