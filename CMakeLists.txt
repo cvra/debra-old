@@ -40,6 +40,7 @@ file(GLOB_RECURSE
     debra_source
     arm_interpolators.c
     arm_cinematics.c
+    arm_utils.c
     #arm.c
     hardware.c
     arm_cs.c
