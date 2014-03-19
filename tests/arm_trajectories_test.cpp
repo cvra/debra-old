@@ -2,6 +2,7 @@
 
 extern "C" {
 #include "../arm_trajectories.h"
+#include "uptime.h"
 }
 
 TEST_GROUP(ArmTrajectoriesBuilderTest)
@@ -16,6 +17,7 @@ TEST_GROUP(ArmTrajectoriesBuilderTest)
     void teardown()
     {
         free(traj.frames);
+        uptime_set(0);
     }
 };
 
@@ -65,4 +67,24 @@ TEST(ArmTrajectoriesBuilderTest, CopyTrajectory)
 
     /* Check that it is a full copy. */
     CHECK(traj.frames[0].position != copy.frames[0].position);
+}
+
+TEST(ArmTrajectoriesBuilderTest, EmptyTrajectoryIsFinished)
+{
+    CHECK_EQUAL(1, arm_trajectory_finished(&traj));
+}
+
+TEST(ArmTrajectoriesBuilderTest, TrajectoryWithPointIsNotFinished)
+{
+    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 10.);
+    CHECK_EQUAL(0, arm_trajectory_finished(&traj));
+}
+
+TEST(ArmTrajectoriesBuilderTest, PastTrajectoryIsFinished)
+{
+    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 10.);
+    uptime_set(20*1000000);
+    CHECK_EQUAL(1, arm_trajectory_finished(&traj));
 }

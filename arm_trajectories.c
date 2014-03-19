@@ -58,4 +58,17 @@ void arm_trajectory_copy(arm_trajectory_t *dest, arm_trajectory_t *src)
     memcpy(dest->frames, src->frames, dest->frame_count * sizeof(arm_keyframe_t));
 }
 
+int arm_trajectory_finished(arm_trajectory_t *traj)
+{
+    int last_frame = traj->frame_count - 1;
+
+    if (traj->frame_count == 0)
+        return 1;
+
+    if (traj->frames[last_frame].date < uptime_get())
+        return 1;
+
+    return 0;
+}
+
 

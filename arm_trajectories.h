@@ -29,4 +29,6 @@ void arm_trajectory_delete(arm_trajectory_t *traj);
 
 void arm_trajectory_copy(arm_trajectory_t *dest, arm_trajectory_t *src);
 
+int arm_trajectory_finished(arm_trajectory_t *traj);
+
 #endif
