@@ -20,3 +20,31 @@ TEST(ArmUtilsTestGroup, CoordinateRobotToArm)
     DOUBLES_EQUAL(0., result.x, 1e-2);
     DOUBLES_EQUAL(-100., result.y, 1e-2);
 }
+
+TEST(ArmUtilsTestGroup, CoordinateTableToRobot)
+{
+    point_t target = {.x=100,.y=200};
+    point_t robot_pos = {.x=100, .y=100};
+    float robot_a_rad = M_PI/2;
+    point_t result;
+
+    result = arm_coordinate_table2robot(target, robot_pos, robot_a_rad);
+
+    DOUBLES_EQUAL(100., result.x, 1e-2);
+    DOUBLES_EQUAL(0., result.y, 1e-2);
+
+}
+
+TEST(ArmUtilsTestGroup, CoordinateTableToRobot45Deg)
+{
+    point_t target = {.x=100,.y=100};
+    point_t robot_pos = {.x=0, .y=0};
+    float robot_a_rad = M_PI/4;
+    point_t result;
+
+    result = arm_coordinate_table2robot(target, robot_pos, robot_a_rad);
+
+    DOUBLES_EQUAL(sqrt(2)*100., result.x, 1e-2);
+    DOUBLES_EQUAL(0., result.y, 1e-2);
+
+}
