@@ -1,18 +1,17 @@
-#include <aversive.h>
-#include <uptime.h>
-#include <string.h>
-#include <circles.h>
-#include <vect2.h>
-#include <2wheels/position_manager.h>
-#include <cvra_dc.h>
-#include <aversive/error.h>
-#include "cvra_cs.h"
-#include <scheduler.h>
-#include <aversive/error.h>
+#include <uptime.h> //< pseudo ok
+#include <string.h> //< OK
+#include <circles.h> //< NOK
+#include <vect2.h> //< A voir
+#include <2wheels/position_manager.h> //< Not ok
+#include <cvra_dc.h> //< NOK
+#include <aversive/error.h> // OK
+#include "cvra_cs.h" // NOT OK
+#include <scheduler.h> // NOT OK
+#include <aversive/error.h> // 2 times ?
 
-#include "arm.h"
-#include "arm_cinematics.h"
-#include <math.h>
+#include "arm.h" // OK
+#include "arm_cinematics.h" // Ok
+#include <math.h> // ok
 
 
 inline float smoothstep(float t)
@@ -31,12 +30,10 @@ static void arm_init_control_loops(arm_t *arm)
 {
     cs_init(&arm->z_axis_cs);
     pid_init(&arm->z_axis_pid);
-    pid_set_out_shift(&arm->z_axis_pid, 12);
     cs_set_correct_filter(&arm->z_axis_cs, pid_do_filter, &arm->z_axis_pid);
 
     cs_init(&arm->shoulder_cs);
     pid_init(&arm->shoulder_pid);
-    pid_set_out_shift(&arm->shoulder_pid, 6);
     cs_set_correct_filter(&arm->shoulder_cs, pid_do_filter, &arm->shoulder_pid);
 
     cs_init(&arm->elbow_cs);
@@ -54,6 +51,10 @@ static void arm_set_physical_parameters(arm_t *arm)
     pid_set_gains(&arm->z_axis_pid, 2250, 0, 100);
     pid_set_gains(&arm->elbow_pid, 30, 0, 0);
     pid_set_gains(&arm->shoulder_pid, 30, 0, 0);
+
+    pid_set_out_shift(&arm->z_axis_pid, 12);
+    pid_set_out_shift(&arm->shoulder_pid, 6);
+    pid_set_out_shift(&arm->elbow_pid, 6);
 
     arm->z_axis_imp_per_mm = 655*4;
     arm->shoulder_imp_per_rad = -77785;

@@ -16,9 +16,9 @@ set(CMAKE_BUILD_TYPE Debug)
 file(GLOB_RECURSE
     modules_source
     modules/modules/uptime/uptime.c
-    odules/modules/pid/pid.c
-    odules/modules/control_system_manager/control_system_manager.c
-    odules/modules/control_system_manager/control_system_manager.c
+    modules/modules/pid/pid.c
+    modules/modules/control_system_manager/control_system_manager.c
+    modules/modules/control_system_manager/control_system_manager.c
     modules/modules/math/vect2/vect2.c
     modules/modules/math/fast_math/fast_math.c
     modules/modules/math/geometry/circles.c
@@ -40,7 +40,9 @@ file(GLOB_RECURSE
     debra_source
     arm_interpolators.c
     arm_cinematics.c
+    #arm.c
     hardware.c
+    arm_cs.c
 )
 
 
