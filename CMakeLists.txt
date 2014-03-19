@@ -38,7 +38,7 @@ file(GLOB_RECURSE
 
 file(GLOB_RECURSE
     debra_source
-    arm_interpolators.c
+    arm_trajectories.c
     arm_cinematics.c
     arm_utils.c
     #arm.c

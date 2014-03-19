@@ -1,4 +1,4 @@
-#include "arm_interpolators.h"
+#include "arm_trajectories.h"
 #include <stdlib.h>
 #include <string.h>
 #include <uptime.h>
@@ -9,7 +9,7 @@ void arm_trajectory_init(arm_trajectory_t *traj) {
 }
 
 
-void arm_interpolator_append_point(arm_trajectory_t *traj, const float x, const float y, const float z,
+void arm_trajectory_append_point(arm_trajectory_t *traj, const float x, const float y, const float z,
                                    arm_coordinate_t system, const float duration)
 {
 
@@ -34,9 +34,9 @@ void arm_interpolator_append_point(arm_trajectory_t *traj, const float x, const 
     traj->frames[traj->frame_count-1].length[1] = 136;
 }
 
-void arm_interpolator_append_point_with_length(arm_trajectory_t *traj, const float x, const float y, const float z,
+void arm_trajectory_append_point_with_length(arm_trajectory_t *traj, const float x, const float y, const float z,
                                    arm_coordinate_t system, const float duration, const float l1, const float l2) {
-    arm_interpolator_append_point(traj, x, y, z, system, duration);
+    arm_trajectory_append_point(traj, x, y, z, system, duration);
 
     traj->frames[traj->frame_count-1].length[0] = l1;
     traj->frames[traj->frame_count-1].length[1] = l2;

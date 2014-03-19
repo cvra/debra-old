@@ -1,7 +1,7 @@
 #include "CppUTest/TestHarness.h"
 
 extern "C" {
-#include "../arm_interpolators.h"
+#include "../arm_trajectories.h"
 }
 
 TEST_GROUP(ArmTrajectoriesBuilderTest)
@@ -22,24 +22,29 @@ TEST_GROUP(ArmTrajectoriesBuilderTest)
 
 TEST(ArmTrajectoriesBuilderTest, CanAddOnePoint)
 {
-    arm_interpolator_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 10.);
+    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 10.);
     CHECK_EQUAL(traj.frame_count, 1);
 }
 
 TEST(ArmTrajectoriesBuilderTest, CanAddMultiplePoints)
 {
-    arm_interpolator_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 10.);
-    arm_interpolator_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 10.);
+    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 10.);
+    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 10.);
     CHECK_EQUAL(traj.frame_count, 2);
 }
 
 
 TEST(ArmTrajectoriesBuilderTest, DateIsCorrectlyComputed)
 {
-    arm_interpolator_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 1.);
-    arm_interpolator_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 10.);
+    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 10.);
 
-    arm_interpolator_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 15.);
+    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 15.);
     CHECK_EQUAL(traj.frames[1].date, 10*1000000);
     CHECK_EQUAL(traj.frames[2].date, 25*1000000);
+}
+
+IGNORE_TEST(ArmTrajectoriesBuilderTest, DeleteDate)
+{
+
 }
