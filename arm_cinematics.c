@@ -109,3 +109,13 @@ float compute_elbow_angle(point_t elbow, point_t hand)
     dy = hand.y - elbow.y;
     return atan2f(dy, dx); // tres tres sensible aux erreurs d'arrondis
 }
+
+point_t arm_forward_cinematics(float alpha, float beta, float length[2])
+{
+    point_t result;
+    result.x = cos(alpha) * length[0] + cos(alpha + beta) * length[1];
+    result.y = sin(alpha) * length[0] + sin(alpha + beta) * length[1];
+
+    return result;
+
+}

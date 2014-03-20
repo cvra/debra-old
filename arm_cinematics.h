@@ -53,6 +53,8 @@ shoulder_mode_t mode_for_orientation(shoulder_mode_t mode, float arm_angle_offse
  */
 point_t choose_shoulder_solution(point_t target, point_t elbow1, point_t elbow2, shoulder_mode_t mode);
 
+point_t arm_forward_cinematics(float alpha, float beta, float length[2]);
+
 float compute_shoulder_angle(point_t elbow, point_t hand);
 float compute_elbow_angle(point_t elbow, point_t hand);
 

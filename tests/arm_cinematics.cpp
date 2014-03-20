@@ -1,5 +1,5 @@
 #include "CppUTest/TestHarness.h"
-#include "math.h"
+#include <cmath>
 
 extern "C" {
 #include "../arm_cinematics.h"
@@ -33,4 +33,33 @@ TEST(CinematicsTestGroup, FailsWhenTooFar)
     point_t target = {.x=100., .y=100.};
     status = compute_possible_elbow_positions(target, 10., 10., &p1, &p2);
     CHECK_EQUAL(0, status);
+}
+
+TEST(CinematicsTestGroup, ForwardCinematicsTrivialCase)
+{
+    point_t result;
+    float length[] = {100., 100.};
+    result = arm_forward_cinematics(0., 0., length);
+    DOUBLES_EQUAL(result.x, 200, 1e-2);
+    DOUBLES_EQUAL(result.y, 0, 1e-2);
+}
+
+TEST(CinematicsTestGroup, ForwardCinematicsTrivialCaseBis)
+{
+    point_t result;
+    float length[] = {100., 100.};
+    result = arm_forward_cinematics(M_PI/2, 0., length);
+
+    DOUBLES_EQUAL(result.x, 0, 1e-2);
+    DOUBLES_EQUAL(result.y, 200, 1e-2);
+}
+
+TEST(CinematicsTestGroup, ForwardCinematicsNegativeAnglesToo)
+{
+    point_t result;
+    float length[] = {100., 100.};
+    result = arm_forward_cinematics(-M_PI/2, 0., length);
+
+    DOUBLES_EQUAL(result.x, 0, 1e-2);
+    DOUBLES_EQUAL(result.y, -200, 1e-2);
 }
