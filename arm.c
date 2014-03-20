@@ -163,18 +163,6 @@ void arm_manage(void *a) {
     arm->last_loop = current_date;
 }
 
-int arm_trajectory_finished(arm_t *arm) {
-   if(arm->trajectory.frame_count == 0) {
-        return 1;
-   }
-
-   if(uptime_get() > arm->trajectory.frames[arm->trajectory.frame_count-1].date) {
-        return 1;
-   }
-
-   return 0;
-}
-
 void arm_calibrate(void) {
     /* Z axis. */
     cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 1, 183 * robot.left_arm.z_axis_imp_per_mm);
