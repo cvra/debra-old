@@ -44,6 +44,8 @@ void arm_do_trajectory(arm_t *arm, arm_trajectory_t *traj);
 
 void arm_set_physical_parameters(arm_t *arm);
 
+void arm_manage(arm_t *arm);
+
 
 void arm_get_position(arm_t *arm, float *x, float *y, float *z);
 

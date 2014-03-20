@@ -60,6 +60,17 @@ void arm_do_trajectory(arm_t *arm, arm_trajectory_t *traj)
     platform_signal_semaphore(&arm->trajectory_semaphore);
 }
 
+void arm_manage(arm_t *arm)
+{
+    if (arm->trajectory.frame_count == 0) {
+        cs_disable(&arm->shoulder.manager);
+        cs_disable(&arm->elbow.manager);
+        cs_disable(&arm->z_axis.manager);
+    }
+
+    arm->last_loop = uptime_get();
+}
+
 #if 0
 static void arm_interpolate_frames(arm_t *arm, int32_t date, float *position, float *length)
 {
