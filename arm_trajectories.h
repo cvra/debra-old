@@ -31,4 +31,10 @@ void arm_trajectory_copy(arm_trajectory_t *dest, arm_trajectory_t *src);
 
 int arm_trajectory_finished(arm_trajectory_t *traj);
 
+/** Interpolates two keyframe.
+ * @warning All frames must be expressed in arm frame. Otherwise invalid results
+ * will be yielded.
+ */
+arm_keyframe_t arm_trajectory_interpolate_keyframes(arm_keyframe_t k1, arm_keyframe_t k2, int32_t date);
+
 #endif

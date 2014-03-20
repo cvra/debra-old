@@ -3,6 +3,17 @@
 #include <string.h>
 #include <uptime.h>
 
+float smoothstep(float t)
+{
+    if(t < 0.0f) return 0.0f;
+    if(t > 1.0f) return 1.0f;
+    return t*t*t*(t*(6.0f*t-15.0f)+10.0f);
+}
+
+float interpolate(float t, float a, float b)
+{
+    return (1 - t) * a + t * b;
+}
 
 void arm_trajectory_init(arm_trajectory_t *traj) {
     memset(traj, 0, sizeof(arm_trajectory_t));
@@ -71,4 +82,22 @@ int arm_trajectory_finished(arm_trajectory_t *traj)
     return 0;
 }
 
+arm_keyframe_t arm_trajectory_interpolate_keyframes(arm_keyframe_t k1, arm_keyframe_t k2, int32_t date)
+{
+    float t;
+    arm_keyframe_t result;
+    int i;
 
+    result.date = date;
+
+    t = (date - k1.date) / (float)(k2.date - k1.date);
+    t = smoothstep(t);
+
+    for (i=0; i<3; i++)
+        result.position[i] = interpolate(t, k1.position[i], k2.position[i]);
+
+    for (i=0; i<2; i++)
+        result.length[i] = interpolate(t, k1.length[i], k2.length[i]);
+
+    return result;
+}

@@ -6,17 +6,6 @@
 #include <math.h> // ok
 
 
-inline float smoothstep(float t)
-{
-    if(t < 0.0f) return 0.0f;
-    if(t > 1.0f) return 1.0f;
-    return t*t*t*(t*(6.0f*t-15.0f)+10.0f);
-}
-
-float interpolate(float t, float a, float b)
-{
-    return (1 - t) * a + t * b;
-}
 
 void arm_set_physical_parameters(arm_t *arm)
 {

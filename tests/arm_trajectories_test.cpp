@@ -88,3 +88,21 @@ TEST(ArmTrajectoriesBuilderTest, PastTrajectoryIsFinished)
     uptime_set(20*1000000);
     CHECK_EQUAL(1, arm_trajectory_finished(&traj));
 }
+
+TEST(ArmTrajectoriesBuilderTest, KeyframeInterpolation)
+{
+    const int32_t interpolation_date = 5 * 1000000; // microseconds
+    arm_keyframe_t result;
+    arm_trajectory_append_point_with_length(&traj, 0, 0, 0, COORDINATE_ARM, 1., 100, 100);
+    arm_trajectory_append_point_with_length(&traj, 10, 20, 0, COORDINATE_ARM, 10., 200, 200);
+
+    result = arm_trajectory_interpolate_keyframes(traj.frames[0], traj.frames[1], interpolation_date);
+    CHECK_EQUAL(interpolation_date, result.date);
+
+    DOUBLES_EQUAL(5., result.position[0], 0.1);
+    DOUBLES_EQUAL(10., result.position[1], 0.1);
+    DOUBLES_EQUAL(10., result.position[1], 0.1);
+
+    DOUBLES_EQUAL(150., result.length[0], 0.1);
+    DOUBLES_EQUAL(150., result.length[1], 0.1);
+}

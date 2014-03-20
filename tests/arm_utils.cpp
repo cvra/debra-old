@@ -46,5 +46,4 @@ TEST(ArmUtilsTestGroup, CoordinateTableToRobot45Deg)
 
     DOUBLES_EQUAL(sqrt(2)*100., result.x, 1e-2);
     DOUBLES_EQUAL(0., result.y, 1e-2);
-
 }
