@@ -10,6 +10,20 @@ extern "C" {
 TEST_GROUP(ArmTestGroup)
 {
     arm_t arm;
+    arm_trajectory_t traj;
+
+    void setup()
+    {
+        arm_init(&arm);
+        arm_trajectory_init(&traj);
+    }
+
+    void teardown()
+    {
+        uptime_set(0);
+        arm_trajectory_delete(&traj);
+        arm_trajectory_delete(&arm.trajectory);
+    }
 };
 
 TEST(ArmTestGroup, AllControlSystemInitialized)
@@ -26,7 +40,6 @@ TEST(ArmTestGroup, LagCompensationIsInitialized)
     uptime_set(42);
     arm_init(&arm);
     CHECK_EQUAL(42, arm.last_loop);
-    uptime_set(0);
 }
 
 TEST(ArmTestGroup, ShoulderModeIsSetToBack)
@@ -37,7 +50,6 @@ TEST(ArmTestGroup, ShoulderModeIsSetToBack)
 
 TEST(ArmTestGroup, PhysicalParametersMakeSense)
 {
-    arm_init(&arm);
     arm_set_physical_parameters(&arm);
 
     /* Length must be greater than zero. */
@@ -61,9 +73,6 @@ TEST(ArmTestGroup, PhysicalParametersMakeSense)
 
 TEST(ArmTestGroup, ExecuteTrajectoryCopiesData)
 {
-    arm_trajectory_t traj;
-    arm_init(&arm);
-    arm_trajectory_init(&traj);
     arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 1.);
     arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 10.);
 
@@ -74,9 +83,6 @@ TEST(ArmTestGroup, ExecuteTrajectoryCopiesData)
 
 TEST(ArmTestGroup, ExecuteTrajectoryIsAtomic)
 {
-    arm_trajectory_t traj;
-    arm_init(&arm);
-    arm_trajectory_init(&traj);
     arm_do_trajectory(&arm, &traj);
 
     CHECK_EQUAL(1, arm.trajectory_semaphore.acquired_count);
@@ -87,7 +93,6 @@ TEST(ArmTestGroup, ExecuteTrajectoryIsAtomic)
 
 TEST(ArmTestGroup, ArmManageEmptyTrajectoryDisablesControl)
 {
-    arm_init(&arm);
     arm_manage(&arm);
     CHECK_EQUAL(0, arm.shoulder.manager.enabled);
     CHECK_EQUAL(0, arm.elbow.manager.enabled);
@@ -97,18 +102,13 @@ TEST(ArmTestGroup, ArmManageEmptyTrajectoryDisablesControl)
 
 TEST(ArmTestGroup, ArmManageUpdatesLastLoop)
 {
-    arm_init(&arm);
     uptime_set(42);
     arm_manage(&arm);
-    uptime_set(0);
     CHECK_EQUAL(42, arm.last_loop)
 }
 
 TEST(ArmTestGroup, ArmFinishedTrajectoryHasEnabledControl)
 {
-    arm_trajectory_t traj;
-    arm_init(&arm);
-    arm_trajectory_init(&traj);
     arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 1.);
     arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 10.);
     arm_do_trajectory(&arm, &traj);
@@ -118,13 +118,10 @@ TEST(ArmTestGroup, ArmFinishedTrajectoryHasEnabledControl)
     CHECK_EQUAL(1, arm.shoulder.manager.enabled);
     CHECK_EQUAL(1, arm.elbow.manager.enabled);
     CHECK_EQUAL(1, arm.z_axis.manager.enabled);
-    uptime_set(0);
 }
 
 IGNORE_TEST(ArmTestGroup, ArmManageChangesConsign)
 {
-    arm_trajectory_t traj;
-    arm_init(&arm);
     arm_trajectory_init(&traj);
     arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 1.);
     arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 10.);
