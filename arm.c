@@ -49,6 +49,15 @@ void arm_init(arm_t *arm)
     arm->last_loop = uptime_get();
 
     arm->shoulder_mode = SHOULDER_BACK;
+
+    platform_create_semaphore(&arm->trajectory_semaphore, 1);
+}
+
+void arm_do_trajectory(arm_t *arm, arm_trajectory_t *traj)
+{
+    platform_take_semaphore(&arm->trajectory_semaphore);
+    arm_trajectory_copy(&arm->trajectory, traj);
+    platform_signal_semaphore(&arm->trajectory_semaphore);
 }
 
 #if 0

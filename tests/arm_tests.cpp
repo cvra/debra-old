@@ -1,7 +1,9 @@
 #include "CppUTest/TestHarness.h"
+#include <cstring>
 
 extern "C" {
 #include "../arm.h"
+#include "../arm_trajectories.h"
 #include "uptime.h"
 }
 
@@ -56,3 +58,30 @@ TEST(ArmTestGroup, PhysicalParametersMakeSense)
     CHECK(arm.shoulder_imp_per_rad != 0);
     CHECK(arm.elbow_imp_per_rad != 0);
 }
+
+TEST(ArmTestGroup, ExecuteTrajectoryCopiesData)
+{
+    arm_trajectory_t traj;
+    arm_init(&arm);
+    arm_trajectory_init(&traj);
+    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 10.);
+
+    arm_do_trajectory(&arm, &traj);
+    CHECK_EQUAL(traj.frame_count, arm.trajectory.frame_count);
+    CHECK(0 == memcmp(traj.frames, arm.trajectory.frames, sizeof(arm_keyframe_t) * traj.frame_count));
+}
+
+TEST(ArmTestGroup, ExecuteTrajectoryIsAtomic)
+{
+    arm_trajectory_t traj;
+    arm_init(&arm);
+    arm_trajectory_init(&traj);
+    arm_do_trajectory(&arm, &traj);
+
+    CHECK_EQUAL(1, arm.trajectory_semaphore.acquired_count);
+
+    /* Checks that the function released semaphore. */
+    CHECK_EQUAL(1, arm.trajectory_semaphore.count);
+}
+

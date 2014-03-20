@@ -7,6 +7,8 @@
 #ifndef _ARM_H_
 #define _ARM_H_
 
+#include <platform.h>
+
 #include "arm_cs.h"
 #include "arm_cinematics.h"
 #include "keyframe.h"
@@ -30,6 +32,7 @@ typedef struct {
 
     /* Path informations */
     arm_trajectory_t trajectory;    /**< Current trajectory of the arm. */
+    semaphore_t trajectory_semaphore;
     int32_t last_loop;              /**< Timestamp of the last loop execution, in us since boot. */
 
     shoulder_mode_t shoulder_mode;
@@ -37,9 +40,10 @@ typedef struct {
 
 void arm_init(arm_t *arm);
 
+void arm_do_trajectory(arm_t *arm, arm_trajectory_t *traj);
+
 void arm_set_physical_parameters(arm_t *arm);
 
-int arm_trajectory_finished(arm_t *arm);
 
 void arm_get_position(arm_t *arm, float *x, float *y, float *z);
 
