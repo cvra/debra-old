@@ -3,6 +3,7 @@
 
 #include "arm.h" // OK
 #include "arm_cinematics.h" // Ok
+#include "arm_trajectories.h"
 #include <math.h> // ok
 
 
@@ -60,19 +61,29 @@ void arm_manage(arm_t *arm)
     arm->last_loop = uptime_get();
 }
 
+arm_keyframe_t arm_position_for_date(arm_t *arm, int32_t date)
+{
+    int i=0;
+    arm_keyframe_t k1, k2;
+
+    /* If we are past last keyframe, simply return last frame. */
+    if (arm->trajectory.frames[arm->trajectory.frame_count-1].date < date)
+        return arm->trajectory.frames[arm->trajectory.frame_count-1];
+
+    while (arm->trajectory.frames[i].date < date)
+        i++;
+
+    k1 = arm->trajectory.frames[i-1];
+    k2 = arm->trajectory.frames[i];
+
+//    k1 = arm_coordinate_robot2arm(k1.position
+
+    return arm_trajectory_interpolate_keyframes(k1, k2, date);
+}
+
 #if 0
 static void arm_interpolate_frames(arm_t *arm, int32_t date, float *position, float *length)
 {
-    float t; /* interpolation factor, between 0 and 1 */
-    int i = 1;
-    float previous_z, next_z;
-
-    /* The coordinates of the previous frames in arm coordinates.
-     * This allows us to mix different coordinate systems in a single trajectory. */
-    float previous_frame_xy[2], next_frame_xy[2];
-    float *previous_length, *next_length;
-
-    /* Are we before the first frame ? */
     if (date < arm->trajectory.frames[0].date) {
         arm_change_coordinate_system(arm, arm->trajectory.frames[0].position[0], arm->trajectory.frames[0].position[1],
                 arm->trajectory.frames[0].coordinate_type, &position[0], &position[1]);
@@ -130,25 +141,6 @@ static void arm_interpolate_frames(arm_t *arm, int32_t date, float *position, fl
 
 void arm_manage(void *a) {
 
-    arm_t *arm = (arm_t *) a;
-    int32_t current_date = uptime_get();
-    float position[3];
-
-    float length[2];
-
-    float alpha, beta; /* The angles of the arms. */
-
-    /* Lag compensation */
-    int32_t compensated_date = 2*current_date - arm->last_loop;
-
-    /* If we dont have a trajectory data, disabled everything. */
-    if (arm->trajectory.frame_count == 0) {
-        cs_disable(&arm->z_axis_cs);
-        cs_disable(&arm->shoulder_cs);
-        cs_disable(&arm->elbow_cs);
-        arm->last_loop = current_date;
-        return;
-    }
 
     arm_interpolate_frames(arm, compensated_date, position, length);
 

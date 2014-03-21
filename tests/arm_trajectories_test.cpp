@@ -33,6 +33,7 @@ TEST(ArmTrajectoriesBuilderTest, CanAddMultiplePoints)
     arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 10.);
     arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 10.);
     CHECK_EQUAL(traj.frame_count, 2);
+    CHECK_EQUAL(traj.frames[1].date, 10000000);
 }
 
 
@@ -106,3 +107,4 @@ TEST(ArmTrajectoriesBuilderTest, KeyframeInterpolation)
     DOUBLES_EQUAL(150., result.length[0], 0.1);
     DOUBLES_EQUAL(150., result.length[1], 0.1);
 }
+

@@ -1,5 +1,6 @@
 #include "CppUTest/TestHarness.h"
 #include <cstring>
+#include <cmath>
 
 extern "C" {
 #include "../arm.h"
@@ -15,6 +16,7 @@ TEST_GROUP(ArmTestGroup)
     void setup()
     {
         arm_init(&arm);
+        arm.offset_rotation = M_PI / 2;
         arm_trajectory_init(&traj);
     }
 
@@ -134,3 +136,54 @@ IGNORE_TEST(ArmTestGroup, ArmManageChangesConsign)
     CHECK(0 != cs_get_consign(&arm.z_axis.manager));
 }
 
+TEST(ArmTestGroup, CurrentPointComputation)
+{
+    arm_keyframe_t result;
+    const int32_t date = 5 * 1000000;
+    uptime_set(0);
+    arm_trajectory_append_point(&traj, 0, 0, 0, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, 10, 20, 0, COORDINATE_ARM, 10.);
+    arm_do_trajectory(&arm, &traj);
+
+    result = arm_position_for_date(&arm, date);
+    DOUBLES_EQUAL(result.position[0], 5., 0.1);
+}
+
+TEST(ArmTestGroup, CurrentPointSelectFrame)
+{
+    arm_keyframe_t result;
+    const int32_t date = 15 * 1000000;
+    arm_trajectory_append_point(&traj, 0, 0, 0, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, 10, 20, 0, COORDINATE_ARM, 10.);
+    arm_trajectory_append_point(&traj, 10, 30, 0, COORDINATE_ARM, 10.);
+    arm_do_trajectory(&arm, &traj);
+
+    result = arm_position_for_date(&arm, date);
+    DOUBLES_EQUAL(25, result.position[1], 0.1);
+}
+
+TEST(ArmTestGroup, CurrentPointPastEnd)
+{
+    arm_keyframe_t result;
+    const int32_t date = 25 * 1000000;
+    arm_trajectory_append_point(&traj, 0, 0, 0, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, 10, 20, 0, COORDINATE_ARM, 10.);
+    arm_trajectory_append_point(&traj, 10, 30, 0, COORDINATE_ARM, 10.);
+    arm_do_trajectory(&arm, &traj);
+
+    result = arm_position_for_date(&arm, date);
+    DOUBLES_EQUAL(30, result.position[1], 0.1);
+}
+
+TEST(ArmTestGroup, MixedCoordinateSystems)
+{
+    arm_keyframe_t result;
+    const int32_t date = 5 * 1000000;
+    arm.offset_rotation = M_PI / 2;
+    arm_trajectory_append_point(&traj, 0, 0, 0, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, 10, 20, 0, COORDINATE_ROBOT, 10.);
+    arm_do_trajectory(&arm, &traj);
+
+    result = arm_position_for_date(&arm, date);
+    DOUBLES_EQUAL(5, result.position[1], 0.1);
+}

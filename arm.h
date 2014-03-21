@@ -56,5 +56,7 @@ void arm_change_coordinate_system(arm_t *arm, float x, float y,
 /** Tells the arms to assume they are at a known position. */
 void arm_calibrate(void);
 
+arm_keyframe_t arm_position_for_date(arm_t *arm, int32_t date);
+
 
 #endif
