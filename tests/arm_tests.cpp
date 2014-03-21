@@ -185,5 +185,6 @@ TEST(ArmTestGroup, MixedCoordinateSystems)
     arm_do_trajectory(&arm, &traj);
 
     result = arm_position_for_date(&arm, date);
-    DOUBLES_EQUAL(5, result.position[1], 0.1);
+    DOUBLES_EQUAL(10, result.position[0], 0.1);
+    DOUBLES_EQUAL(-5, result.position[1], 0.1);
 }

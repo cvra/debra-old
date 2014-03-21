@@ -4,6 +4,7 @@
 #include "arm.h" // OK
 #include "arm_cinematics.h" // Ok
 #include "arm_trajectories.h"
+#include "arm_utils.h"
 #include <math.h> // ok
 
 
@@ -65,6 +66,7 @@ arm_keyframe_t arm_position_for_date(arm_t *arm, int32_t date)
 {
     int i=0;
     arm_keyframe_t k1, k2;
+    point_t pos1, pos2;
 
     /* If we are past last keyframe, simply return last frame. */
     if (arm->trajectory.frames[arm->trajectory.frame_count-1].date < date)
@@ -76,7 +78,23 @@ arm_keyframe_t arm_position_for_date(arm_t *arm, int32_t date)
     k1 = arm->trajectory.frames[i-1];
     k2 = arm->trajectory.frames[i];
 
-//    k1 = arm_coordinate_robot2arm(k1.position
+    pos1.x = k1.position[0];
+    pos1.y = k1.position[1];
+
+    pos2.x = k2.position[0];
+    pos2.y = k2.position[1];
+
+    if (k1.coordinate_type == COORDINATE_ROBOT)
+        pos1 = arm_coordinate_robot2arm(pos1, arm->offset_xy, arm->offset_rotation);
+
+    if (k2.coordinate_type == COORDINATE_ROBOT)
+        pos2 = arm_coordinate_robot2arm(pos2, arm->offset_xy, arm->offset_rotation);
+
+    k1.position[0] = pos1.x;
+    k1.position[1] = pos1.y;
+
+    k2.position[0] = pos2.x;
+    k2.position[1] = pos2.y;
 
     return arm_trajectory_interpolate_keyframes(k1, k2, date);
 }
