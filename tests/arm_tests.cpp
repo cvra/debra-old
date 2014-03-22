@@ -218,3 +218,20 @@ TEST(ArmTestGroup, TableCoordinateSystem)
     DOUBLES_EQUAL(20, result.position[0], 0.1);
     DOUBLES_EQUAL(-15, result.position[1], 0.1);
 }
+
+TEST(ArmTestGroup, TrajectoriesFirstPointTableNotHandledCorrectly)
+{
+    /* This tests shows a bug where the trajectory for the case where
+     * a coordinate in table or robot frame is not handled correctly past
+     * the end date of the trajectory. */
+    arm_keyframe_t result;
+    const int32_t date = 15 * 1000000;
+    arm.offset_rotation = M_PI / 2;
+    arm_trajectory_append_point(&traj, 0, 0, 0, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, 10, 20, 0, COORDINATE_ROBOT, 10.);
+    arm_do_trajectory(&arm, &traj);
+
+    result = arm_position_for_date(&arm, date);
+    DOUBLES_EQUAL(20, result.position[0], 0.1);
+    DOUBLES_EQUAL(-10, result.position[1], 0.1);
+}
