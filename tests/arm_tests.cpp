@@ -17,6 +17,7 @@ TEST_GROUP(ArmTestGroup)
     void setup()
     {
         arm_init(&arm);
+        arm_set_physical_parameters(&arm);
         arm.offset_rotation = M_PI / 2;
         arm_trajectory_init(&traj);
     }
@@ -106,6 +107,7 @@ TEST(ArmTestGroup, ArmManageEmptyTrajectoryDisablesControl)
 TEST(ArmTestGroup, ArmManageUpdatesLastLoop)
 {
     uptime_set(42);
+    CHECK_EQUAL(0, arm.trajectory.frame_count);
     arm_manage(&arm);
     CHECK_EQUAL(42, arm.last_loop)
 }
@@ -123,11 +125,10 @@ TEST(ArmTestGroup, ArmFinishedTrajectoryHasEnabledControl)
     CHECK_EQUAL(1, arm.z_axis.manager.enabled);
 }
 
-IGNORE_TEST(ArmTestGroup, ArmManageChangesConsign)
+TEST(ArmTestGroup, ArmManageChangesConsign)
 {
     arm_trajectory_init(&traj);
-    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 1.);
-    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 10.);
+    arm_trajectory_append_point(&traj, 100, 100, 10, COORDINATE_ARM, 1.);
     arm_do_trajectory(&arm, &traj);
 
     uptime_set(8 * 1000000);
@@ -135,6 +136,35 @@ IGNORE_TEST(ArmTestGroup, ArmManageChangesConsign)
     CHECK(0 != cs_get_consign(&arm.shoulder.manager));
     CHECK(0 != cs_get_consign(&arm.elbow.manager));
     CHECK(0 != cs_get_consign(&arm.z_axis.manager));
+}
+
+TEST(ArmTestGroup, ArmManageEnablesConsignWithReachablePoint)
+{
+    arm_trajectory_init(&traj);
+    cs_disable(&arm.shoulder.manager);
+    cs_disable(&arm.elbow.manager);
+    cs_disable(&arm.z_axis.manager);
+
+    arm_trajectory_append_point_with_length(&traj, 100, 100, 100, COORDINATE_ARM, 1., 100, 100);
+    arm_do_trajectory(&arm, &traj);
+
+    uptime_set(8 * 1000000);
+    arm_manage(&arm);
+
+    CHECK_EQUAL(1, arm.shoulder.manager.enabled);
+}
+
+TEST(ArmTestGroup, ArmManageDisablesArmIfTooFar)
+{
+    arm_trajectory_init(&traj);
+
+    arm_trajectory_append_point_with_length(&traj, 100, 100, 100, COORDINATE_ARM, 1., 10, 10);
+    arm_do_trajectory(&arm, &traj);
+
+    uptime_set(8 * 1000000);
+    arm_manage(&arm);
+
+    CHECK_EQUAL(0, arm.shoulder.manager.enabled);
 }
 
 TEST(ArmTestGroup, CurrentPointComputation)

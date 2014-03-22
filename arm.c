@@ -53,11 +53,59 @@ void arm_do_trajectory(arm_t *arm, arm_trajectory_t *traj)
 
 void arm_manage(arm_t *arm)
 {
+    arm_keyframe_t frame;
+    point_t target, p1, p2;
+    int32_t current_date = uptime_get();
+    int position_count;
+    float alpha, beta;
+
     if (arm->trajectory.frame_count == 0) {
         cs_disable(&arm->shoulder.manager);
         cs_disable(&arm->elbow.manager);
         cs_disable(&arm->z_axis.manager);
+        arm->last_loop = current_date;
+        return;
     }
+
+    frame = arm_position_for_date(arm, uptime_get());
+    target.x = frame.position[0];
+    target.y = frame.position[1];
+
+    position_count = compute_possible_elbow_positions(target, frame.length[0], frame.length[1], &p1, &p2);
+
+    if (position_count == 0) {
+        cs_disable(&arm->shoulder.manager);
+        cs_disable(&arm->elbow.manager);
+        cs_disable(&arm->z_axis.manager);
+        arm->last_loop = current_date;
+        return;
+    } else if (position_count == 2) {
+        shoulder_mode_t mode;
+        mode = mode_for_orientation(arm->shoulder_mode, arm->offset_rotation);
+        p1 = choose_shoulder_solution(target, p1, p2, mode);
+    }
+
+    /* p1 now contains the correct elbow pos. */
+    alpha = compute_shoulder_angle(p1, target);
+    beta  = compute_elbow_angle(p1, target);
+
+    /* This is due to mecanical construction of the arms. */
+    beta = beta - alpha;
+
+    /* The arm cannot make one full turn. */
+    if (beta < -M_PI)
+        beta = 2 * M_PI + beta;
+
+    if (beta > M_PI)
+        beta = 2 * M_PI - beta;
+
+    cs_enable(&arm->shoulder.manager);
+    cs_enable(&arm->elbow.manager);
+    cs_enable(&arm->z_axis.manager);
+
+    cs_set_consign(&arm->shoulder.manager, alpha * arm->shoulder_imp_per_rad);
+    cs_set_consign(&arm->elbow.manager, beta * arm->elbow_imp_per_rad);
+    cs_set_consign(&arm->z_axis.manager, frame.position[2] * arm->z_axis_imp_per_mm);
 
     arm->last_loop = uptime_get();
 }
