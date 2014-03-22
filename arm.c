@@ -7,7 +7,7 @@
 #include "arm_utils.h"
 #include <math.h> // ok
 
-
+static arm_keyframe_t arm_convert_keyframe_coordinate(arm_t *arm, arm_keyframe_t key);
 
 void arm_set_physical_parameters(arm_t *arm)
 {
@@ -62,7 +62,30 @@ void arm_manage(arm_t *arm)
     arm->last_loop = uptime_get();
 }
 
-arm_keyframe_t arm_position_for_date(arm_t *arm, int32_t date)
+arm_keyframe_t arm_convert_keyframe_coordinate(arm_t *arm, arm_keyframe_t key)
+{
+    point_t pos;
+    pos.x = key.position[0];
+    pos.y = key.position[1];
+    if (key.coordinate_type == COORDINATE_TABLE) {
+        point_t robot_pos;
+        float robot_a_rad;
+
+        robot_pos.x = position_get_x_float(arm->robot_pos);
+        robot_pos.y = position_get_x_float(arm->robot_pos);
+        robot_a_rad = position_get_a_rad_float(arm->robot_pos);
+        pos = arm_coordinate_table2robot(pos, robot_pos, robot_a_rad);
+        pos = arm_coordinate_robot2arm(pos, arm->offset_xy, arm->offset_rotation);
+    } else if (key.coordinate_type == COORDINATE_ROBOT) {
+        pos = arm_coordinate_robot2arm(pos, arm->offset_xy, arm->offset_rotation);
+    }
+
+    key.position[0] = pos.x;
+    key.position[1] = pos.y;
+    return key;
+}
+
+static arm_keyframe_t arm_position_for_date(arm_t *arm, int32_t date)
 {
     int i=0;
     arm_keyframe_t k1, k2;
@@ -71,73 +94,14 @@ arm_keyframe_t arm_position_for_date(arm_t *arm, int32_t date)
     /* If we are past last keyframe, simply return last frame. */
     if (arm->trajectory.frames[arm->trajectory.frame_count-1].date < date) {
         k1 = arm->trajectory.frames[arm->trajectory.frame_count-1];
-
-        pos1.x = k1.position[0];
-        pos1.y = k1.position[1];
-        if (k1.coordinate_type == COORDINATE_TABLE) {
-            point_t robot_pos;
-            float robot_a_rad;
-
-            robot_pos.x = position_get_x_float(arm->robot_pos);
-            robot_pos.y = position_get_x_float(arm->robot_pos);
-            robot_a_rad = position_get_a_rad_float(arm->robot_pos);
-            pos1 = arm_coordinate_table2robot(pos1, robot_pos, robot_a_rad);
-            pos1 = arm_coordinate_robot2arm(pos1, arm->offset_xy, arm->offset_rotation);
-        }
-
-        if (k1.coordinate_type == COORDINATE_ROBOT)
-            pos1 = arm_coordinate_robot2arm(pos1, arm->offset_xy, arm->offset_rotation);
-
-        k1.position[0] = pos1.x;
-        k1.position[1] = pos1.y;
-        return k1;
+        return arm_convert_keyframe_coordinate(arm, k1);
     }
 
     while (arm->trajectory.frames[i].date < date)
         i++;
 
-    k1 = arm->trajectory.frames[i-1];
-    k2 = arm->trajectory.frames[i];
-
-    pos1.x = k1.position[0];
-    pos1.y = k1.position[1];
-
-    pos2.x = k2.position[0];
-    pos2.y = k2.position[1];
-
-    if (k1.coordinate_type == COORDINATE_TABLE) {
-        point_t robot_pos;
-        float robot_a_rad;
-
-        robot_pos.x = position_get_x_float(arm->robot_pos);
-        robot_pos.y = position_get_x_float(arm->robot_pos);
-        robot_a_rad = position_get_a_rad_float(arm->robot_pos);
-        pos1 = arm_coordinate_table2robot(pos1, robot_pos, robot_a_rad);
-        pos1 = arm_coordinate_robot2arm(pos1, arm->offset_xy, arm->offset_rotation);
-    }
-
-    if (k1.coordinate_type == COORDINATE_ROBOT)
-        pos1 = arm_coordinate_robot2arm(pos1, arm->offset_xy, arm->offset_rotation);
-
-    if (k2.coordinate_type == COORDINATE_TABLE) {
-        point_t robot_pos;
-        float robot_a_rad;
-
-        robot_pos.x = position_get_x_float(arm->robot_pos);
-        robot_pos.y = position_get_x_float(arm->robot_pos);
-        robot_a_rad = position_get_a_rad_float(arm->robot_pos);
-        pos2 = arm_coordinate_table2robot(pos2, robot_pos, robot_a_rad);
-        pos2 = arm_coordinate_robot2arm(pos2, arm->offset_xy, arm->offset_rotation);
-    }
-
-    if (k2.coordinate_type == COORDINATE_ROBOT)
-        pos2 = arm_coordinate_robot2arm(pos2, arm->offset_xy, arm->offset_rotation);
-
-    k1.position[0] = pos1.x;
-    k1.position[1] = pos1.y;
-
-    k2.position[0] = pos2.x;
-    k2.position[1] = pos2.y;
+    k1 = arm_convert_keyframe_coordinate(arm, arm->trajectory.frames[i-1]);
+    k2 = arm_convert_keyframe_coordinate(arm, arm->trajectory.frames[i]);
 
     return arm_trajectory_interpolate_keyframes(k1, k2, date);
 }
