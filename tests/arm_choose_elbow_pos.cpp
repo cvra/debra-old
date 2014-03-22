@@ -32,9 +32,9 @@ TEST(ChooseElbowPositionTestGroup, ModeMirrorInvertBack)
 TEST(ChooseElbowPositionTestGroup, ChooseElbowSolutionOutsideRobot)
 {
     // First test case : target_x < 0 ('inside' the robot)
-    point_t elbow1 = {.x=10, .y=10};
-    point_t elbow2 = {.x=-10, .y=10};
-    point_t target = {.x=-10, .y=20};
+    point_t elbow1 = {10, 10};
+    point_t elbow2 = {-10, 10};
+    point_t target = {-10, 20};
     point_t chosen;
 
     chosen = choose_shoulder_solution(target, elbow1, elbow2, SHOULDER_FRONT);
@@ -44,9 +44,9 @@ TEST(ChooseElbowPositionTestGroup, ChooseElbowSolutionOutsideRobot)
 TEST(ChooseElbowPositionTestGroup, ChooseElbowSolutionOutsideRobotBis)
 {
     // First test case : target_x < 0 ('inside' the robot)
-    point_t elbow1 = {.x=-10, .y=10};
-    point_t elbow2 = {.x=10, .y=10};
-    point_t target = {.x=-10, .y=20};
+    point_t elbow1 = {-10, 10};
+    point_t elbow2 = {10, 10};
+    point_t target = {-10, 20};
     point_t chosen;
 
     chosen = choose_shoulder_solution(target, elbow1, elbow2, SHOULDER_FRONT);
@@ -55,9 +55,9 @@ TEST(ChooseElbowPositionTestGroup, ChooseElbowSolutionOutsideRobotBis)
 
 TEST(ChooseElbowPositionTestGroup, ChooseElbowBackward)
 {
-    point_t elbow1 = {.x=10, .y=10};
-    point_t elbow2 = {.x=10, .y=-10};
-    point_t target = {.x=10, .y=0};
+    point_t elbow1 = {10, 10};
+    point_t elbow2 = {10, -10};
+    point_t target = {10, 0};
     point_t chosen;
 
     chosen = choose_shoulder_solution(target, elbow1, elbow2, SHOULDER_BACK);
@@ -66,9 +66,9 @@ TEST(ChooseElbowPositionTestGroup, ChooseElbowBackward)
 
 TEST(ChooseElbowPositionTestGroup, ChooseElbowBackwardBis)
 {
-    point_t elbow1 = {.x=10, .y=-10};
-    point_t elbow2 = {.x=10, .y=10};
-    point_t target = {.x=10, .y=0};
+    point_t elbow1 = {10, -10};
+    point_t elbow2 = {10, 10};
+    point_t target = {10, 0};
     point_t chosen;
 
     chosen = choose_shoulder_solution(target, elbow1, elbow2, SHOULDER_BACK);
@@ -77,9 +77,9 @@ TEST(ChooseElbowPositionTestGroup, ChooseElbowBackwardBis)
 
 TEST(ChooseElbowPositionTestGroup, ChooseElbowForward)
 {
-    point_t elbow1 = {.x=10, .y=-10};
-    point_t elbow2 = {.x=10, .y=10};
-    point_t target = {.x=10, .y=0};
+    point_t elbow1 = {10, -10};
+    point_t elbow2 = {10, 10};
+    point_t target = {10, 0};
     point_t chosen;
 
     chosen = choose_shoulder_solution(target, elbow1, elbow2, SHOULDER_FRONT);
@@ -88,9 +88,9 @@ TEST(ChooseElbowPositionTestGroup, ChooseElbowForward)
 
 TEST(ChooseElbowPositionTestGroup, ChooseElbowForwardBis)
 {
-    point_t elbow1 = {.x=10, .y=10};
-    point_t elbow2 = {.x=10, .y=-10};
-    point_t target = {.x=10, .y=0};
+    point_t elbow1 = {10, 10};
+    point_t elbow2 = {10, -10};
+    point_t target = {10, 0};
     point_t chosen;
 
     chosen = choose_shoulder_solution(target, elbow1, elbow2, SHOULDER_FRONT);

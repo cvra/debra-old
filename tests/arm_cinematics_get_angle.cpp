@@ -25,8 +25,8 @@ TEST(GetAngleFromArmPosTestGroup, SimpleShoulderAngle)
 TEST(GetAngleFromArmPosTestGroup, SimpleElbowAngle)
 {
     float angle;
-    point_t elbow = {.x=10, .y=10};
-    point_t hand =  {.x=20, .y=20};
+    point_t elbow = {10, 10};
+    point_t hand =  {20, 20};
 
     angle = compute_elbow_angle(elbow, hand);
     DOUBLES_EQUAL(RAD(45), angle, 1e-3);

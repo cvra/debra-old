@@ -1,0 +1,11 @@
+language: c
+compiler:
+  - gcc
+  - clang
+
+install: 
+  - git submodule init
+  - git submodule update
+  - ./setup_cpputest.sh
+
+script: cd build; make VERBOSE=1; ./debra

@@ -11,8 +11,8 @@ TEST_GROUP(ArmUtilsTestGroup)
 
 TEST(ArmUtilsTestGroup, CoordinateRobotToArm)
 {
-    point_t target = {.x=100,.y=100};
-    vect2_cart offset_xy = {.x=0,.y=100};
+    point_t target = {100,100};
+    vect2_cart offset_xy = {0,100};
     float offset_angle = M_PI/2.;
     point_t result;
 
@@ -23,8 +23,8 @@ TEST(ArmUtilsTestGroup, CoordinateRobotToArm)
 
 TEST(ArmUtilsTestGroup, CoordinateTableToRobot)
 {
-    point_t target = {.x=100,.y=200};
-    point_t robot_pos = {.x=100, .y=100};
+    point_t target = {100,200};
+    point_t robot_pos = {100, 100};
     float robot_a_rad = M_PI/2;
     point_t result;
 
@@ -37,8 +37,8 @@ TEST(ArmUtilsTestGroup, CoordinateTableToRobot)
 
 TEST(ArmUtilsTestGroup, CoordinateTableToRobot45Deg)
 {
-    point_t target = {.x=100,.y=100};
-    point_t robot_pos = {.x=0, .y=0};
+    point_t target = {100,100};
+    point_t robot_pos = {0, 0};
     float robot_a_rad = M_PI/4;
     point_t result;
 
