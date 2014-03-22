@@ -62,7 +62,7 @@ void arm_manage(arm_t *arm)
     arm->last_loop = uptime_get();
 }
 
-arm_keyframe_t arm_convert_keyframe_coordinate(arm_t *arm, arm_keyframe_t key)
+static arm_keyframe_t arm_convert_keyframe_coordinate(arm_t *arm, arm_keyframe_t key)
 {
     point_t pos;
     pos.x = key.position[0];
@@ -85,7 +85,7 @@ arm_keyframe_t arm_convert_keyframe_coordinate(arm_t *arm, arm_keyframe_t key)
     return key;
 }
 
-static arm_keyframe_t arm_position_for_date(arm_t *arm, int32_t date)
+arm_keyframe_t arm_position_for_date(arm_t *arm, int32_t date)
 {
     int i=0;
     arm_keyframe_t k1, k2;

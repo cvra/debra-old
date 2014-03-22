@@ -235,3 +235,18 @@ TEST(ArmTestGroup, TrajectoriesFirstPointTableNotHandledCorrectly)
     DOUBLES_EQUAL(20, result.position[0], 0.1);
     DOUBLES_EQUAL(-10, result.position[1], 0.1);
 }
+
+TEST(ArmTestGroup, LengthAreInterpolated)
+{
+    arm_keyframe_t result;
+    const int32_t date = 5 * 1000000;
+    arm.offset_rotation = M_PI / 2;
+    arm_trajectory_append_point_with_length(&traj, 0, 0, 0, COORDINATE_ARM, 1., 10, 10);
+    arm_trajectory_append_point_with_length(&traj, 0, 0, 0, COORDINATE_ARM, 10., 100, 200);
+
+    arm_do_trajectory(&arm, &traj);
+
+    result = arm_position_for_date(&arm, date);
+    DOUBLES_EQUAL(55, result.length[0], 0.1);
+    DOUBLES_EQUAL(105, result.length[1], 0.1);
+}
