@@ -55,4 +55,6 @@ arm_keyframe_t arm_position_for_date(arm_t *arm, int32_t date);
 
 void arm_set_related_robot_pos(arm_t *arm, struct robot_position *pos);
 
+void arm_shutdown(arm_t *arm);
+
 #endif

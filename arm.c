@@ -159,3 +159,7 @@ void arm_set_related_robot_pos(arm_t *arm, struct robot_position *pos)
     arm->robot_pos = pos;
 }
 
+void arm_shutdown(arm_t *arm)
+{
+    arm_trajectory_delete(&arm->trajectory);
+}

@@ -167,6 +167,22 @@ TEST(ArmTestGroup, ArmManageDisablesArmIfTooFar)
     CHECK_EQUAL(0, arm.shoulder.manager.enabled);
 }
 
+TEST(ArmTestGroup, ArmShutdownDisablesControlSystems)
+{
+    arm_trajectory_init(&traj);
+    arm_trajectory_append_point(&traj, 100, 100, 100, COORDINATE_ARM, 1.);
+    arm_do_trajectory(&arm, &traj);
+
+    arm_manage(&arm);
+    CHECK_EQUAL(1, arm.shoulder.manager.enabled);
+
+    arm_shutdown(&arm);
+    arm_manage(&arm);
+
+    CHECK_EQUAL(0, arm.shoulder.manager.enabled);
+}
+
+
 TEST(ArmTestGroup, CurrentPointComputation)
 {
     arm_keyframe_t result;

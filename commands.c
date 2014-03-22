@@ -20,14 +20,6 @@
 
 static int calibration_done = 0;
 
-/** Prints all args, then exits. */
-void test_func(int argc, char **argv)
-{
-    int i;
-    for(i=0;i<argc;i++)
-        printf("argv[%d] = \"%s\"\n", i, argv[i]);
-}
-
 /** Shutdowns the given arm. */
 void cmd_arm_shutdown(int argc, char **argv)
 {
