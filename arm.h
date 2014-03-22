@@ -51,13 +51,6 @@ void arm_manage(arm_t *arm);
 
 void arm_get_position(arm_t *arm, float *x, float *y, float *z);
 
-void arm_change_coordinate_system(arm_t *arm, float x, float y,
-             arm_coordinate_t system, float *arm_x, float *arm_y);
-
-
-/** Tells the arms to assume they are at a known position. */
-void arm_calibrate(void);
-
 arm_keyframe_t arm_position_for_date(arm_t *arm, int32_t date);
 
 void arm_set_related_robot_pos(arm_t *arm, struct robot_position *pos);

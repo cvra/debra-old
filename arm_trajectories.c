@@ -3,14 +3,14 @@
 #include <string.h>
 #include <uptime.h>
 
-float smoothstep(float t)
+static float smoothstep(float t)
 {
     if(t < 0.0f) return 0.0f;
     if(t > 1.0f) return 1.0f;
     return t*t*t*(t*(6.0f*t-15.0f)+10.0f);
 }
 
-float interpolate(float t, float a, float b)
+static float interpolate(float t, float a, float b)
 {
     return (1 - t) * a + t * b;
 }

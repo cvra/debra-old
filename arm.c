@@ -1,11 +1,11 @@
-#include <uptime.h> //< pseudo ok
-#include <string.h> //< OK
+#include <uptime.h>
+#include <string.h>
+#include <math.h>
 
-#include "arm.h" // OK
-#include "arm_cinematics.h" // Ok
+#include "arm.h"
+#include "arm_cinematics.h"
 #include "arm_trajectories.h"
 #include "arm_utils.h"
-#include <math.h> // ok
 
 static arm_keyframe_t arm_convert_keyframe_coordinate(arm_t *arm, arm_keyframe_t key);
 
@@ -159,100 +159,3 @@ void arm_set_related_robot_pos(arm_t *arm, struct robot_position *pos)
     arm->robot_pos = pos;
 }
 
-#if 0
-static void arm_interpolate_frames(arm_t *arm, int32_t date, float *position, float *length)
-{
-    if (date < arm->trajectory.frames[0].date) {
-        arm_change_coordinate_system(arm, arm->trajectory.frames[0].position[0], arm->trajectory.frames[0].position[1],
-                arm->trajectory.frames[0].coordinate_type, &position[0], &position[1]);
-        position[2] = arm->trajectory.frames[0].position[2];
-
-        length[0] = arm->trajectory.frames[0].length[0];
-        length[1] = arm->trajectory.frames[0].length[1];
-        return;
-    }
-
-    if (date > arm->trajectory.frames[arm->trajectory.frame_count-1].date) {
-        int f = arm->trajectory.frame_count-1;
-        arm_change_coordinate_system(arm, arm->trajectory.frames[f].position[0], arm->trajectory.frames[f].position[1],
-                arm->trajectory.frames[f].coordinate_type, &position[0], &position[1]);
-        position[2] = arm->trajectory.frames[f].position[2];
-
-        length[0] = arm->trajectory.frames[f].length[0];
-        length[1] = arm->trajectory.frames[f].length[1];
-        return;
-    }
-
-    /* We are between frame i-1 et i. i > 1 */
-    while(arm->trajectory.frames[i].date < date)
-        i++;
-
-
-    /* Changes the coordinate systems to arm coordinates */
-    arm_change_coordinate_system(arm, arm->trajectory.frames[i-1].position[0],
-            arm->trajectory.frames[i-1].position[1],
-            arm->trajectory.frames[i-1].coordinate_type,
-            &previous_frame_xy[0], &previous_frame_xy[1]);
-
-    arm_change_coordinate_system(arm, arm->trajectory.frames[i].position[0],
-            arm->trajectory.frames[i].position[1],
-            arm->trajectory.frames[i].coordinate_type,
-            &next_frame_xy[0], &next_frame_xy[1]);
-
-    previous_z = arm->trajectory.frames[i-1].position[2];
-    next_z = arm->trajectory.frames[i].position[2];
-
-    previous_length = arm->trajectory.frames[i-1].length;
-    next_length = arm->trajectory.frames[i].length;
-
-    /* Smoothstep interpolation between the 2 frames. */
-    t = date - arm->trajectory.frames[i-1].date;
-    t = t / (float)(arm->trajectory.frames[i].date - arm->trajectory.frames[i-1].date);
-    t = smoothstep(t);
-
-    position[0] = interpolate(t, previous_frame_xy[0], next_frame_xy[0]);
-    position[1] = interpolate(t, previous_frame_xy[1], next_frame_xy[1]);
-    position[2] = interpolate(t, previous_z, next_z);
-    length[0] = interpolate(t, previous_length[0], next_length[0]);
-    length[1] = interpolate(t, previous_length[1], next_length[1]);
-}
-
-void arm_manage(void *a) {
-
-
-    arm_interpolate_frames(arm, compensated_date, position, length);
-
-    /* Computes the inverse cinematics and send the consign to the control systems. */
-    if (compute_inverse_cinematics(arm, position[0], position[1], &alpha, &beta, length[0], length[1]) < 0) {
-        cs_disable(&arm->z_axis_cs);
-        cs_disable(&arm->shoulder_cs);
-        cs_disable(&arm->elbow_cs);
-        arm->last_loop = current_date;
-        return;
-    }
-
-    cs_set_consign(&arm->z_axis_cs, position[2] * arm->z_axis_imp_per_mm);
-    cs_set_consign(&arm->shoulder_cs, alpha * arm->shoulder_imp_per_rad);
-    cs_set_consign(&arm->elbow_cs, beta * arm->elbow_imp_per_rad);
-
-    cs_enable(&arm->z_axis_cs);
-    cs_enable(&arm->shoulder_cs);
-    cs_enable(&arm->elbow_cs);
-
-    arm->last_loop = current_date;
-}
-
-void arm_calibrate(void) {
-    /* Z axis. */
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 1, 183 * robot.left_arm.z_axis_imp_per_mm);
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 4, 183 * robot.left_arm.z_axis_imp_per_mm);
-
-    /* Shoulders. */
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 0, (M_PI * -53.92 / 180.) * robot.left_arm.shoulder_imp_per_rad);
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 5, (M_PI * 55.42 / 180.) * robot.right_arm.shoulder_imp_per_rad);
-
-    /* Elbows. */
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 2, (M_PI * -157.87 / 180.) * robot.left_arm.elbow_imp_per_rad);
-    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 3, (M_PI * 157.87/ 180.) * robot.right_arm.elbow_imp_per_rad);
-}
-#endif
