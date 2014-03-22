@@ -5,6 +5,7 @@
 extern "C" {
 #include "../arm.h"
 #include "../arm_trajectories.h"
+#include "2wheels/position_manager.h"
 #include "uptime.h"
 }
 
@@ -187,4 +188,33 @@ TEST(ArmTestGroup, MixedCoordinateSystems)
     result = arm_position_for_date(&arm, date);
     DOUBLES_EQUAL(10, result.position[0], 0.1);
     DOUBLES_EQUAL(-5, result.position[1], 0.1);
+}
+
+TEST(ArmTestGroup, CanSetRelatedRobotPosition)
+{
+    struct robot_position pos;
+    arm_set_related_robot_pos(&arm, &pos);
+    POINTERS_EQUAL(arm.robot_pos, &pos);
+}
+
+TEST(ArmTestGroup, TableCoordinateSystem)
+{
+    arm_keyframe_t result;
+    struct robot_position pos;
+    position_init(&pos);
+
+    const int32_t date = 5 * 1000000;
+    arm.offset_rotation = M_PI / 2;
+
+    arm_set_related_robot_pos(&arm, &pos);
+    position_set(&pos, -10, -10, 0);
+
+
+    arm_trajectory_append_point(&traj, 0, 0, 0, COORDINATE_TABLE, 1.);
+    arm_trajectory_append_point(&traj, 10, 20, 0, COORDINATE_TABLE, 10.);
+    arm_do_trajectory(&arm, &traj);
+
+    result = arm_position_for_date(&arm, date);
+    DOUBLES_EQUAL(20, result.position[0], 0.1);
+    DOUBLES_EQUAL(-15, result.position[1], 0.1);
 }

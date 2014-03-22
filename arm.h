@@ -12,6 +12,7 @@
 #include "arm_cs.h"
 #include "arm_cinematics.h"
 #include "keyframe.h"
+#include "2wheels/position_manager.h"
 #include <vect2.h>
 
 
@@ -34,6 +35,7 @@ typedef struct {
     arm_trajectory_t trajectory;    /**< Current trajectory of the arm. */
     semaphore_t trajectory_semaphore;
     int32_t last_loop;              /**< Timestamp of the last loop execution, in us since boot. */
+    struct robot_position *robot_pos;
 
     shoulder_mode_t shoulder_mode;
 } arm_t;
@@ -58,5 +60,6 @@ void arm_calibrate(void);
 
 arm_keyframe_t arm_position_for_date(arm_t *arm, int32_t date);
 
+void arm_set_related_robot_pos(arm_t *arm, struct robot_position *pos);
 
 #endif

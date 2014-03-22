@@ -84,8 +84,30 @@ arm_keyframe_t arm_position_for_date(arm_t *arm, int32_t date)
     pos2.x = k2.position[0];
     pos2.y = k2.position[1];
 
+    if (k1.coordinate_type == COORDINATE_TABLE) {
+        point_t robot_pos;
+        float robot_a_rad;
+
+        robot_pos.x = position_get_x_float(arm->robot_pos);
+        robot_pos.y = position_get_x_float(arm->robot_pos);
+        robot_a_rad = position_get_a_rad_float(arm->robot_pos);
+        pos1 = arm_coordinate_table2robot(pos1, robot_pos, robot_a_rad);
+        pos1 = arm_coordinate_robot2arm(pos1, arm->offset_xy, arm->offset_rotation);
+    }
+
     if (k1.coordinate_type == COORDINATE_ROBOT)
         pos1 = arm_coordinate_robot2arm(pos1, arm->offset_xy, arm->offset_rotation);
+
+    if (k2.coordinate_type == COORDINATE_TABLE) {
+        point_t robot_pos;
+        float robot_a_rad;
+
+        robot_pos.x = position_get_x_float(arm->robot_pos);
+        robot_pos.y = position_get_x_float(arm->robot_pos);
+        robot_a_rad = position_get_a_rad_float(arm->robot_pos);
+        pos2 = arm_coordinate_table2robot(pos2, robot_pos, robot_a_rad);
+        pos2 = arm_coordinate_robot2arm(pos2, arm->offset_xy, arm->offset_rotation);
+    }
 
     if (k2.coordinate_type == COORDINATE_ROBOT)
         pos2 = arm_coordinate_robot2arm(pos2, arm->offset_xy, arm->offset_rotation);
@@ -97,6 +119,11 @@ arm_keyframe_t arm_position_for_date(arm_t *arm, int32_t date)
     k2.position[1] = pos2.y;
 
     return arm_trajectory_interpolate_keyframes(k1, k2, date);
+}
+
+void arm_set_related_robot_pos(arm_t *arm, struct robot_position *pos)
+{
+    arm->robot_pos = pos;
 }
 
 #if 0
