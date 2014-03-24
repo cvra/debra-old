@@ -95,6 +95,40 @@ TEST(ArmTestGroup, ExecuteTrajectoryIsAtomic)
     CHECK_EQUAL(1, arm.trajectory_semaphore.count);
 }
 
+TEST(ArmTestGroup, ArmManageIsAtomic)
+{
+    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 10.);
+    arm_do_trajectory(&arm, &traj);
+
+    CHECK_EQUAL(1, arm.trajectory_semaphore.acquired_count);
+    arm_manage(&arm);
+    CHECK_EQUAL(2, arm.trajectory_semaphore.acquired_count);
+    CHECK_EQUAL(1, arm.trajectory_semaphore.count);
+
+}
+
+TEST(ArmTestGroup, ArmManageIsAtomicWithEmptyTraj)
+{
+    arm_do_trajectory(&arm, &traj);
+
+    CHECK_EQUAL(1, arm.trajectory_semaphore.acquired_count);
+    arm_manage(&arm);
+    CHECK_EQUAL(2, arm.trajectory_semaphore.acquired_count);
+    CHECK_EQUAL(1, arm.trajectory_semaphore.count);
+}
+
+TEST(ArmTestGroup, ArmManageIsAtomicWithUnreachableTarget)
+{
+    arm_trajectory_append_point_with_length(&traj, 100, 100, 10, COORDINATE_ARM, 1., 10, 10);
+    arm_do_trajectory(&arm, &traj);
+
+    CHECK_EQUAL(1, arm.trajectory_semaphore.acquired_count);
+    arm_manage(&arm);
+    CHECK_EQUAL(2, arm.trajectory_semaphore.acquired_count);
+    CHECK_EQUAL(1, arm.trajectory_semaphore.count);
+}
+
 TEST(ArmTestGroup, ArmManageEmptyTrajectoryDisablesControl)
 {
     arm_manage(&arm);

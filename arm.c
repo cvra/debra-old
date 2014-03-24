@@ -59,11 +59,14 @@ void arm_manage(arm_t *arm)
     int position_count;
     float alpha, beta;
 
+    platform_take_semaphore(&arm->trajectory_semaphore);
+
     if (arm->trajectory.frame_count == 0) {
         cs_disable(&arm->shoulder.manager);
         cs_disable(&arm->elbow.manager);
         cs_disable(&arm->z_axis.manager);
         arm->last_loop = current_date;
+        platform_signal_semaphore(&arm->trajectory_semaphore);
         return;
     }
 
@@ -78,6 +81,7 @@ void arm_manage(arm_t *arm)
         cs_disable(&arm->elbow.manager);
         cs_disable(&arm->z_axis.manager);
         arm->last_loop = current_date;
+        platform_signal_semaphore(&arm->trajectory_semaphore);
         return;
     } else if (position_count == 2) {
         shoulder_mode_t mode;
@@ -108,6 +112,8 @@ void arm_manage(arm_t *arm)
     cs_set_consign(&arm->z_axis.manager, frame.position[2] * arm->z_axis_imp_per_mm);
 
     arm->last_loop = uptime_get();
+
+    platform_signal_semaphore(&arm->trajectory_semaphore);
 }
 
 static arm_keyframe_t arm_convert_keyframe_coordinate(arm_t *arm, arm_keyframe_t key)
