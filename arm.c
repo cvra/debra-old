@@ -167,5 +167,7 @@ void arm_set_related_robot_pos(arm_t *arm, struct robot_position *pos)
 
 void arm_shutdown(arm_t *arm)
 {
+    platform_take_semaphore(&arm->trajectory_semaphore);
     arm_trajectory_delete(&arm->trajectory);
+    platform_signal_semaphore(&arm->trajectory_semaphore);
 }

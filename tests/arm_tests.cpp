@@ -118,6 +118,13 @@ TEST(ArmTestGroup, ArmManageIsAtomicWithEmptyTraj)
     CHECK_EQUAL(1, arm.trajectory_semaphore.count);
 }
 
+TEST(ArmTestGroup, ArmShutdownIsAtomic)
+{
+    arm_shutdown(&arm);
+    CHECK_EQUAL(1, arm.trajectory_semaphore.acquired_count);
+    CHECK_EQUAL(1, arm.trajectory_semaphore.count);
+}
+
 TEST(ArmTestGroup, ArmManageIsAtomicWithUnreachableTarget)
 {
     arm_trajectory_append_point_with_length(&traj, 100, 100, 10, COORDINATE_ARM, 1., 10, 10);
