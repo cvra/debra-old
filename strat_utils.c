@@ -40,47 +40,43 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot)
 
     // On recule jusqu'a  qu'on ait touche un mur
     trajectory_d_rel(&robot.traj, (double) -2000);
+    wait_traj_end(END_BLOCKING);
 
-    while(!bd_get(&robot.distance_bd));
     trajectory_hardstop(&robot.traj);
     bd_reset(&robot.distance_bd);
     bd_reset(&robot.angle_bd);
     robot.mode = BOARD_MODE_ANGLE_DISTANCE;
 
-    //position_set(&robot.pos, epaisseurRobot, 0, -1.1778+0.254);
-
     position_set(&robot.pos, epaisseurRobot, 0, COLOR_A(0.));
     /* On se mets a la bonne position en x. */
     trajectory_d_rel(&robot.traj, (double) (x - epaisseurRobot));
-    while(!trajectory_finished(&robot.traj));
+    wait_traj_end(END_TRAJ);
 
     /* On se tourne face a la paroi en Y. */
     trajectory_only_a_abs(&robot.traj, COLOR_A(90));
-    while(!trajectory_finished(&robot.traj));
+    wait_traj_end(END_TRAJ);
 
     /* On recule jusqu'a avoir touche le bord. */
 
     trajectory_d_rel(&robot.traj, (double) -2000);
-    while(!bd_get(&robot.distance_bd));
+    wait_traj_end(END_BLOCKING);
 
     bd_reset(&robot.distance_bd);
     bd_reset(&robot.angle_bd);
 
     /* On reregle la position. */
-    /* XXX ze + 100 is just for 2013. */
-    robot.pos.pos_d.y = COLOR_Y(epaisseurRobot+100);
-    robot.pos.pos_s16.y = COLOR_Y(epaisseurRobot+100);
+    robot.pos.pos_d.y = COLOR_Y(epaisseurRobot);
+    robot.pos.pos_s16.y = COLOR_Y(epaisseurRobot);
 
     /* On se met en place a la position demandee. */
-
-    trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 300), speed_rd2imp(&robot.traj, 2.5) ); /* distance, angle */
+    trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 300), speed_rd2imp(&robot.traj, 2.5));
 
     trajectory_d_rel(&robot.traj, (double) (y - epaisseurRobot));
-    while(!trajectory_finished(&robot.traj));
+    wait_traj_end(END_TRAJ);
 
     /* Pour finir on s'occuppe de l'angle. */
     trajectory_a_abs(&robot.traj, (double)a);
-    while(!trajectory_finished(&robot.traj));
+    wait_traj_end(END_TRAJ);
 
     /* On remet le robot dans son etat initial. */
     robot.mode = BOARD_MODE_ANGLE_DISTANCE;
