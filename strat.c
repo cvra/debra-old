@@ -5,8 +5,6 @@
 #include <cvra_beacon.h>
 
 #include "strat.h"
-#include "arm.h"
-#include "arm_interpolators.h"
 #include "strat_job.h"
 #include "strat_utils.h"
 

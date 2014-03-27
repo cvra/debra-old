@@ -79,15 +79,6 @@ int wait_traj_end_debug(int why, char *file, int line);
 void left_pump(int status);
 void right_pump(int status);
 
-/** Opens the given servo motor. */
-void strat_open_servo(enum servo_e servo);
-
-/** Closes the given servo motor. */
-void strat_open_servo(enum servo_e servo);
-
-/** Releases a servo pressure. */
-void strat_release_servo(enum servo_e servo);
-
 
 /**
  * Gets game time. 

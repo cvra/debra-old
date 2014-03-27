@@ -1,6 +1,8 @@
+#include <platform.h>
 #include <stdlib.h>
 #include "strat_job.h"
-#include <aversive.h>
+#include <platform.h>
+#include <aversive/error.h>
 
 struct strat_job {
     int (*f)(void *);

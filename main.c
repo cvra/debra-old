@@ -13,7 +13,7 @@
 #include <stdarg.h>
 #include <nios2.h>
 
-#include <aversive.h>
+#include <platform.h>
 #include <aversive/error.h>
 #include <fast_math.h>
 
@@ -71,9 +71,7 @@ void init_task(void *pdata)
     fast_math_init();
 #endif
 
-    /* Release the servo in case they were doing something. */
-    strat_release_servo(LEFT);
-    strat_release_servo(RIGHT);
+    cvra_beacon_init(&robot.beacon, AVOIDING_BASE, AVOIDING_IRQ, 1000, 1., 1.);
 
     /* If the logic power supply is off, kindly ask the user to turn it on. */
     if ((IORD(PIO_BASE, 0) & 0xff) == 0) {
@@ -85,8 +83,10 @@ void init_task(void *pdata)
     }
 
     /* Inits all the trajectory stuff, PID, odometry, etc... */
+#if 0
     NOTICE(0, "Main control system init.");
     cvra_cs_init();
+#endif
 
     /* Sets the bounding box for the avoidance module. */
     const int robot_size = 150;
@@ -149,8 +149,8 @@ int main(void)
     robot.verbosity_level = ERROR_SEVERITY_NOTICE;
 
     /* Setup UART speed, must be first. */
-    cvra_set_uart_speed(COMBT1_BASE, 9600);
-    cvra_set_uart_speed(COMBT2_BASE, 9600);
+/*    cvra_set_uart_speed(COMBT1_BASE, 9600);
+    cvra_set_uart_speed(COMBT2_BASE, 9600); */
 
     /* Inits the logging system. */
     error_register_emerg(mylog);

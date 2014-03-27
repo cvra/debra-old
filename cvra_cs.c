@@ -16,8 +16,6 @@
  manager and the blocking detection system.
  */
 
-#include <aversive.h>
-
 #include <2wheels/trajectory_manager.h>
 #include <2wheels/robot_system.h>
 #include <2wheels/position_manager.h>
