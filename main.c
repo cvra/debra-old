@@ -18,9 +18,13 @@
 #include <fast_math.h>
 
 #include <uptime.h>
-#include <cvra_servo.h>
 #include <cvra_beacon.h>
 #include <commandline.h>
+
+#include <lwip/sys.h>
+#include <lwip/tcpip.h>
+#include <lwip/ip.h>
+#include <netif/slipif.h>
 
 #include "hardware.h"
 #include "cvra_cs.h"
@@ -40,6 +44,12 @@ OS_STK    heartbeat_task_stk[TASK_STACKSIZE];
 void shell_task(void *pdata);
 void init_task(void *pdata);
 void heartbeat_task(void *pdata);
+
+/** Serial net interface */
+struct netif slipf;
+
+/** Shared semaphore to signal when lwIP init is done. */
+sys_sem_t lwip_init_done;
 
 
 /** Logs an event.
@@ -128,18 +138,62 @@ void shell_task(void *pdata)
 void heartbeat_task(void *pdata)
 {
     OS_CPU_SR cpu_sr;
-    int leds;
+    int32_t led_val;
     while (1) {
         OS_ENTER_CRITICAL();
-
-        leds = IORD(LED_BASE, 0);
-        /* toggles bit 0. */
-        leds = leds ^ (1<<0);
-        IOWR(LED_BASE, 0, leds);
-
+        led_val = IORD(LED_BASE, 0);
+        led_val ^= (1 << 2);
+        IOWR(LED_BASE, 0, led_val);
         OS_EXIT_CRITICAL();
         OSTimeDlyHMSM(0, 0, 0, 500);
     }
+
+}
+
+void ipinit_done_cb(void *a)
+{
+    sys_sem_signal(&lwip_init_done);
+}
+
+void list_netifs(void)
+{
+    struct netif *n; /* used for iteration. */
+    for (n = netif_list; n != NULL; n = n->next) {
+        /* Converts the IP adress to a human readable format. */
+        char buf[16+1];
+        ipaddr_ntoa_r(&n->ip_addr, buf, 17);
+        printf("%s: %s\n", n->name, buf);
+    }
+}
+
+void ip_stack_init(void)
+{
+    /* Netif configuration */
+    static ip_addr_t ipaddr, netmask, gw;
+
+    IP4_ADDR(&gw, 10, 0, 0, 11); // toradex board IP
+    IP4_ADDR(&ipaddr, 10, 0, 0, 10);
+    IP4_ADDR(&netmask, 255,255,255,255);
+
+    /* Creates the "Init done" semaphore. */
+    sys_sem_new(&lwip_init_done, 0);
+
+    /* We start the init of the IP stack. */
+    tcpip_init(ipinit_done_cb, NULL);
+
+    /* We wait for the IP stack to be fully initialized. */
+    printf("Waiting for LWIP init...\n");
+    sys_sem_wait(&lwip_init_done);
+
+    /* Deletes the init done semaphore. */
+    sys_sem_free(&lwip_init_done);
+    printf("LWIP init complete\n");
+
+    /* Adds a tap pseudo interface for unix debugging. */
+    netif_add(&slipf, &ipaddr, &netmask, &gw, NULL, slipif_init, tcpip_input);
+
+    netif_set_default(&slipf);
+    netif_set_up(&slipf);
 
 }
 
@@ -149,8 +203,8 @@ int main(void)
     robot.verbosity_level = ERROR_SEVERITY_NOTICE;
 
     /* Setup UART speed, must be first. */
-/*    cvra_set_uart_speed(COMBT1_BASE, 9600);
-    cvra_set_uart_speed(COMBT2_BASE, 9600); */
+    cvra_set_uart_speed(COMPC_BASE, PIO_FREQ, 57600);
+//    cvra_set_uart_speed(COMBT2_BASE, 9600); 
 
     /* Inits the logging system. */
     error_register_emerg(mylog);
