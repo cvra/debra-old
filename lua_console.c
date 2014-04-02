@@ -100,9 +100,8 @@ void serve_conn(struct netconn *conn)
                     lua_pop(l, 1);
                 }
             }
+            netconn_write(conn, PROMPT, strlen(PROMPT), NETCONN_COPY);
         } while (netbuf_next(buf) >= 0);
-
-        netconn_write(conn, PROMPT, strlen(PROMPT), NETCONN_COPY);
         netbuf_delete(buf);
     }
 
