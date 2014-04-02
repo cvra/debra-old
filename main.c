@@ -69,63 +69,6 @@ void mylog(struct error * e, ...)
     va_end(ap);
 }
 
-
-void init_task(void *pdata)
-{
-    /* Tells the user that we are up and running. */
-    WARNING(0, "System boot !");
-
-#if 0
-    /* Inits the custom math lib. */
-    NOTICE(0, "Fast math init.");
-    fast_math_init();
-#endif
-
-    cvra_beacon_init(&robot.beacon, AVOIDING_BASE, AVOIDING_IRQ, 1000, 1., 1.);
-
-    /* If the logic power supply is off, kindly ask the user to turn it on. */
-    if ((IORD(PIO_BASE, 0) & 0xff) == 0) {
-        printf("Hey sac a pain, la commande c'est en option ?\n");
-
-        /* We refuse to let the user to a shell before he turns it on. */
-        while ((IORD(PIO_BASE, 0) & 0xff) == 0);
-        printf("Merci bien !\n");
-    }
-
-    /* Inits all the trajectory stuff, PID, odometry, etc... */
-#if 0
-    NOTICE(0, "Main control system init.");
-    cvra_cs_init();
-#endif
-
-    /* Sets the bounding box for the avoidance module. */
-    const int robot_size = 150;
-    polygon_set_boundingbox(robot_size, robot_size, 3000-robot_size, 2000-robot_size);
-
-    OSTaskCreateExt(shell_task,
-                    NULL,
-                    &shell_task_stk[TASK_STACKSIZE-1],
-                    SHELL_TASK_PRIORITY,
-                    SHELL_TASK_PRIORITY,
-                    &shell_task_stk[0],
-                    TASK_STACKSIZE,
-                    NULL, NULL);
-
-    OSTaskCreateExt(heartbeat_task,
-                    NULL,
-                    &heartbeat_task_stk[TASK_STACKSIZE-1],
-                    HEARTBEAT_TASK_PRIORITY,
-                    HEARTBEAT_TASK_PRIORITY,
-                    &heartbeat_task_stk[0],
-                    TASK_STACKSIZE,
-                    NULL, NULL);
-
-    /* Tasks must delete themselves before exiting. */
-    OSTaskDel(OS_PRIO_SELF);
-}
-
-
-
 void shell_task(void *pdata)
 {
     /* Inits the commandline interface. */
@@ -195,6 +138,64 @@ void ip_stack_init(void)
     netif_set_default(&slipf);
     netif_set_up(&slipf);
 
+}
+
+void init_task(void *pdata)
+{
+    /* Tells the user that we are up and running. */
+    WARNING(0, "System boot !");
+
+#if 0
+    /* Inits the custom math lib. */
+    NOTICE(0, "Fast math init.");
+    fast_math_init();
+#endif
+
+    cvra_beacon_init(&robot.beacon, AVOIDING_BASE, AVOIDING_IRQ, 1000, 1., 1.);
+
+    ip_stack_init();
+    list_netifs();
+
+    /* If the logic power supply is off, kindly ask the user to turn it on. */
+    if ((IORD(PIO_BASE, 0) & 0xff) == 0) {
+        printf("Hey sac a pain, la commande c'est en option ?\n");
+
+        /* We refuse to let the user to a shell before he turns it on. */
+        while ((IORD(PIO_BASE, 0) & 0xff) == 0);
+        printf("Merci bien !\n");
+    }
+
+    /* Inits all the trajectory stuff, PID, odometry, etc... */
+#if 0
+    NOTICE(0, "Main control system init.");
+    cvra_cs_init();
+#endif
+
+
+    /* Sets the bounding box for the avoidance module. */
+    const int robot_size = 150;
+    polygon_set_boundingbox(robot_size, robot_size, 3000-robot_size, 2000-robot_size);
+
+    OSTaskCreateExt(shell_task,
+                    NULL,
+                    &shell_task_stk[TASK_STACKSIZE-1],
+                    SHELL_TASK_PRIORITY,
+                    SHELL_TASK_PRIORITY,
+                    &shell_task_stk[0],
+                    TASK_STACKSIZE,
+                    NULL, NULL);
+
+    OSTaskCreateExt(heartbeat_task,
+                    NULL,
+                    &heartbeat_task_stk[TASK_STACKSIZE-1],
+                    HEARTBEAT_TASK_PRIORITY,
+                    HEARTBEAT_TASK_PRIORITY,
+                    &heartbeat_task_stk[0],
+                    TASK_STACKSIZE,
+                    NULL, NULL);
+
+    /* Tasks must delete themselves before exiting. */
+    OSTaskDel(OS_PRIO_SELF);
 }
 
 int main(void)

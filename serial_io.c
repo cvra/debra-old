@@ -101,8 +101,8 @@ u32_t sio_tryread(sio_fd_t fd, u8_t *data, u32_t len)
  */
 sio_fd_t sio_open(u8_t devnum)
 {
-    out = open("/dev/comBT2", O_WRONLY);
-    in  = open("/dev/comBT2", O_RDONLY);
+    out = open("/dev/comPC", O_WRONLY);
+    in  = open("/dev/comPC", O_RDONLY);
 
     if (in == -1 || out == -1)
         return NULL;
