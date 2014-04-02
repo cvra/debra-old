@@ -5,3 +5,6 @@
 [submodule "nios_files"]
 	path = nios_files
 	url = https://github.com/cvra/nios_files
+[submodule "lwip"]
+	path = lwip
+	url = https://github.com/cvra/lwip_ucos2
