@@ -171,6 +171,8 @@ void init_task(void *pdata)
     cvra_cs_init();
 #endif
 
+    luaconsole_init();
+
 
     /* Sets the bounding box for the avoidance module. */
     const int robot_size = 150;

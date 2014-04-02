@@ -62,6 +62,9 @@ Really bad things can happen when you don't set your priority correctly.
 | Motor control | 21       | Main motors (wheels) control. Updates robot system and blocking detection.
 | Odometry      | 22       | Computes the robot position from robot system.
 | Trajectory    | 23       | Computes the current consigns needed to go to target point.
+| TCP/IP        | 30       | The main lwIP thread
+| SLIP          | 31       | The Serial Line IP Input thread. Continuously polls the serial line.
+| Lua shell     | 32       | A lua shell
 | Shell         | 40       | Serial shell used for debug and config.
 | Heartbeat     | 41       | Blinks an LED.
 | Strategy      | 50       | Must be background task because it doesn't use IPC properly yet.
