@@ -8,3 +8,6 @@
 [submodule "lwip"]
 	path = lwip
 	url = https://github.com/cvra/lwip_ucos2
+[submodule "lua"]
+	path = lua
+	url = https://github.com/cvra/lua.git
