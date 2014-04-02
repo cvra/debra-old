@@ -19,7 +19,6 @@
 
 #include <uptime.h>
 #include <cvra_beacon.h>
-#include <commandline.h>
 
 #include <lwip/sys.h>
 #include <lwip/tcpip.h>
@@ -30,18 +29,14 @@
 #include "cvra_cs.h"
 #include "strat_utils.h"
 
-extern command_t commands_list[];
 
 #define   TASK_STACKSIZE          2048
 #define   INIT_TASK_PRIORITY        20
-#define   SHELL_TASK_PRIORITY       40
 #define   HEARTBEAT_TASK_PRIORITY   41
 
 OS_STK    init_task_stk[TASK_STACKSIZE];
-OS_STK    shell_task_stk[TASK_STACKSIZE];
 OS_STK    heartbeat_task_stk[TASK_STACKSIZE];
 
-void shell_task(void *pdata);
 void init_task(void *pdata);
 void heartbeat_task(void *pdata);
 
@@ -67,15 +62,6 @@ void mylog(struct error * e, ...)
     vfprintf(stderr, e->text, ap);
     fprintf(stderr, "\r\n");
     va_end(ap);
-}
-
-void shell_task(void *pdata)
-{
-    /* Inits the commandline interface. */
-    commandline_init(commands_list);
-
-    /* Runs the commandline system. */
-    for (;;) commandline_input_char(getchar());
 }
 
 void heartbeat_task(void *pdata)
@@ -178,14 +164,6 @@ void init_task(void *pdata)
     const int robot_size = 150;
     polygon_set_boundingbox(robot_size, robot_size, 3000-robot_size, 2000-robot_size);
 
-    OSTaskCreateExt(shell_task,
-                    NULL,
-                    &shell_task_stk[TASK_STACKSIZE-1],
-                    SHELL_TASK_PRIORITY,
-                    SHELL_TASK_PRIORITY,
-                    &shell_task_stk[0],
-                    TASK_STACKSIZE,
-                    NULL, NULL);
 
     OSTaskCreateExt(heartbeat_task,
                     NULL,

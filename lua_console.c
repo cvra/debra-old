@@ -75,9 +75,7 @@ void serve_conn(struct netconn *conn)
     lua_pushcfunction(l, print_func);
     lua_setglobal(l, "print");
 
-    // registers demo function
-    lua_pushcfunction(l, mysum);
-    lua_setglobal(l, "mysum");
+    commands_register(l);
 
     netconn_write(conn, PROMPT, strlen(PROMPT), NETCONN_COPY);
     while((err = netconn_recv(conn, &buf)) == ERR_OK) {
