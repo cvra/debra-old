@@ -70,8 +70,8 @@ int cmd_encoders_get(lua_State *l)
     if (lua_gettop(l) < 2)
         return 0;
 
-    adress = lua_touserdata(l, -1);
-    channel = lua_tointeger(l, -2);
+    adress = lua_touserdata(l, -2);
+    channel = lua_tointeger(l, -1);
 
     lua_pushnumber(l, cvra_dc_get_encoder(adress, channel));
 
