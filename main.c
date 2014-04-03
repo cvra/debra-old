@@ -185,6 +185,7 @@ int main(void)
 
     /* Setup UART speed, must be first. */
     cvra_set_uart_speed(COMPC_BASE, PIO_FREQ, 57600);
+    cvra_set_uart_speed(COMDEBUG_BASE, PIO_FREQ, 115200);
 //    cvra_set_uart_speed(COMBT2_BASE, 9600); 
 
     /* Inits the logging system. */
