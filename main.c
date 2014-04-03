@@ -157,6 +157,8 @@ void init_task(void *pdata)
     cvra_cs_init();
 #endif
 
+    lua_do_settings();
+
     luaconsole_init();
 
 
