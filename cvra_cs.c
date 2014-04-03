@@ -69,10 +69,10 @@ void cvra_cs_init(void)
     /*                         Encoders & PWMs                                  */
     /****************************************************************************/
 #ifdef COMPILE_ON_ROBOT
-    rs_set_left_pwm(&robot.rs, cvra_dc_set_pwm0, HEXMOTORCONTROLLER_BASE);
-    rs_set_right_pwm(&robot.rs, cvra_dc_set_pwm5, HEXMOTORCONTROLLER_BASE);
-    rs_set_left_ext_encoder(&robot.rs, cvra_dc_get_encoder0, HEXMOTORCONTROLLER_BASE, 1.00070012);
-    rs_set_right_ext_encoder(&robot.rs, cvra_dc_get_encoder5, HEXMOTORCONTROLLER_BASE,-0.9993);
+    rs_set_left_pwm(&robot.rs, cvra_dc_set_pwm1, HEXMOTORCONTROLLER_BASE);
+    rs_set_right_pwm(&robot.rs, cvra_dc_set_pwm2, HEXMOTORCONTROLLER_BASE);
+    rs_set_left_ext_encoder(&robot.rs, cvra_dc_get_encoder4, HEXMOTORCONTROLLER_BASE, 1.);
+    rs_set_right_ext_encoder(&robot.rs, cvra_dc_get_encoder3, HEXMOTORCONTROLLER_BASE,1.);
 #endif
 
     /****************************************************************************/

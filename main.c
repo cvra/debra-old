@@ -152,7 +152,7 @@ void init_task(void *pdata)
     }
 
     /* Inits all the trajectory stuff, PID, odometry, etc... */
-#if 0
+#if 1
     NOTICE(0, "Main control system init.");
     cvra_cs_init();
 #endif
