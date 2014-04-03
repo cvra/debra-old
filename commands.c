@@ -78,6 +78,19 @@ int cmd_encoders_get(lua_State *l)
     return 1;
 }
 
+int cmd_forward(lua_State *l)
+{
+    int distance;
+    if (lua_gettop(l) < 1)
+        return 0;
+
+    distance = lua_tointeger(l, -1);
+
+    trajectory_d_rel(&robot.traj, distance);
+
+    return 0; 
+}
+
 
 void commands_register(lua_State *l)
 {
@@ -95,6 +108,9 @@ void commands_register(lua_State *l)
 
     lua_pushcfunction(l, cmd_mode);
     lua_setglobal(l, "mode");
+
+    lua_pushcfunction(l, cmd_forward);
+    lua_setglobal(l, "forward");
 
     lua_pushcfunction(l, cmd_encoders_get);
     lua_setglobal(l, "encoder_get");
