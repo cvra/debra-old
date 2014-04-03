@@ -31,12 +31,51 @@ int cmd_bluetooth_send(lua_State *l)
     return 0;
 }
 
+int cmd_mode(lua_State *l)
+{
+    char *mode;
+
+    if (lua_gettop(l) < 1)
+        return 0;
+
+    mode = lua_tostring(l, -1);
+
+    if(!strcmp("angle", mode))
+        robot.mode = BOARD_MODE_ANGLE_ONLY;
+    if(!strcmp("distance", mode))
+        robot.mode = BOARD_MODE_DISTANCE_ONLY;
+    if(!strcmp("off", mode))
+        robot.mode = BOARD_MODE_FREE;
+    if(!strcmp("all", mode))
+        robot.mode = BOARD_MODE_ANGLE_DISTANCE;
+
+    trajectory_hardstop(&robot.traj);
+
+    return 0;
+}
+
 int cmd_position_get(lua_State *l)
 {
     lua_pushnumber(l, position_get_x_float(&robot.pos));
     lua_pushnumber(l, position_get_y_float(&robot.pos));
     lua_pushnumber(l, position_get_a_rad_float(&robot.pos));
     return 3;
+}
+
+int cmd_encoders_get(lua_State *l)
+{
+    int32_t *adress;
+    int channel;
+
+    if (lua_gettop(l) < 2)
+        return 0;
+
+    adress = lua_touserdata(l, -1);
+    channel = lua_tointeger(l, -2);
+
+    lua_pushnumber(l, cvra_dc_get_encoder(adress, channel));
+
+    return 1;
 }
 
 
@@ -53,5 +92,17 @@ void commands_register(lua_State *l)
 
     lua_pushcfunction(l, cmd_bluetooth_send);
     lua_setglobal(l, "log");
+
+    lua_pushcfunction(l, cmd_mode);
+    lua_setglobal(l, "mode");
+
+    lua_pushcfunction(l, cmd_encoders_get);
+    lua_setglobal(l, "encoder_get");
+
+    lua_pushlightuserdata(l, HEXMOTORCONTROLLER_BASE);
+    lua_setglobal(l, "hexmotor");
+
+    lua_pushlightuserdata(l, ARMSMOTORCONTROLLER_BASE);
+    lua_setglobal(l, "armmotor");
 }
 

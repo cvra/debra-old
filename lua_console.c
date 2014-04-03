@@ -54,17 +54,12 @@ int print_func(lua_State *l)
     return 0;
 }
 
-void lua_do_rom_script(char *buffer, int size)
+void lua_do_rom_script(lua_State *l, char *buffer, int size)
 {
-    lua_State *l;
-    unsigned char *command;
     int i;
 
-    command = malloc(size + 1);
+    unsigned char *command = malloc(size + 1);
 
-    l = luaL_newstate();
-    luaL_openlibs(l);
-    commands_register(l);
 
     for (i=0;i<size;i++) {
         command[i] = buffer[i];
@@ -76,13 +71,30 @@ void lua_do_rom_script(char *buffer, int size)
     free(command);
 }
 
+void lua_prepare_shell(lua_State *l)
+{
+    extern unsigned char commands_lua[];
+    extern long int commands_lua_size;
+
+
+    lua_do_rom_script(l, commands_lua, commands_lua_size);
+}
+
 void lua_do_settings(void)
 {
     extern unsigned char settings_lua[];
     extern long int settings_lua_size;
 
-    lua_do_rom_script(settings_lua, settings_lua_size);
+    lua_State *l = luaL_newstate();
+    luaL_openlibs(l);
+
+    commands_register(l);
+
+    lua_prepare_shell(l);
+
+    lua_do_rom_script(l, settings_lua, settings_lua_size);
 }
+
 
 void serve_conn(struct netconn *conn)
 {
@@ -98,14 +110,16 @@ void serve_conn(struct netconn *conn)
 
     l = luaL_newstate();
     luaL_openlibs(l);
-
+    
     lua_pushlightuserdata(l, conn);
     lua_setglobal(l, "__conn");
 
     lua_pushcfunction(l, print_func);
     lua_setglobal(l, "print");
-
+    
     commands_register(l);
+    lua_prepare_shell(l);
+
 
     netconn_write(conn, PROMPT, strlen(PROMPT), NETCONN_COPY);
     while((err = netconn_recv(conn, &buf)) == ERR_OK) {
@@ -149,7 +163,7 @@ static void luaconsole_thread(void *arg)
     conn = netconn_new(NETCONN_TCP);
 
     /* Bind connection to well known port number 7. */
-    netconn_bind(conn, NULL, 1235);
+    netconn_bind(conn, NULL, 88);
 
     /* Tell connection to go into listening mode. */
     netconn_listen(conn);
