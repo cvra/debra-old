@@ -54,32 +54,34 @@ int print_func(lua_State *l)
     return 0;
 }
 
-extern unsigned char script_settings_lua[];
-extern long int script_settings_lua_size;
-
-void lua_do_settings(void)
+void lua_do_rom_script(char *buffer, int size)
 {
-	lua_State *l;
+    lua_State *l;
     unsigned char *command;
     int i;
 
-    command = malloc(script_settings_lua_size + 1);
-
+    command = malloc(size + 1);
 
     l = luaL_newstate();
     luaL_openlibs(l);
     commands_register(l);
 
-    for (i=0;i<script_settings_lua_size;i++) {
-        command[i] = script_settings_lua[i];
+    for (i=0;i<size;i++) {
+        command[i] = buffer[i];
     }
     command[i] = 0;
 
+    luaL_dostring(l, command);
 
-   luaL_dostring(l, command);
+    free(command);
+}
 
-   free(command);
+void lua_do_settings(void)
+{
+    extern unsigned char settings_lua[];
+    extern long int settings_lua_size;
 
+    lua_do_rom_script(settings_lua, settings_lua_size);
 }
 
 void serve_conn(struct netconn *conn)
