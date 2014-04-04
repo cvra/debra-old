@@ -27,6 +27,7 @@
 
 #include "hardware.h"
 #include "cvra_cs.h"
+#include "arm_init.h"
 #include "strat_utils.h"
 
 
@@ -165,6 +166,9 @@ void init_task(void *pdata)
     /* Sets the bounding box for the avoidance module. */
     const int robot_size = 150;
     polygon_set_boundingbox(robot_size, robot_size, 3000-robot_size, 2000-robot_size);
+
+
+    arm_highlevel_init();
 
 
     OSTaskCreateExt(heartbeat_task,

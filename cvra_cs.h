@@ -8,7 +8,7 @@
 #ifndef CVRA_CS_H
 #define CVRA_CS_H
 
-#include <aversive.h>
+#include <platform.h>
 #include <aversive/queue.h>
 #include <2wheels/trajectory_manager.h>
 #include <2wheels/robot_system.h>

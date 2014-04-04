@@ -23,6 +23,7 @@ typedef struct {
     /* Control systems */
     arm_control_loop_t z_axis;
     arm_control_loop_t shoulder;
+    arm_control_loop_t hand;
     arm_control_loop_t elbow;
 
     /* Physical parameters. */

@@ -15,12 +15,14 @@ void arm_set_physical_parameters(arm_t *arm)
     arm->length[0] = 135.5; /* mm */
     arm->length[1] = 136;
 
-    pid_set_gains(&arm->z_axis.pid, 2250, 0, 100);
-    pid_set_gains(&arm->elbow.pid, 30, 0, 0);
-    pid_set_gains(&arm->shoulder.pid, 30, 0, 0);
+    pid_set_gains(&arm->z_axis.pid, 1200, 0, 0);
+    pid_set_gains(&arm->elbow.pid, 10, 0, 0);
+    pid_set_gains(&arm->shoulder.pid, 10, 0, 0);
+    pid_set_gains(&arm->hand.pid, 10, 0, 0);
 
     pid_set_out_shift(&arm->z_axis.pid, 12);
     pid_set_out_shift(&arm->shoulder.pid, 6);
+    pid_set_out_shift(&arm->hand.pid, 6);
     pid_set_out_shift(&arm->elbow.pid, 6);
 
     arm->z_axis_imp_per_mm = 655*4;
@@ -28,11 +30,13 @@ void arm_set_physical_parameters(arm_t *arm)
     arm->elbow_imp_per_rad = -56571;
 }
 
+
 void arm_init(arm_t *arm)
 {
     memset(arm, 0, sizeof(arm_t));
 
     arm_cs_init_loop(&arm->shoulder);
+    arm_cs_init_loop(&arm->hand);
     arm_cs_init_loop(&arm->elbow);
     arm_cs_init_loop(&arm->z_axis);
 
