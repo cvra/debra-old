@@ -189,6 +189,94 @@ int cmd_rs_get_distance(lua_State *l)
     return 1;
 }
 
+int cmd_set_wheel_correction_factor(lua_State *l)
+{
+
+    float factor, left_gain, right_gain;
+    if (lua_gettop(l) < 1)
+        return 0;
+
+    factor = lua_tonumber(l, -1);
+
+    left_gain = (1. + factor) * robot.rs.left_ext_gain;
+    right_gain = (1. - factor) * robot.rs.right_ext_gain;
+
+    robot.rs.left_ext_gain = left_gain;
+    robot.rs.right_ext_gain = right_gain;
+
+    return 0;
+}
+
+int cmd_set_pid_gains(lua_State *l)
+{
+
+   struct pid_filter *pid; 
+   int p, i, d;
+
+    if (lua_gettop(l) < 4)
+        return 0;
+
+
+   p = lua_tointeger(l, -3);
+   i = lua_tointeger(l, -2);
+   d = lua_tointeger(l, -1);
+   pid = lua_touserdata(l, -4);
+
+   if (pid) {
+       pid_set_gains(pid, p, i, d);
+   }
+   return 0;
+}
+
+int cmd_angle_calibrate(lua_State *l)
+{
+    int32_t start_angle, delta_angle;
+    float factor;
+
+    int count;
+    if (lua_gettop(l) < 1)
+        count = 1;
+    else
+        count = lua_tointeger(l, -1);
+
+    robot.mode = BOARD_MODE_ANGLE_DISTANCE;
+    start_angle = rs_get_angle(&robot.rs);
+
+    trajectory_d_rel(&robot.traj, 100);
+    while(!trajectory_finished(&robot.traj));
+
+    trajectory_a_rel(&robot.traj, count*360);
+    while(!trajectory_finished(&robot.traj));
+
+
+    trajectory_d_rel(&robot.traj, -50);
+    while(!trajectory_finished(&robot.traj));
+
+    robot.mode = BOARD_MODE_DISTANCE_ONLY;
+    // On recule jusqu'a  qu'on ait touche un mur
+    trajectory_d_rel(&robot.traj, (double) -2000);
+    while(!bd_get(&robot.distance_bd));
+    trajectory_hardstop(&robot.traj);
+    bd_reset(&robot.distance_bd);
+    bd_reset(&robot.angle_bd);
+    robot.mode = BOARD_MODE_ANGLE_DISTANCE;
+
+    delta_angle = rs_get_angle(&robot.rs) - start_angle;
+    delta_angle -= pos_rd2imp(&robot.traj, RAD(360*count));
+
+    // if factor > 0, then the robot turns too much
+    factor = (float)delta_angle / (float)(pos_rd2imp(&robot.traj,RAD(360*count)));
+    factor = (1.+factor)*robot.pos.phys.track_mm;
+
+    printf("Suggested track : %.8f [mm]\n", factor);
+    printf("Old track : %.8f [mm]\n", robot.pos.phys.track_mm);
+
+    robot.pos.phys.track_mm = factor;
+
+    lua_pushnumber(l, factor);
+    return 1;
+}
+
 void commands_register(lua_State *l)
 {
     lua_pushcfunction(l, cmd_pio_read);
@@ -236,6 +324,15 @@ void commands_register(lua_State *l)
     lua_pushcfunction(l, cmd_rs_get_distance);
     lua_setglobal(l, "rs_get_distance");
 
+    lua_pushcfunction(l, cmd_set_wheel_correction_factor);
+    lua_setglobal(l, "rs_set_factor");
+
+    lua_pushcfunction(l, cmd_set_pid_gains);
+    lua_setglobal(l, "pid_set_gains");
+
+    lua_pushcfunction(l, cmd_angle_calibrate);
+    lua_setglobal(l, "angle_calibrate");
+
     lua_pushinteger(l, END_TRAJ);
     lua_setglobal(l, "END_TRAJ");
 
@@ -259,5 +356,11 @@ void commands_register(lua_State *l)
 
     lua_pushlightuserdata(l, ARMSMOTORCONTROLLER_BASE);
     lua_setglobal(l, "armmotor");
+
+    lua_pushlightuserdata(l, &robot.angle_pid);
+    lua_setglobal(l, "angle_pid");
+
+    lua_pushlightuserdata(l, &robot.distance_pid);
+    lua_setglobal(l, "distance_pid");
 }
 

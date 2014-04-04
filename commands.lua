@@ -50,7 +50,8 @@ function calage_test()
 end
 
 function calage()
-    bd_set_threshold("distance", 5000)
+    bd_set_threshold("distance", 6000)
+    bd_set_threshold("distance", 6000)
     trajectory_set_speed(SPEED_CALAGE_D, SPEED_CALAGE_A)
     mode("distance")
     forward(-2000)
@@ -59,22 +60,32 @@ function calage()
 end
 
 
-function calibrate_wheels()
+
+function calibrate_wheels(count)
     trajectory_set_acc(160, 1.94)
     calage()
+    
 
     start_angle = rs_get_angle()
     start_distance = rs_get_distance()
 
-    forward(1200)
-    wait_traj_end(TRAJ_FLAGS_STD)
-    turn(180)
-    wait_traj_end(TRAJ_FLAGS_STD)
+    forward(50)
+    wait_traj_end(END_TRAJ)
 
-    forward(1150)
-    wait_traj_end(TRAJ_FLAGS_STD)
-    turn(-180)
-    wait_traj_end(TRAJ_FLAGS_STD)
+    while count > 0 do
+        forward(1150)
+        wait_traj_end(END_TRAJ)
+
+        turn(180)
+        wait_traj_end(END_TRAJ)
+
+        forward(1150)
+        wait_traj_end(END_TRAJ)
+
+        turn(-180)
+        wait_traj_end(END_TRAJ)
+        count = count-1
+    end
 
     forward(-25)
     wait_traj_end(TRAJ_FLAGS_STD)
@@ -87,6 +98,7 @@ function calibrate_wheels()
     factor = delta_a / delta_d
 
     print("Correction factor : "..factor)
+    rs_set_factor(factor)
 end
 
 -- Finally greet the user if running in interactive mode

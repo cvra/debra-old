@@ -82,8 +82,8 @@ void cvra_cs_init(void)
     position_init(&robot.pos);
     /* Links the position manager to the robot system. */
     position_set_related_robot_system(&robot.pos, &robot.rs);
-    position_set_physical_params(&robot.pos,177.75691223,
-            160.396); // imp / mm  //
+
+    position_set_physical_params(&robot.pos,193.82313537598, 162.9746617261);
 
     /****************************************************************************/
     /*                       Regulation de l'angle                              */
