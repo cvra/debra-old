@@ -216,14 +216,16 @@ int test_traj_end(int why)
 
     if((why & END_BLOCKING) && bd_get(&robot.distance_bd)) {
         trajectory_hardstop(&robot.traj);
-        WARNING(0, "Erreur choc distance !");
+        bd_reset(&robot.distance_bd);
+        bd_reset(&robot.angle_bd);
         return END_BLOCKING;
     }
 
     if((why & END_BLOCKING) && bd_get(&robot.angle_bd)) {
         trajectory_hardstop(&robot.traj);
 
-        WARNING(0, "Erreur choc angle !");
+        bd_reset(&robot.distance_bd);
+        bd_reset(&robot.angle_bd);
         return END_BLOCKING;
     }
 

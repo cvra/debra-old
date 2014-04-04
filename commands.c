@@ -5,6 +5,8 @@
 #include "lua/lauxlib.h"
 #include "lua/lualib.h"
 #include "cvra_cs.h"
+#include "strat_utils.h"
+#include <2wheels/trajectory_manager_utils.h>
 
 int cmd_pio_read(lua_State *l)
 {
@@ -88,9 +90,104 @@ int cmd_forward(lua_State *l)
 
     trajectory_d_rel(&robot.traj, distance);
 
-    return 0; 
+    return 0;
 }
 
+int cmd_turn(lua_State *l)
+{
+    int distance;
+    if (lua_gettop(l) < 1)
+        return 0;
+
+    distance = lua_tointeger(l, -1);
+
+    trajectory_a_rel(&robot.traj, distance);
+
+    return 0;
+}
+
+int cmd_set_bd_params(lua_State *l)
+{
+
+    int thresold;
+
+    if (lua_gettop(l) < 2)
+        return 0;
+
+    thresold = lua_tointeger(l,-1);
+
+    if (!strcmp(lua_tostring(l, -2), "angle"))
+        bd_set_thresholds(&robot.angle_bd, thresold, 1);
+    else
+        bd_set_thresholds(&robot.distance_bd, thresold, 1);
+
+    return 0;
+}
+
+int cmd_bd_reset(lua_State *l)
+{
+    bd_reset(&robot.angle_bd);
+    bd_reset(&robot.angle_bd);
+    return 0;
+}
+
+int cmd_set_traj_speed(lua_State *l)
+{
+    float angle, distance;
+
+    if (lua_gettop(l) < 2)
+        return 0;
+
+    distance = lua_tonumber(l, -2);
+    angle = lua_tonumber(l, -1);
+
+    trajectory_set_speed(&robot.traj,
+            speed_mm2imp(&robot.traj, distance),
+            speed_rd2imp(&robot.traj, angle));
+    return 0;
+}
+
+int cmd_set_traj_acc(lua_State *l)
+{
+    float angle, distance;
+
+    if (lua_gettop(l) < 2)
+        return 0;
+
+    distance = lua_tonumber(l, -2);
+    angle = lua_tonumber(l, -1);
+
+    trajectory_set_acc(&robot.traj,
+            acc_mm2imp(&robot.traj, distance),
+            acc_rd2imp(&robot.traj, angle));
+    return 0;
+}
+
+int cmd_test_traj_end(lua_State *l)
+{
+    int why;
+    if (lua_gettop(l) < 1) {
+        lua_pushnumber(l, END_ERROR);
+        return 1;
+    }
+
+    why = lua_tointeger(l, -1);
+    lua_pushinteger(l, test_traj_end(why));
+
+    return 1;
+}
+
+int cmd_rs_get_angle(lua_State *l)
+{
+    lua_pushinteger(l, rs_get_angle(&robot.rs));
+    return 1;
+}
+
+int cmd_rs_get_distance(lua_State *l)
+{
+    lua_pushinteger(l, rs_get_distance(&robot.rs));
+    return 1;
+}
 
 void commands_register(lua_State *l)
 {
@@ -112,8 +209,50 @@ void commands_register(lua_State *l)
     lua_pushcfunction(l, cmd_forward);
     lua_setglobal(l, "forward");
 
+    lua_pushcfunction(l, cmd_turn);
+    lua_setglobal(l, "turn");
+
     lua_pushcfunction(l, cmd_encoders_get);
     lua_setglobal(l, "encoder_get");
+
+    lua_pushcfunction(l, cmd_set_bd_params);
+    lua_setglobal(l, "bd_set_threshold");
+
+    lua_pushcfunction(l, cmd_bd_reset);
+    lua_setglobal(l, "bd_reset");
+
+    lua_pushcfunction(l, cmd_set_traj_speed);
+    lua_setglobal(l, "trajectory_set_speed");
+
+    lua_pushcfunction(l, cmd_set_traj_acc);
+    lua_setglobal(l, "trajectory_set_acc");
+
+    lua_pushcfunction(l, cmd_test_traj_end);
+    lua_setglobal(l, "test_traj_end");
+
+    lua_pushcfunction(l, cmd_rs_get_angle);
+    lua_setglobal(l, "rs_get_angle");
+
+    lua_pushcfunction(l, cmd_rs_get_distance);
+    lua_setglobal(l, "rs_get_distance");
+
+    lua_pushinteger(l, END_TRAJ);
+    lua_setglobal(l, "END_TRAJ");
+
+    lua_pushinteger(l, END_BLOCKING);
+    lua_setglobal(l, "END_BLOCKING");
+
+    lua_pushinteger(l, END_NEAR);
+    lua_setglobal(l, "END_NEAR");
+
+    lua_pushinteger(l, END_OBSTACLE);
+    lua_setglobal(l, "END_OBSTACLE");
+
+    lua_pushinteger(l, END_ERROR);
+    lua_setglobal(l, "END_ERROR");
+
+    lua_pushinteger(l, END_TIMER);
+    lua_setglobal(l, "END_TIMER");
 
     lua_pushlightuserdata(l, HEXMOTORCONTROLLER_BASE);
     lua_setglobal(l, "hexmotor");
