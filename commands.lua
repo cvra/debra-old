@@ -101,6 +101,39 @@ function calibrate_wheels(count)
     rs_set_factor(factor)
 end
 
+function shoulder_pid(p, i, d)
+    if p == nil or i == nil or d == nil then
+        return
+    end
+    pid_set_gains(right_shoulder_pid, p, i, d)
+    pid_set_gains(left_shoulder_pid, p, i, d)
+end
+
+function z_axis_pid(p, i, d)
+    if p == nil or i == nil or d == nil then
+        return
+    end
+    pid_set_gains(right_z_axis_pid, p, i, d)
+    pid_set_gains(left_z_axis_pid, p, i, d)
+end
+
+function elbow_pid(p, i, d)
+    if p == nil or i == nil or d == nil then
+        return
+    end
+    pid_set_gains(right_elbow_pid, p, i, d)
+    pid_set_gains(left_elbow_pid, p, i, d)
+end
+
+function hand_pid(p, i, d)
+    if p == nil or i == nil or d == nil then
+        return
+    end
+    pid_set_gains(right_hand_pid, p, i, d)
+    pid_set_gains(left_hand_pid, p, i, d)
+end
+
+
 -- Finally greet the user if running in interactive mode
 function greet()
     print("Wilkommen bei ReichOS 1.0 !")

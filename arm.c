@@ -22,7 +22,7 @@ void arm_set_physical_parameters(arm_t *arm)
 
     pid_set_out_shift(&arm->z_axis.pid, 12);
     pid_set_out_shift(&arm->shoulder.pid, 6);
-    pid_set_out_shift(&arm->hand.pid, 6);
+    pid_set_out_shift(&arm->hand.pid, 10);
     pid_set_out_shift(&arm->elbow.pid, 6);
 
     arm->z_axis_imp_per_mm = 655*4;

@@ -12,4 +12,15 @@ pid_set_gains(angle_pid, 0.8*400, 0, 0.8*2000)
 pid_set_gains(distance_pid, 0.8*200, 0, 0.8*000)
 
 rs_set_factor(0.00098906680210644)
+
+
+-- Arm regulator settings
+--
+
+shoulder_pid(10, 0, 0)
+hand_pid(60, 0, 0)
+z_axis_pid(1200, 0, 0)
+elbow_pid(10, 0, 0)
+
+
 print("Lua settings done...")

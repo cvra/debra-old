@@ -362,5 +362,29 @@ void commands_register(lua_State *l)
 
     lua_pushlightuserdata(l, &robot.distance_pid);
     lua_setglobal(l, "distance_pid");
+
+    lua_pushlightuserdata(l, &robot.right_arm.shoulder.pid);
+    lua_setglobal(l, "right_shoulder_pid");
+
+    lua_pushlightuserdata(l, &robot.right_arm.elbow.pid);
+    lua_setglobal(l, "right_elbow_pid");
+
+    lua_pushlightuserdata(l, &robot.right_arm.hand.pid);
+    lua_setglobal(l, "right_hand_pid");
+
+    lua_pushlightuserdata(l, &robot.right_arm.z_axis.pid);
+    lua_setglobal(l, "right_z_axis_pid");
+
+    lua_pushlightuserdata(l, &robot.left_arm.shoulder.pid);
+    lua_setglobal(l, "left_shoulder_pid");
+
+    lua_pushlightuserdata(l, &robot.left_arm.elbow.pid);
+    lua_setglobal(l, "left_elbow_pid");
+
+    lua_pushlightuserdata(l, &robot.left_arm.hand.pid);
+    lua_setglobal(l, "left_hand_pid");
+
+    lua_pushlightuserdata(l, &robot.left_arm.z_axis.pid);
+    lua_setglobal(l, "left_z_axis_pid");
 }
 

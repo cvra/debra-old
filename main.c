@@ -158,9 +158,6 @@ void init_task(void *pdata)
     cvra_cs_init();
 #endif
 
-    lua_do_settings();
-
-    luaconsole_init();
 
 
     /* Sets the bounding box for the avoidance module. */
@@ -170,6 +167,9 @@ void init_task(void *pdata)
 
     arm_highlevel_init();
 
+    lua_do_settings();
+
+    luaconsole_init();
 
     OSTaskCreateExt(heartbeat_task,
                     NULL,
