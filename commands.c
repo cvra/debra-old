@@ -6,6 +6,7 @@
 #include "lua/lualib.h"
 #include "cvra_cs.h"
 #include "strat_utils.h"
+#include "arm_trajectories.h"
 #include <2wheels/trajectory_manager_utils.h>
 
 int cmd_pio_read(lua_State *l)
@@ -207,6 +208,19 @@ int cmd_set_wheel_correction_factor(lua_State *l)
     return 0;
 }
 
+int cmd_traj_goto(lua_State *l)
+{
+    int x,y;
+    if (lua_gettop(l) < 2)
+        return 0;
+
+    x = lua_tointeger(l, -2);
+    y = lua_tointeger(l, -2);
+
+
+
+}
+
 int cmd_set_pid_gains(lua_State *l)
 {
 
@@ -277,6 +291,15 @@ int cmd_angle_calibrate(lua_State *l)
     return 1;
 }
 
+int cmd_arm_move(lua_State *l)
+{
+    arm_trajectory_t traj;
+    arm_trajectory_append_point(&traj, 200, 0, 0, COORDINATE_ARM, 0.);
+    arm_trajectory_append_point(&traj, 100, 100, 0, COORDINATE_ARM, 10.);
+    arm_do_trajectory(&robot.right_arm, &traj):
+    arm_trajectory_delete(&traj);
+}
+
 void commands_register(lua_State *l)
 {
     lua_pushcfunction(l, cmd_pio_read);
@@ -332,6 +355,9 @@ void commands_register(lua_State *l)
 
     lua_pushcfunction(l, cmd_angle_calibrate);
     lua_setglobal(l, "angle_calibrate");
+
+    lua_pushcfunction(l, cmd_arm_move);
+    lua_setglobal(l, "arm_move");
 
     lua_pushinteger(l, END_TRAJ);
     lua_setglobal(l, "END_TRAJ");

@@ -7,13 +7,12 @@
 #include "arm_trajectories.h"
 #include "arm_utils.h"
 
-static arm_keyframe_t arm_convert_keyframe_coordinate(arm_t *arm, arm_keyframe_t key);
 
 void arm_set_physical_parameters(arm_t *arm)
 {
     /* Physical constants, not magic numbers. */
-    arm->length[0] = 135.5; /* mm */
-    arm->length[1] = 136;
+    arm->length[0] = 135.16; /* mm */
+    arm->length[1] = 97.74;
 
     pid_set_gains(&arm->z_axis.pid, 1200, 0, 0);
     pid_set_gains(&arm->elbow.pid, 10, 0, 0);

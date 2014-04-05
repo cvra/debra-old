@@ -164,7 +164,6 @@ void init_task(void *pdata)
     const int robot_size = 150;
     polygon_set_boundingbox(robot_size, robot_size, 3000-robot_size, 2000-robot_size);
 
-
     arm_highlevel_init();
 
     lua_do_settings();

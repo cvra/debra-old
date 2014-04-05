@@ -41,8 +41,8 @@ void arm_trajectory_append_point(arm_trajectory_t *traj, const float x, const fl
         traj->frames[traj->frame_count-1].date = traj->frames[traj->frame_count-2].date+1000000*duration;
 
 
-    traj->frames[traj->frame_count-1].length[0] = 135.5;
-    traj->frames[traj->frame_count-1].length[1] = 136;
+    traj->frames[traj->frame_count-1].length[0] = 135.16;
+    traj->frames[traj->frame_count-1].length[1] = 97.74;
 }
 
 void arm_trajectory_append_point_with_length(arm_trajectory_t *traj, const float x, const float y, const float z,
