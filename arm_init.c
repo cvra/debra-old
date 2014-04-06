@@ -7,6 +7,18 @@
 OS_STK    control_task_stk[2048];
 #define   CONTROL_TASK_PRIORITY 24
 
+OS_STK    cinematics_task_stk[2048];
+#define   CINEMATICS_TASK_PRIORITY 25
+
+void arm_cinematics_manage_task(void *dummy)
+{
+    dummy;
+    while (1) {
+        arm_manage(&robot.right_arm);
+        OSTimeDlyHMSM(0, 0, 0, 20);
+    }
+}
+
 void arm_control_manage_task(__attribute__((unused)) void *dummy)
 {
     while (1) {
@@ -18,7 +30,7 @@ void arm_control_manage_task(__attribute__((unused)) void *dummy)
         arm_cs_manage(&robot.left_arm.elbow);
         arm_cs_manage(&robot.right_arm.hand);
         arm_cs_manage(&robot.left_arm.hand);
-        OSTimeDlyHMSM(0, 0, 0, 20);
+        OSTimeDlyHMSM(0, 0, 0, 10);
     }
 }
 
@@ -69,5 +81,17 @@ void arm_highlevel_init(void)
                     &control_task_stk[0],
                     2048, /* stack size */
                     NULL, NULL);
+
+
+#if 0
+    OSTaskCreateExt(arm_cinematics_manage_task, 
+                    NULL,
+                    &cinematics_task_stk[2047],
+                    CINEMATICS_TASK_PRIORITY,
+                    CINEMATICS_TASK_PRIORITY,
+                    &cinematics_task_stk[0],
+                    2048, /* stack size */
+                    NULL, NULL);
+#endif
 }
 

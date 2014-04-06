@@ -291,13 +291,38 @@ int cmd_angle_calibrate(lua_State *l)
     return 1;
 }
 
-int cmd_arm_move(lua_State *l)
+int cmd_shoulder_move(lua_State *l)
 {
-    arm_trajectory_t traj;
-    arm_trajectory_append_point(&traj, 200, 0, 0, COORDINATE_ARM, 0.);
-    arm_trajectory_append_point(&traj, 100, 100, 0, COORDINATE_ARM, 10.);
-    arm_do_trajectory(&robot.right_arm, &traj):
-    arm_trajectory_delete(&traj);
+
+    float a;
+
+    if (lua_gettop(l) < 1)
+        return 0;
+
+    a = lua_tonumber(l, -1);
+
+    a = a * 3.14 / 180.;
+
+    cs_set_consign(&robot.right_arm.shoulder.manager, a * robot.right_arm.shoulder_imp_per_rad);
+
+    return 0;
+}
+
+int cmd_elbow_move(lua_State *l)
+{
+
+    float a;
+
+    if (lua_gettop(l) < 1)
+        return 0;
+
+    a = lua_tonumber(l, -1);
+
+    a = a * 3.14 / 180.;
+
+    cs_set_consign(&robot.right_arm.elbow.manager, a * robot.right_arm.shoulder_imp_per_rad);
+
+    return 0;
 }
 
 void commands_register(lua_State *l)
@@ -356,8 +381,11 @@ void commands_register(lua_State *l)
     lua_pushcfunction(l, cmd_angle_calibrate);
     lua_setglobal(l, "angle_calibrate");
 
-    lua_pushcfunction(l, cmd_arm_move);
-    lua_setglobal(l, "arm_move");
+    lua_pushcfunction(l, cmd_shoulder_move);
+    lua_setglobal(l, "shoulder_move");
+
+    lua_pushcfunction(l, cmd_elbow_move);
+    lua_setglobal(l, "elbow_move");
 
     lua_pushinteger(l, END_TRAJ);
     lua_setglobal(l, "END_TRAJ");
