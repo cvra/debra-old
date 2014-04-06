@@ -44,6 +44,11 @@ file(GLOB_RECURSE
 )
 
 file(GLOB_RECURSE
+    cinematics_test_source
+    cinematics_test/*
+)
+
+file(GLOB_RECURSE
     debra_source
     arm_trajectories.c
     arm_cinematics.c
@@ -92,14 +97,42 @@ link_directories($ENV{CPPUTEST_HOME}/lib)
 
 
 add_executable(
-	debra
+	tests
     ${debra_source}
     ${modules_source}
     ${tests_source}
 )
 
+add_executable(
+    cinematics_test
+    ${debra_source}
+    ${modules_source}
+    cinematics_test/main.c
+)
+
+add_executable(
+    circle_test
+    ${debra_source}
+    ${modules_source}
+    circle_tests/main.c
+)
+
 target_link_libraries(
-	debra
+	tests
+	m
+    CppUTest
+    CppUTestExt
+)
+
+target_link_libraries(
+	cinematics_test
+	m
+    CppUTest
+    CppUTestExt
+)
+
+target_link_libraries(
+	circle_test
 	m
     CppUTest
     CppUTestExt
