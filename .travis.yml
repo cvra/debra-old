@@ -7,4 +7,4 @@ install:
   - git submodule update
   - ./setup_cpputest.sh
 
-script: cd build; make; ./debra
+script: cd build; make; ./tests
