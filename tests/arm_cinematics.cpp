@@ -21,7 +21,7 @@ TEST(CinematicsTestGroup, FindsASolution)
     CHECK_EQUAL(2, status);
 }
 
-TEST(CinematicsTestGroup, FindsSingleSolution)
+IGNORE_TEST(CinematicsTestGroup, FindsSingleSolution)
 {
     point_t target = {100., 0.};
     status = compute_possible_elbow_positions(target, 50., 50., &p1, &p2);
