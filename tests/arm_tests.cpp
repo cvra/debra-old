@@ -155,8 +155,9 @@ TEST(ArmTestGroup, ArmManageUpdatesLastLoop)
 
 TEST(ArmTestGroup, ArmFinishedTrajectoryHasEnabledControl)
 {
-    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 1.);
-    arm_trajectory_append_point(&traj, 10, 10, 10, COORDINATE_ARM, 10.);
+    uptime_set(0);
+    arm_trajectory_append_point(&traj, 100, 10, 10, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, 100, 10, 10, COORDINATE_ARM, 10.);
     arm_do_trajectory(&arm, &traj);
 
     uptime_set(20 * 1000000);
