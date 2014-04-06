@@ -8,11 +8,11 @@ x = results(:, 1);
 y = results(:, 2);
 p = results(:, 3);
 
-s = sqrt(size(x, 1))
+s = sqrt(size(x, 1));
 
-x = reshape(x, s, s)
-y = reshape(y, s, s)
-p = reshape(p, s, s)
+x = reshape(x, s, s);
+y = reshape(y, s, s);
+p = reshape(p, s, s);
 
 
 figure;
