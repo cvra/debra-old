@@ -73,6 +73,16 @@ void arm_highlevel_init(void)
     arm_set_physical_parameters(&robot.right_arm);
     arm_set_physical_parameters(&robot.left_arm);
 
+    robot.left_arm.offset_xy.x = 0; robot.left_arm.offset_xy.y = 87.5;
+    robot.right_arm.offset_xy.x = 0; robot.right_arm.offset_xy.y = -87.5;
+
+    robot.left_arm.offset_rotation = M_PI / 2.;
+    robot.right_arm.offset_rotation = -M_PI / 2.;
+
+    arm_set_related_robot_pos(&robot.right_arm, &robot.pos);
+    arm_set_related_robot_pos(&robot.left_arm, &robot.pos);
+
+
     OSTaskCreateExt(arm_control_manage_task,
                     NULL,
                     &control_task_stk[2047],
@@ -83,7 +93,7 @@ void arm_highlevel_init(void)
                     NULL, NULL);
 
 
-#if 0
+#if 1
     OSTaskCreateExt(arm_cinematics_manage_task, 
                     NULL,
                     &cinematics_task_stk[2047],

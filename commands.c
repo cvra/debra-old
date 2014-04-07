@@ -325,6 +325,28 @@ int cmd_elbow_move(lua_State *l)
     return 0;
 }
 
+int cmd_arm_traj_test(lua_State *l)
+{
+
+    float x, y;
+
+    arm_trajectory_t traj;
+    arm_trajectory_init(&traj);
+    if (lua_gettop(l) < 2)
+        return 0;
+
+    x = lua_tonumber(l, -2);
+    y = lua_tonumber(l, -1);
+
+    arm_trajectory_append_point(&traj, 220, 0, 100, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, x, y, 100, COORDINATE_TABLE, 3.);
+
+    arm_do_trajectory(&robot.right_arm, &traj);
+
+    arm_trajectory_delete(&traj);
+
+}
+
 void commands_register(lua_State *l)
 {
     lua_pushcfunction(l, cmd_pio_read);
@@ -386,6 +408,9 @@ void commands_register(lua_State *l)
 
     lua_pushcfunction(l, cmd_elbow_move);
     lua_setglobal(l, "elbow_move");
+
+    lua_pushcfunction(l, cmd_arm_traj_test);
+    lua_setglobal(l, "arm_traj");
 
     lua_pushinteger(l, END_TRAJ);
     lua_setglobal(l, "END_TRAJ");
