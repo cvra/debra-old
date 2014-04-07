@@ -129,7 +129,7 @@ static arm_keyframe_t arm_convert_keyframe_coordinate(arm_t *arm, arm_keyframe_t
         float robot_a_rad;
 
         robot_pos.x = position_get_x_float(arm->robot_pos);
-        robot_pos.y = position_get_x_float(arm->robot_pos);
+        robot_pos.y = position_get_y_float(arm->robot_pos);
         robot_a_rad = position_get_a_rad_float(arm->robot_pos);
         pos = arm_coordinate_table2robot(pos, robot_pos, robot_a_rad);
         pos = arm_coordinate_robot2arm(pos, arm->offset_xy, arm->offset_rotation);
