@@ -14,6 +14,8 @@
 void arm_trajectory_append_point(arm_trajectory_t *traj, const float x, const float y, const float z,
                                    arm_coordinate_t system, const float duration);
 
+void arm_trajectory_set_hand_angle(arm_trajectory_t *traj, float angle);
+
 /** Zeroes an arm_trajectory_t structure to avoid problems.
  * @param traj The trajectory to zero.
  */

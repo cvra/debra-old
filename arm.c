@@ -133,6 +133,7 @@ void arm_manage(arm_t *arm)
     cs_set_consign(&arm->shoulder.manager, alpha * arm->shoulder_imp_per_rad);
     cs_set_consign(&arm->elbow.manager, beta * arm->elbow_imp_per_rad);
     cs_set_consign(&arm->z_axis.manager, frame.position[2] * arm->z_axis_imp_per_mm);
+    cs_set_consign(&arm->hand.manager, frame.hand_angle * 864);
 
     arm->last_loop = uptime_get();
 

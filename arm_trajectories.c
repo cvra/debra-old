@@ -43,6 +43,11 @@ void arm_trajectory_append_point(arm_trajectory_t *traj, const float x, const fl
 
     traj->frames[traj->frame_count-1].length[0] = 135.16;
     traj->frames[traj->frame_count-1].length[1] = 97.74;
+
+    if (traj->frame_count > 1) 
+        traj->frames[traj->frame_count-1].hand_angle = traj->frames[traj->frame_count-2].hand_angle;
+    else
+        traj->frames[traj->frame_count-1].hand_angle = 0;
 }
 
 void arm_trajectory_append_point_with_length(arm_trajectory_t *traj, const float x, const float y, const float z,
@@ -82,6 +87,16 @@ int arm_trajectory_finished(arm_trajectory_t *traj)
     return 0;
 }
 
+void arm_trajectory_set_hand_angle(arm_trajectory_t *traj, float angle)
+{
+    int last_frame = traj->frame_count - 1;
+    
+    if (last_frame == -1)
+        return;
+
+    traj->frames[last_frame].hand_angle = angle;
+}
+
 arm_keyframe_t arm_trajectory_interpolate_keyframes(arm_keyframe_t k1, arm_keyframe_t k2, int32_t date)
 {
     float t;
@@ -98,6 +113,8 @@ arm_keyframe_t arm_trajectory_interpolate_keyframes(arm_keyframe_t k1, arm_keyfr
 
     for (i=0; i<2; i++)
         result.length[i] = interpolate(t, k1.length[i], k2.length[i]);
+
+    result.hand_angle = interpolate(t, k1.hand_angle, k2.hand_angle);
 
     return result;
 }
