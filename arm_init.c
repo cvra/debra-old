@@ -15,6 +15,7 @@ void arm_cinematics_manage_task(void *dummy)
     dummy;
     while (1) {
         arm_manage(&robot.right_arm);
+        arm_manage(&robot.left_arm);
         OSTimeDlyHMSM(0, 0, 0, 20);
     }
 }
