@@ -30,6 +30,26 @@ void arm_set_physical_parameters(arm_t *arm)
 }
 
 
+void arm_get_position(arm_t *arm, float *x, float *y, float *z)
+{
+    float alpha, beta;
+
+    alpha = cs_get_feedback(&arm->shoulder.manager) / (float)arm->shoulder_imp_per_rad; 
+    beta = cs_get_feedback(&arm->elbow.manager) / (float)arm->elbow_imp_per_rad; 
+
+    beta += alpha;
+
+    if (x)
+        *x = arm->length[0] * cos(alpha) + arm->length[1] * cos(beta);
+
+    if (y)
+        *y = arm->length[0] * sin(alpha) + arm->length[1] * sin(beta);
+
+    if (z)
+        *z = cs_get_feedback(&arm->z_axis.manager) / (float)arm->z_axis_imp_per_mm;
+}
+
+
 void arm_init(arm_t *arm)
 {
     memset(arm, 0, sizeof(arm_t));
