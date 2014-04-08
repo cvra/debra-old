@@ -1,0 +1,119 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+CS_TASK_PRIORITY	cvra_cs.c	46;"	d	file:
+HEARTBEAT_TASK_PRIORITY	main.c	34;"	d	file:
+INIT_TASK_PRIORITY	main.c	32;"	d	file:
+ODOMETRY_TASK_PRIORITY	cvra_cs.c	47;"	d	file:
+SHELL_TASK_PRIORITY	main.c	33;"	d	file:
+STARTER_BITMASK	hardware.c	34;"	d	file:
+TASK_STACKSIZE	main.c	31;"	d	file:
+UART_FREQ	hardware.c	32;"	d	file:
+active	strat_job.c	/^    int active;$/;"	m	struct:strat_job	file:
+active_count	strat_job.c	/^int active_count = 0;$/;"	v
+arm_calibrate	arm.c	/^void arm_calibrate(void) {$/;"	f
+arm_change_coordinate_system	arm.c	/^void arm_change_coordinate_system(arm_t *arm, float x, float y, $/;"	f
+arm_connect_io	arm.c	/^void arm_connect_io(arm_t *arm, $/;"	f
+arm_create_obstacle	arm.c	/^arm_obstacle_t *arm_create_obstacle(arm_t *arm, int points_count) {$/;"	f
+arm_execute_movement	arm.c	/^void arm_execute_movement(arm_t *arm, arm_trajectory_t *traj) {$/;"	f
+arm_get_position	arm.c	/^void arm_get_position(arm_t *arm, float *x, float *y, float *z) {$/;"	f
+arm_highlevel_init	arm.c	/^void arm_highlevel_init(void) {$/;"	f
+arm_init	arm.c	/^void arm_init(arm_t *arm) {$/;"	f
+arm_interpolator_append_point	arm_interpolators.c	/^void arm_interpolator_append_point(arm_trajectory_t *traj, const float x, const float y, const float z,$/;"	f
+arm_interpolator_append_point_with_length	arm_interpolators.c	/^void arm_interpolator_append_point_with_length(arm_trajectory_t *traj, const float x, const float y, const float z,$/;"	f
+arm_interpolator_linear_motion	arm_interpolators.c	/^void arm_interpolator_linear_motion(arm_trajectory_t *traj, const float start[3], const float end[3], $/;"	f
+arm_manage	arm.c	/^void arm_manage(void *a) {$/;"	f
+arm_manage_cs	arm.c	/^void arm_manage_cs(void *a) {$/;"	f
+arm_shutdown	arm.c	/^void arm_shutdown(arm_t *arm) {$/;"	f
+arm_trajectory_finished	arm.c	/^int arm_trajectory_finished(arm_t *arm) {$/;"	f
+arm_trajectory_init	arm_interpolators.c	/^void arm_trajectory_init(arm_trajectory_t *traj) {$/;"	f
+calibration_done	commands.c	/^static int calibration_done = 0;$/;"	v	file:
+check_for_obstacle_collision	arm.c	/^int check_for_obstacle_collision(arm_t *arm, point_t p1, point_t p2, int z) {$/;"	f
+cmd_acceleration_calibrate	commands.c	/^void cmd_acceleration_calibrate(void)$/;"	f
+cmd_angle_calibrate	commands.c	/^void cmd_angle_calibrate(int argc, char **argv)$/;"	f
+cmd_arm_goto	commands.c	/^void cmd_arm_goto(int argc, char **argv)$/;"	f
+cmd_arm_pid	commands.c	/^void cmd_arm_pid(int argc, char **argv)$/;"	f
+cmd_arm_pos	commands.c	/^void cmd_arm_pos()$/;"	f
+cmd_arm_shutdown	commands.c	/^void cmd_arm_shutdown(int argc, char **argv)$/;"	f
+cmd_autopos	commands.c	/^void cmd_autopos(int argc, char **argv)$/;"	f
+cmd_beacon	commands.c	/^void cmd_beacon(void)$/;"	f
+cmd_calage_test	commands.c	/^void cmd_calage_test(int argc, char **argv)$/;"	f
+cmd_calibrate_arm	commands.c	/^void cmd_calibrate_arm()$/;"	f
+cmd_calibrate_cale	commands.c	/^void cmd_calibrate_cale(void)$/;"	f
+cmd_circle	commands.c	/^void cmd_circle(int argc, char **argv)$/;"	f
+cmd_degage_arms	commands.c	/^void cmd_degage_arms(void)$/;"	f
+cmd_demo	commands.c	/^void cmd_demo(void)$/;"	f
+cmd_do_stack	commands.c	/^void cmd_do_stack(int argc, char **argv)$/;"	f
+cmd_encoders	commands.c	/^void cmd_encoders(void)$/;"	f
+cmd_error_calibrate	commands.c	/^void cmd_error_calibrate(int argc, char **argv)$/;"	f
+cmd_error_dump	commands.c	/^void cmd_error_dump(int argc, char **argv)$/;"	f
+cmd_error_get	commands.c	/^void cmd_error_get(void)$/;"	f
+cmd_forward	commands.c	/^void cmd_forward(int argc, char **argv)$/;"	f
+cmd_goto	commands.c	/^void cmd_goto(int argc, char **argv)$/;"	f
+cmd_help	commands.c	/^void cmd_help(void)$/;"	f
+cmd_mode	commands.c	/^void cmd_mode(int argc, char **argv)$/;"	f
+cmd_motor_test	commands.c	/^void cmd_motor_test(int argc, char **argv)$/;"	f
+cmd_pid	commands.c	/^void cmd_pid(int argc, char **argv)$/;"	f
+cmd_pio_read	commands.c	/^void cmd_pio_read(void)$/;"	f
+cmd_pio_write	commands.c	/^void cmd_pio_write(int argc, char **argv)$/;"	f
+cmd_place_arms	commands.c	/^void cmd_place_arms(int argc, char **argv)$/;"	f
+cmd_position	commands.c	/^void cmd_position(int argc, char **argv)$/;"	f
+cmd_pwm	commands.c	/^void cmd_pwm(int argc, char **argv)$/;"	f
+cmd_reset	commands.c	/^void cmd_reset(void)$/;"	f
+cmd_right_gain	commands.c	/^void cmd_right_gain(int argc, char **argv)$/;"	f
+cmd_rs	commands.c	/^void cmd_rs(void)$/;"	f
+cmd_servo	commands.c	/^void cmd_servo(int argc, char **argv)$/;"	f
+cmd_shoulder_mode	commands.c	/^void cmd_shoulder_mode(int argc, char **argv)$/;"	f
+cmd_show_currents	commands.c	/^void cmd_show_currents()$/;"	f
+cmd_start	commands.c	/^void cmd_start()$/;"	f
+cmd_test_uart	commands.c	/^void cmd_test_uart(int argc, char **argv)$/;"	f
+cmd_turn	commands.c	/^void cmd_turn(int argc, char **argv)$/;"	f
+cmd_wheel_calibrate	commands.c	/^void cmd_wheel_calibrate(int argc, char **argv)$/;"	f
+commands_list	commands.c	/^command_t commands_list[] = {$/;"	v
+compute_inverse_cinematics	arm.c	/^static int compute_inverse_cinematics(arm_t *arm, float x, float y, float *alpha, float *beta, const float l1, const float l2) {$/;"	f	file:
+create_opp_polygon	strat_utils.c	/^void create_opp_polygon(poly_t *pol, int x, int y)$/;"	f
+cs_task_stk	cvra_cs.c	/^OS_STK    cs_task_stk[2048];$/;"	v
+cvra_cs_init	cvra_cs.c	/^void cvra_cs_init(void)$/;"	f
+cvra_cs_manage_task	cvra_cs.c	/^void cvra_cs_manage_task(__attribute__((unused)) void * dummy)$/;"	f
+cvra_get_starter_cord	hardware.c	/^int cvra_get_starter_cord(void)$/;"	f
+cvra_set_uart_speed	hardware.c	/^void cvra_set_uart_speed(int32_t *uart_adress, int baudrate) {$/;"	f
+cvra_wait_starter_pull	hardware.c	/^void cvra_wait_starter_pull(void)$/;"	f
+f	strat_job.c	/^    int (*f)(void *);$/;"	m	struct:strat_job	file:
+heartbeat_task	main.c	/^void heartbeat_task(void *pdata)$/;"	f
+heartbeat_task_stk	main.c	/^OS_STK    heartbeat_task_stk[TASK_STACKSIZE];$/;"	v
+init_task	main.c	/^void init_task(void *pdata)$/;"	f
+init_task_stk	main.c	/^OS_STK    init_task_stk[TASK_STACKSIZE];$/;"	v
+job_count	strat_job.c	/^int job_count = 0;$/;"	v
+jobs	strat_job.c	/^struct strat_job *jobs = NULL;$/;"	v	typeref:struct:strat_job
+left_pump	strat_utils.c	/^void left_pump(int status) {$/;"	f
+main	main.c	/^int main(void)$/;"	f
+mylog	main.c	/^void mylog(struct error * e, ...)$/;"	f
+odometry_manage_task	cvra_cs.c	/^void odometry_manage_task(__attribute__((unused)) void *dummy)$/;"	f
+odometry_task_stk	cvra_cs.c	/^OS_STK    odometry_task_stk[2048];$/;"	v
+param	strat_job.c	/^    void *param;$/;"	m	struct:strat_job	file:
+right_pump	strat_utils.c	/^void right_pump(int status){$/;"	f
+robot	cvra_cs.c	/^struct _rob robot;$/;"	v	typeref:struct:_rob
+shell_task	main.c	/^void shell_task(void *pdata)$/;"	f
+shell_task_stk	main.c	/^OS_STK    shell_task_stk[TASK_STACKSIZE];$/;"	v
+smoothstep	arm.c	/^inline float smoothstep(float t) {$/;"	f
+strat	strat_utils.c	/^struct strat_info strat;$/;"	v	typeref:struct:strat_info
+strat_autopos	strat_utils.c	/^void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot)$/;"	f
+strat_begin	strat.c	/^void strat_begin(void) {$/;"	f
+strat_close_servo	strat_utils.c	/^void strat_close_servo(enum servo_e servo) {$/;"	f
+strat_da_rel_to_xy_abs	strat_utils.c	/^void strat_da_rel_to_xy_abs(float a_deg, float distance_mm, int *x_mm, int *y_mm)$/;"	f
+strat_do_jobs	strat_job.c	/^void strat_do_jobs(void) { $/;"	f
+strat_get_time	strat_utils.c	/^int strat_get_time(void)$/;"	f
+strat_goto_avoid	strat_utils.c	/^int strat_goto_avoid(int x, int y, int flags)$/;"	f
+strat_job	strat_job.c	/^struct strat_job {$/;"	s	file:
+strat_job_pool_is_empty	strat_job.c	/^int strat_job_pool_is_empty(void) {$/;"	f
+strat_open_servo	strat_utils.c	/^void strat_open_servo(enum servo_e servo) {$/;"	f
+strat_release_servo	strat_utils.c	/^void strat_release_servo(enum servo_e servo) {$/;"	f
+strat_schedule_job	strat_job.c	/^void strat_schedule_job(void (*f)(void *), void *param) {$/;"	f
+strat_timer_reset	strat_utils.c	/^void strat_timer_reset(void)$/;"	f
+strat_wait_ms	strat_utils.c	/^void strat_wait_ms(int ms)$/;"	f
+test_func	commands.c	/^void test_func(int argc, char **argv)$/;"	f
+test_traj_end	strat_utils.c	/^int test_traj_end(int why)$/;"	f
+wait_traj_end_debug	strat_utils.c	/^int wait_traj_end_debug(int why, char *file, int line) {$/;"	f

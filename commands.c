@@ -7,6 +7,7 @@
 #include "cvra_cs.h"
 #include "strat_utils.h"
 #include "arm_trajectories.h"
+#include "arm_init.h"
 #include <2wheels/trajectory_manager_utils.h>
 
 int cmd_pio_read(lua_State *l)
@@ -79,6 +80,23 @@ int cmd_encoders_get(lua_State *l)
     lua_pushnumber(l, cvra_dc_get_encoder(adress, channel));
 
     return 1;
+}
+
+int cmd_pwm(lua_State *l)
+{
+    int32_t *adress;
+    int channel, value;
+
+    if (lua_gettop(l) < 3)
+        return 0;
+
+    adress = lua_touserdata(l, -3);
+    channel = lua_tointeger(l, -2);
+    value = lua_tointeger(l, -1);
+
+    cvra_dc_set_pwm(adress, channel, value);
+
+    return 0;
 }
 
 int cmd_forward(lua_State *l)
@@ -328,23 +346,65 @@ int cmd_elbow_move(lua_State *l)
 int cmd_arm_traj_test(lua_State *l)
 {
 
-    float x, y;
+    float x, y, z;
+    float sx, sy, sz;
 
     arm_trajectory_t traj;
     arm_trajectory_init(&traj);
-    if (lua_gettop(l) < 2)
+    if (lua_gettop(l) < 3)
         return 0;
 
-    x = lua_tonumber(l, -2);
-    y = lua_tonumber(l, -1);
+    x = lua_tonumber(l, -3);
+    y = lua_tonumber(l, -2);
+    z = lua_tonumber(l, -1);
 
-    arm_trajectory_append_point(&traj, 220, 0, 100, COORDINATE_ARM, 1.);
-    arm_trajectory_append_point(&traj, x, y, 100, COORDINATE_TABLE, 3.);
 
-    arm_do_trajectory(&robot.right_arm, &traj);
+    arm_get_position(&robot.left_arm, &sx, &sy, &sz);
+
+    arm_trajectory_append_point(&traj, sx, sy, sz, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, x, y, z, COORDINATE_ARM, .5);
+
+    arm_do_trajectory(&robot.left_arm, &traj);
 
     arm_trajectory_delete(&traj);
+}
 
+int cmd_hand_test(lua_State *l)
+{
+    float sx, sy, sz;
+
+
+    arm_trajectory_t traj;
+    arm_trajectory_init(&traj);
+
+    arm_get_position(&robot.left_arm, &sx, &sy, &sz);
+    arm_trajectory_append_point(&traj, sx, sy, sz, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, 200, -100, sz, COORDINATE_ARM, .5);
+    arm_trajectory_append_point(&traj, 200, -100, 50, COORDINATE_ARM, 1.);
+    arm_trajectory_set_hand_angle(&traj, 180);
+    arm_trajectory_append_point(&traj, 200, -100, 31, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, 200, -100, 120, COORDINATE_ARM, 1.);
+    arm_trajectory_set_hand_angle(&traj, 0);
+    arm_trajectory_append_point(&traj, 200, -100, 220, COORDINATE_ARM, 1.);
+
+    arm_do_trajectory(&robot.left_arm, &traj);
+
+    arm_trajectory_delete(&traj);
+    return 0;
+}
+
+int cmd_get_hand_pos(lua_State *l)
+{
+    float sx, sy, sz;
+
+
+
+}
+
+int cmd_calibrate(lua_State *l)
+{
+    arm_calibrate();
+    return 0;
 }
 
 void commands_register(lua_State *l)
@@ -372,6 +432,9 @@ void commands_register(lua_State *l)
 
     lua_pushcfunction(l, cmd_encoders_get);
     lua_setglobal(l, "encoder_get");
+
+    lua_pushcfunction(l, cmd_pwm);
+    lua_setglobal(l, "pwm");
 
     lua_pushcfunction(l, cmd_set_bd_params);
     lua_setglobal(l, "bd_set_threshold");
@@ -411,6 +474,12 @@ void commands_register(lua_State *l)
 
     lua_pushcfunction(l, cmd_arm_traj_test);
     lua_setglobal(l, "arm_traj");
+
+    lua_pushcfunction(l, cmd_hand_test);
+    lua_setglobal(l, "hand_traj");
+
+    lua_pushcfunction(l, cmd_calibrate);
+    lua_setglobal(l, "calibrate");
 
     lua_pushinteger(l, END_TRAJ);
     lua_setglobal(l, "END_TRAJ");

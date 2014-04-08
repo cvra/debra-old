@@ -141,6 +141,12 @@ function greet()
     print("---------------------------------------------------------------------------")
 end
 
+function pump(p, v)
+    if p == "left_top" then
+        pwm(hexmotor, 3, 500 * v)
+    end
+end
+
 if __conn then
     greet()
 end

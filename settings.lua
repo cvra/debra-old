@@ -20,8 +20,7 @@ rs_set_factor(0.00098906680210644)
 
 shoulder_pid(10, 0, 0)
 hand_pid(60, 0, 0)
-z_axis_pid(0, 0, 0) -- Z axis are dangerous, disabled for now
+z_axis_pid(900, 0, 0)
 elbow_pid(10, 0, 0)
-
 
 print("Lua settings done...")

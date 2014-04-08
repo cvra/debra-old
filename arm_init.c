@@ -106,3 +106,12 @@ void arm_highlevel_init(void)
 #endif
 }
 
+void arm_calibrate(void)
+{
+    arm_shutdown(&robot.left_arm);
+    arm_shutdown(&robot.right_arm);
+    cvra_dc_set_encoder(HEXMOTORCONTROLLER_BASE, 5, 223 * robot.left_arm.z_axis_imp_per_mm); 
+    cvra_dc_set_encoder(HEXMOTORCONTROLLER_BASE, 0, 223 *robot.left_arm.z_axis_imp_per_mm); 
+
+}
+
