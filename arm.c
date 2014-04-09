@@ -116,15 +116,18 @@ void arm_manage(arm_t *arm)
     alpha = compute_shoulder_angle(p1, target);
     beta  = compute_elbow_angle(p1, target);
 
+
     /* This is due to mecanical construction of the arms. */
     beta = beta - alpha;
 
+
     /* The arm cannot make one full turn. */
+
     if (beta < -M_PI)
         beta = 2 * M_PI + beta;
 
     if (beta > M_PI)
-        beta = 2 * M_PI - beta;
+        beta = beta - 2 * M_PI;
 
     cs_enable(&arm->shoulder.manager);
     cs_enable(&arm->elbow.manager);

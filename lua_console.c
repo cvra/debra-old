@@ -57,6 +57,7 @@ int print_func(lua_State *l)
 void lua_do_rom_script(lua_State *l, char *buffer, int size)
 {
     int i;
+    int ret;
 
     unsigned char *command = malloc(size + 1);
 
@@ -66,7 +67,11 @@ void lua_do_rom_script(lua_State *l, char *buffer, int size)
     }
     command[i] = 0;
 
-    luaL_dostring(l, command);
+    luaL_loadstring(l, command);
+    ret = lua_pcall(l, 0, LUA_MULTRET, 0);
+
+    if (ret)
+        snprintf(command, MAX_COMMAND_LEN, "ERROR %d : %s\n", ret, lua_tostring(l, -1));
 
     free(command);
 }

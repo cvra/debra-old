@@ -24,31 +24,6 @@ function wait_traj_end(why)
     return val
 end
 
-function calage_test()
-    trajectory_set_speed(SPEED_CALAGE_D, SPEED_CALAGE_A)
-    mode("distance")
-    forward(-2000)
-    wait_traj_end(END_BLOCKING)
-    
-    val = rs_get_angle()
-
-    bd_reset()
-
-    mode("all")
---    trajectory_set_speed(SPEED_NORMAL_D, SPEED_NORMAL_A)
-    forward(100)
-    wait_traj_end(END_TRAJ)
-
-    mode("distance")
-    trajectory_set_speed(SPEED_CALAGE_D, SPEED_CALAGE_A)
-    forward(-2000)
-    wait_traj_end(END_BLOCKING)
-
-    delta = val-rs_get_angle()
-
-    print("Delta = "..delta)
-end
-
 function calage()
     bd_set_threshold("distance", 6000)
     bd_set_threshold("distance", 6000)
@@ -58,8 +33,6 @@ function calage()
     wait_traj_end(END_BLOCKING)
     mode("all")
 end
-
-
 
 function calibrate_wheels(count)
     trajectory_set_acc(160, 1.94)
@@ -133,6 +106,85 @@ function hand_pid(p, i, d)
     pid_set_gains(left_hand_pid, p, i, d)
 end
 
+function arm()
+    x,y,z = arm_get_position("left")
+    print("left arm : ("..x..";"..y..";"..z..")")
+    x,y,z = arm_get_position("right")
+    print("right arm : ("..x..";"..y..";"..z..")")
+end
+
+function arm_move(arm, point_list)
+
+    if arm == nil or point_list == nil then
+        return
+    end
+
+    if #point_list == 0 then
+        return
+    end
+
+    traj = arm_traj_create()
+
+    x,y,z = arm_get_position(arm)
+    
+    -- Duration not used
+    arm_traj_append(traj, x, y, z, COORDINATE_ARM, 1.)
+
+
+    for i=1, #point_list do 
+        arm_traj_append(traj,
+                        point_list[i].x,
+                        point_list[i].y,
+                        point_list[i].z,
+                        point_list[i].type,
+                        point_list[i].duration) 
+
+        if point_list[i].angle ~= nil then
+            arm_traj_set_hand_angle(traj, point_list[i].angle)
+        end
+    end
+
+    arm_do_trajectory(arm, traj)
+
+    arm_traj_delete(traj)
+end
+
+function pump(p, v)
+    v = v * 500 -- speed
+
+    if p == "left_top" then
+        pwm(hexmotor, 3, v)
+    end
+
+    if p == "left_bottom" then
+        pwm(hexmotor, 6, v)
+    end
+end
+
+points = {
+    {x=100, y=-40, z=200, type=COORDINATE_ARM, duration=1.},
+    {x=100, y=-40, z=80,  type=COORDINATE_ARM, duration=1.},
+    {x=180, y=-60, z=80,  type=COORDINATE_ARM, duration=1.},
+    {x=210, y=-60, z=30,  type=COORDINATE_ARM, duration=1.},
+    {x=210, y=-60, z=200, type=COORDINATE_ARM, duration=1.},
+    {x=120, y=-60, z=222, type=COORDINATE_ARM, duration=1.},
+    {x=120, y=-104, z=222, type=COORDINATE_ARM, duration=1.},
+    {x=-56, y=-104, z=222, type=COORDINATE_ARM, duration=1.},
+    {x=20,  y=0, z=222, type=COORDINATE_ROBOT, duration=1.},
+}
+
+function start()
+    print("Starting movement")
+    
+    pump("left_bottom", 1)
+    arm_move("left", points)
+    while not arm_traj_finished("left") do end
+    pump("left_bottom", 0)
+
+    print("Finished")
+
+end
+
 
 -- Finally greet the user if running in interactive mode
 function greet()
@@ -141,11 +193,6 @@ function greet()
     print("---------------------------------------------------------------------------")
 end
 
-function pump(p, v)
-    if p == "left_top" then
-        pwm(hexmotor, 3, 500 * v)
-    end
-end
 
 if __conn then
     greet()

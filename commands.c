@@ -9,6 +9,7 @@
 #include "arm_trajectories.h"
 #include "arm_init.h"
 #include <2wheels/trajectory_manager_utils.h>
+#include "strat_utils.h"
 
 int cmd_pio_read(lua_State *l)
 {
@@ -396,14 +397,173 @@ int cmd_hand_test(lua_State *l)
 int cmd_get_hand_pos(lua_State *l)
 {
     float sx, sy, sz;
+    arm_t *arm;
+
+    if (lua_gettop(l) < 1) 
+        return 0;
+
+    if (!strcmp(lua_tostring(l, -1), "left"))
+        arm = &robot.left_arm;
+    else
+        arm = &robot.right_arm;
+
+    arm_get_position(arm, &sx, &sy, &sz);
+
+    lua_pushinteger(l, (int)sx);
+    lua_pushinteger(l, (int)sy);
+    lua_pushinteger(l, (int)sz);
+    return 3;
+}
+
+int cmd_arm_is_traj_finished(lua_State *l)
+{
+    arm_t *arm;
+    if (lua_gettop(l) < 1) {
+        lua_pushboolean(l, 0);
+        return 1;
+    }
+
+    if (!strcmp(lua_tostring(l, -1), "left"))
+        arm = &robot.left_arm;
+    else
+        arm = &robot.right_arm;
+
+    lua_pushboolean(l, arm_trajectory_finished(&arm->trajectory));
+
+    return 1;
+}
 
 
+int cmd_arm_trajectory_create(lua_State *l)
+{
+    arm_trajectory_t *t;
 
+    t = malloc(sizeof(arm_trajectory_t));
+
+    arm_trajectory_init(t);
+
+    lua_pushlightuserdata(l, t);
+
+    return 1;
+}
+
+int cmd_arm_trajectory_delete(lua_State *l)
+{
+    arm_trajectory_t *t;
+
+    if (lua_gettop(l) < 1)
+        return 0;
+
+    t = lua_touserdata(l, -1);
+    free(t);
+
+    return 0;
+}
+
+int cmd_arm_trajectory_append(lua_State *l)
+{
+    float x,y,z, duration;
+    arm_coordinate_t type;
+    arm_trajectory_t *traj;
+
+
+    if (lua_gettop(l) < 6)
+        return 0;
+
+    traj = lua_touserdata(l, -6);
+    if (traj == NULL)
+        return 0;
+
+    x = lua_tonumber(l, -5);
+    y = lua_tonumber(l, -4);
+    z = lua_tonumber(l, -3);
+
+    type = lua_tointeger(l, -2);
+    duration = lua_tonumber(l, -1);
+
+    arm_trajectory_append_point(traj, x, y, z, type, duration);
+    return 0;
+}
+
+
+int cmd_arm_trajectory_set_hand_angle(lua_State *l)
+{
+    float angle;
+    arm_trajectory_t *traj;
+
+    if (lua_gettop(l) < 2)
+        return 0;
+
+    traj = lua_touserdata(l, -2);
+    if (traj == NULL)
+        return 0;
+
+    angle = lua_tonumber(l, -1);
+
+    arm_trajectory_set_hand_angle(traj, angle);
+
+    return 0;
+}
+
+int cmd_arm_do_traj(lua_State *l)
+{
+    arm_t *arm;
+    arm_trajectory_t *traj;
+
+    if (lua_gettop(l) < 2)
+        return 0;
+
+    if (!strcmp(lua_tostring(l, -2), "left"))
+        arm = &robot.left_arm;
+    else
+        arm = &robot.right_arm;
+
+    traj = lua_touserdata(l, -1);
+
+    if (traj == NULL)
+        return 0;
+
+    arm_do_trajectory(arm, traj);
+
+    return 0;
+}
+
+int cmd_arm_shutdown(lua_State *l)
+{
+    arm_trajectory_t *traj;
+
+    if (lua_gettop(l) < 1)
+        return 0;
+
+    if (!strcmp(lua_tostring(l, -1), "left"))
+        traj = &robot.left_arm.trajectory;
+    else
+        traj = &robot.right_arm.trajectory;
+
+    return 0;
 }
 
 int cmd_calibrate(lua_State *l)
 {
     arm_calibrate();
+    return 0;
+}
+
+int cmd_autopos(lua_State *l)
+{
+    int x,y,robot_width;
+    int angle;
+
+    if (lua_gettop(l) < 4)
+        return 0;
+
+    x = lua_tointeger(l, 1);
+    y = lua_tointeger(l, 2);
+    angle = lua_tointeger(l, 3);
+    robot_width = lua_tointeger(l, 4);
+
+    strat_autopos(x,y,angle, robot_width);
+
     return 0;
 }
 
@@ -481,6 +641,33 @@ void commands_register(lua_State *l)
     lua_pushcfunction(l, cmd_calibrate);
     lua_setglobal(l, "calibrate");
 
+    lua_pushcfunction(l, cmd_get_hand_pos);
+    lua_setglobal(l, "arm_get_position");
+
+    lua_pushcfunction(l, cmd_arm_is_traj_finished);
+    lua_setglobal(l, "arm_traj_finished");
+
+    lua_pushcfunction(l, cmd_arm_trajectory_create);
+    lua_setglobal(l, "arm_traj_create");
+
+    lua_pushcfunction(l, cmd_arm_trajectory_delete);
+    lua_setglobal(l, "arm_traj_delete");
+
+    lua_pushcfunction(l, cmd_arm_trajectory_append);
+    lua_setglobal(l, "arm_traj_append");
+
+    lua_pushcfunction(l, cmd_arm_trajectory_set_hand_angle);
+    lua_setglobal(l, "arm_traj_set_hand_angle");
+
+    lua_pushcfunction(l, cmd_arm_shutdown);
+    lua_setglobal(l, "arm_shutdown");
+
+    lua_pushcfunction(l, cmd_autopos);
+    lua_setglobal(l, "strat_autopos");
+
+    lua_pushcfunction(l, cmd_arm_do_traj);
+    lua_setglobal(l, "arm_do_trajectory");
+
     lua_pushinteger(l, END_TRAJ);
     lua_setglobal(l, "END_TRAJ");
 
@@ -498,6 +685,15 @@ void commands_register(lua_State *l)
 
     lua_pushinteger(l, END_TIMER);
     lua_setglobal(l, "END_TIMER");
+
+    lua_pushinteger(l, COORDINATE_ARM);
+    lua_setglobal(l, "COORDINATE_ARM");
+
+    lua_pushinteger(l, COORDINATE_ROBOT);
+    lua_setglobal(l, "COORDINATE_ROBOT");
+
+    lua_pushinteger(l, COORDINATE_TABLE);
+    lua_setglobal(l, "COORDINATE_TABLE");
 
     lua_pushlightuserdata(l, HEXMOTORCONTROLLER_BASE);
     lua_setglobal(l, "hexmotor");
