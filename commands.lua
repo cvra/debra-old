@@ -19,6 +19,7 @@ end
 function wait_traj_end(why)
     repeat
         val = test_traj_end(why)
+        print(val)
     until val ~= 0
     print("Got "..val)
     return val
@@ -161,6 +162,15 @@ function pump(p, v)
     end
 end
 
+function prepare_start(color)
+    if color == nil then
+        print("Please specify color : red or yellow.")
+    end
+
+    strat_autopos(color, 200, 500, 40)
+
+end
+
 points = {
     {x=100, y=-40, z=200, type=COORDINATE_ARM, duration=1.},
     {x=100, y=-40, z=80,  type=COORDINATE_ARM, duration=1.},
@@ -170,21 +180,8 @@ points = {
     {x=120, y=-60, z=222, type=COORDINATE_ARM, duration=1.},
     {x=120, y=-104, z=222, type=COORDINATE_ARM, duration=1.},
     {x=-56, y=-104, z=222, type=COORDINATE_ARM, duration=1.},
-    {x=20,  y=0, z=222, type=COORDINATE_ROBOT, duration=1.},
+    {x=30,  y=0, z=222, type=COORDINATE_ROBOT, duration=1.},
 }
-
-function start()
-    print("Starting movement")
-    
-    pump("left_bottom", 1)
-    arm_move("left", points)
-    while not arm_traj_finished("left") do end
-    pump("left_bottom", 0)
-
-    print("Finished")
-
-end
-
 
 -- Finally greet the user if running in interactive mode
 function greet()

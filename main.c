@@ -140,6 +140,7 @@ void init_task(void *pdata)
 
     cvra_beacon_init(&robot.beacon, AVOIDING_BASE, AVOIDING_IRQ, 1000, 1., 1.);
 
+
     ip_stack_init();
     list_netifs();
 

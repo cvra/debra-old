@@ -26,7 +26,7 @@
 #define TRAJ_FLAGS_NEAR (TRAJ_FLAGS_STD|END_NEAR)
 
 /** This enum is used for specifying a team color. */
-typedef enum {BLUE=0, RED} strat_color_t;
+typedef enum {YELLOW=0, RED} strat_color_t;
 
 /** This structure holds all the configuration data and state of the strategy. */
 struct strat_info {
@@ -38,10 +38,10 @@ struct strat_info {
 extern struct strat_info strat;
 
 /** Computes the symmetrical position depending on color. */ 
-#define COLOR_Y(x) (strat.color == RED ? (x) : 2000 - (x))
+#define COLOR_Y(x) (strat.color == YELLOW ? (x) : 2000 - (x))
 
 /** Computes the symmetrical angle depending on color. */
-#define COLOR_A(x) (strat.color == RED ? (x) : -(x))
+#define COLOR_A(x) (strat.color == YELLOW ? (x) : -(x))
 
 #define wait_traj_end(why) wait_traj_end_debug(why, __FILE__, __LINE__)
 
@@ -80,6 +80,7 @@ void left_pump(int status);
 void right_pump(int status);
 
 
+void strat_timer_reset(void);
 /**
  * Gets game time. 
  * @returns Time since start of game, in seconds.

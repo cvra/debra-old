@@ -234,10 +234,11 @@ int cmd_traj_goto(lua_State *l)
         return 0;
 
     x = lua_tointeger(l, -2);
-    y = lua_tointeger(l, -2);
+    y = lua_tointeger(l, -1);
 
+    trajectory_goto_xy_abs(&robot.traj, x, COLOR_Y(y));
 
-
+    return 0;
 }
 
 int cmd_set_pid_gains(lua_State *l)
@@ -372,25 +373,6 @@ int cmd_arm_traj_test(lua_State *l)
 
 int cmd_hand_test(lua_State *l)
 {
-    float sx, sy, sz;
-
-
-    arm_trajectory_t traj;
-    arm_trajectory_init(&traj);
-
-    arm_get_position(&robot.left_arm, &sx, &sy, &sz);
-    arm_trajectory_append_point(&traj, sx, sy, sz, COORDINATE_ARM, 1.);
-    arm_trajectory_append_point(&traj, 200, -100, sz, COORDINATE_ARM, .5);
-    arm_trajectory_append_point(&traj, 200, -100, 50, COORDINATE_ARM, 1.);
-    arm_trajectory_set_hand_angle(&traj, 180);
-    arm_trajectory_append_point(&traj, 200, -100, 31, COORDINATE_ARM, 1.);
-    arm_trajectory_append_point(&traj, 200, -100, 120, COORDINATE_ARM, 1.);
-    arm_trajectory_set_hand_angle(&traj, 0);
-    arm_trajectory_append_point(&traj, 200, -100, 220, COORDINATE_ARM, 1.);
-
-    arm_do_trajectory(&robot.left_arm, &traj);
-
-    arm_trajectory_delete(&traj);
     return 0;
 }
 
@@ -551,20 +533,32 @@ int cmd_calibrate(lua_State *l)
 
 int cmd_autopos(lua_State *l)
 {
-    int x,y,robot_width;
+    int x,y;
     int angle;
 
     if (lua_gettop(l) < 4)
         return 0;
 
-    x = lua_tointeger(l, 1);
-    y = lua_tointeger(l, 2);
-    angle = lua_tointeger(l, 3);
-    robot_width = lua_tointeger(l, 4);
+    if (!strcmp("red", lua_tostring(l, 1)))
+        strat.color = RED;
+    else
+        strat.color = YELLOW;
 
-    strat_autopos(x,y,angle, robot_width);
+    printf("%d\n", strat.color);
+
+    x = lua_tointeger(l, 2);
+    y = lua_tointeger(l, 3);
+    angle = lua_tointeger(l, 4);
+
+    strat_autopos(x,y,angle, 129.04);
 
     return 0;
+}
+
+int cmd_start(lua_State *l)
+{
+    strat_begin();
+    return 0; 
 }
 
 void commands_register(lua_State *l)
@@ -667,6 +661,12 @@ void commands_register(lua_State *l)
 
     lua_pushcfunction(l, cmd_arm_do_traj);
     lua_setglobal(l, "arm_do_trajectory");
+
+    lua_pushcfunction(l, cmd_traj_goto);
+    lua_setglobal(l, "traj_goto");
+
+    lua_pushcfunction(l, cmd_start);
+    lua_setglobal(l, "start");
 
     lua_pushinteger(l, END_TRAJ);
     lua_setglobal(l, "END_TRAJ");
