@@ -138,7 +138,9 @@ void init_task(void *pdata)
     fast_math_init();
 #endif
 
-    cvra_beacon_init(&robot.beacon, AVOIDING_BASE, AVOIDING_IRQ, 1000, 1., 1.);
+    cvra_beacon_init(&robot.beacon, AVOIDING_BASE, AVOIDING_IRQ, 100, 10., 0.);
+    cvra_beacon_set_direction_offset(&robot.beacon, 123);
+
 
 
     ip_stack_init();
