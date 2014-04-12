@@ -190,7 +190,7 @@ int test_traj_end(int why)
     if((why & END_OBSTACLE)) {
         int i;
         for(i=0;i<robot.beacon.nb_beacon;i++) {
-            if(robot.beacon.beacon[i].distance < 60) { /*cm*/
+            if(robot.beacon.beacon[i].distance > 80) { /*cm*/
                 if(robot.distance_qr.previous_var > 0) {
                     /* Going forward. */
                     if(robot.beacon.beacon[i].direction > -30 && robot.beacon.beacon[i].direction < 30) {

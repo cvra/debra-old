@@ -1,6 +1,6 @@
 #include "hardware.h"
 
-#define STARTER_BITMASK 0x1000
+#define STARTER_BITMASK (1 << 12)
 
 void cvra_set_uart_speed(int32_t *uart_adress, int uart_freq, int baudrate)
 {

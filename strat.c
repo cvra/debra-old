@@ -65,16 +65,34 @@ void strat_begin(void) {
 
     /* Starts the game timer. */
     strat_timer_reset();
+    cvra_wait_starter_pull(PIO_BASE);
 
-    /* XXX 2014 code goes there. */
+    int ret;
 
-    trajectory_goto_forward_xy_abs(&robot.traj, 615, COLOR_Y(1175));
-    wait_traj_end(TRAJ_FLAGS_STD);
+    do {
+        trajectory_goto_xy_abs(&robot.traj, 615, COLOR_Y(1175));
+        ret = wait_traj_end(TRAJ_FLAGS_STD);
+        if (ret == END_TIMER)
+            return;
+
+        if (!TRAJ_SUCCESS(ret))
+            strat_wait_ms(2000);
+    } while (!TRAJ_SUCCESS(ret));
+
     test_take();
-    trajectory_goto_forward_xy_abs(&robot.traj, 272, COLOR_Y(2000-272));
-    wait_traj_end(TRAJ_FLAGS_STD);
+
+    do {
+        trajectory_goto_xy_abs(&robot.traj, 272, COLOR_Y(2000-272));
+        ret = wait_traj_end(TRAJ_FLAGS_STD);
+        if (ret == END_TIMER)
+            return;
+
+        if (!TRAJ_SUCCESS(ret))
+            strat_wait_ms(2000);
+
+    } while (!TRAJ_SUCCESS(ret));
     trajectory_turnto_xy(&robot.traj, 0, COLOR_Y(2000));
-    wait_traj_end(TRAJ_FLAGS_STD);
+    ret = wait_traj_end(TRAJ_FLAGS_STD);
 
     /* After the game, shutdown the pumps. */
 

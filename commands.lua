@@ -162,6 +162,18 @@ function pump(p, v)
     end
 end
 
+function dump_coders()
+    print("HEXMOTOR")
+    for i = 1,7 do
+        print(encoder_get(hexmotor, i))
+    end
+
+    print("ARMMOTOR")
+    for i = 1,7 do
+        print(encoder_get(armmotor, i))
+    end
+end
+
 function prepare_start(color)
     if color == nil then
         print("Please specify color : red or yellow.")

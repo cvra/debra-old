@@ -69,6 +69,7 @@ void heartbeat_task(void *pdata)
 {
     OS_CPU_SR cpu_sr;
     int32_t led_val;
+    int i;
     while (1) {
         OS_ENTER_CRITICAL();
         led_val = IORD(LED_BASE, 0);
