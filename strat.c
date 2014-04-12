@@ -72,8 +72,8 @@ void test_take(void)
 void strat_begin(void) {
 
     /* Starts the game timer. */
-    strat_timer_reset();
     cvra_wait_starter_pull(PIO_BASE);
+    strat_timer_reset();
 
     int ret;
 
