@@ -40,22 +40,30 @@ void test_take(void)
 
     arm_trajectory_t traj;
 
+    arm_t *arm;
+
+    if (strat.color == YELLOW)
+        arm = &robot.left_arm;
+    else
+        arm = &robot.right_arm;
+
     pump_right_top(1);
     pump_right_bottom(1);
+
     arm_trajectory_init(&traj);
 
-    arm_get_position(&robot.right_arm, &sx, &sy, &sz);
+    arm_get_position(arm, &sx, &sy, &sz);
     arm_trajectory_append_point(&traj, sx, sy, sz, COORDINATE_ARM, 1.);
     arm_trajectory_append_point(&traj, 900, COLOR_Y(1100), sz, COORDINATE_TABLE, 1.);
     arm_trajectory_append_point(&traj, 900, COLOR_Y(1100), 126, COORDINATE_TABLE, 1.);
     arm_trajectory_append_point(&traj, 170, 0, 220, COORDINATE_ROBOT, 1.);
     arm_trajectory_append_point(&traj, 170, 0, 150, COORDINATE_ROBOT, 1.);
 
-    arm_do_trajectory(&robot.right_arm, &traj);
+    arm_do_trajectory(arm, &traj);
 
-    printf("%.1f;%.1f;%.1f\n", sx, sy, sz); 
+//    printf("%.1f;%.1f;%.1f\n", sx, sy, sz); 
 
-    while (!arm_trajectory_finished(&robot.right_arm.trajectory));
+    while (!arm_trajectory_finished(&arm->trajectory));
 
     arm_trajectory_delete(&traj);
 }

@@ -34,7 +34,6 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot)
     // On diminue la sensibilite on augmente la constante de temps de detection du bloquage
 
     bd_set_thresholds(&robot.distance_bd,  5000, 2);
-
     trajectory_set_speed(&robot.traj, 100, 100);
     robot.mode = BOARD_MODE_DISTANCE_ONLY;
 
@@ -75,7 +74,7 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot)
     wait_traj_end(END_TRAJ);
 
     /* Pour finir on s'occuppe de l'angle. */
-    trajectory_a_abs(&robot.traj, (double)a);
+    trajectory_a_abs(&robot.traj, COLOR_A((double)a));
     wait_traj_end(END_TRAJ);
 
     /* On remet le robot dans son etat initial. */
