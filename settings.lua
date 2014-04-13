@@ -19,7 +19,7 @@ rs_set_factor(0.00098906680210644)
 --
 
 shoulder_pid(10, 0, 0)
-hand_pid(60, 0, 0)
+hand_pid(350, 0, 100)
 z_axis_pid(900, 0, 0)
 elbow_pid(10, 0, 0)
 

@@ -32,6 +32,8 @@ void arm_control_manage_task(__attribute__((unused)) void *dummy)
         //arm_cs_manage(&robot.right_arm.hand);
         arm_cs_manage(&robot.left_arm.hand);
         OSTimeDlyHMSM(0, 0, 0, 10);
+
+        printf("%d\n", robot.left_arm.hand.manager.out_value);
     }
 }
 

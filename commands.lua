@@ -180,8 +180,15 @@ function prepare_start(color)
     end
 
     strat_autopos(color, 200, 500, 40)
-
 end
+
+function off()
+    for i=0,7 do
+        pwm(hexmotor, i, 0)
+        pwm(armmotor, i, 0)
+    end
+end
+
 
 points = {
     {x=100, y=-40, z=200, type=COORDINATE_ARM, duration=1.},
@@ -194,6 +201,25 @@ points = {
     {x=-56, y=-104, z=222, type=COORDINATE_ARM, duration=1.},
     {x=30,  y=0, z=222, type=COORDINATE_ROBOT, duration=1.},
 }
+
+function test_axis(x)
+    if x == nil then
+        x = 0
+    end
+
+    p = {{x=200, 0, z=222, type=COORDINATE_ARM, angle=x, duration=0.5}}
+    arm_move("left", p)
+end
+
+function a()
+    test_axis(0)
+end
+
+function b()
+    test_axis(-180)
+end
+
+
 
 -- Finally greet the user if running in interactive mode
 function greet()
