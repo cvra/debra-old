@@ -189,6 +189,14 @@ function off()
     end
 end
 
+function r()
+    prepare_start("red")
+end
+
+function y()
+    prepare_start("yellow")
+end
+
 
 points = {
     {x=100, y=-40, z=200, type=COORDINATE_ARM, duration=1.},
