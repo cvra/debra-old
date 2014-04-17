@@ -81,9 +81,9 @@ void strat_begin(void) {
 
     trajectory_set_speed(&robot.traj,
             speed_mm2imp(&robot.traj, 800),
-            speed_rd2imp(&robot.traj, 4.85));
-            */
+            speed_rd2imp(&robot.traj, 4.85));*/
 
+    bd_set_thresholds(&robot.distance_bd, 6000, 1);
 
 
     /* Starts the game timer. */
@@ -93,8 +93,8 @@ void strat_begin(void) {
 
     int ret;
     do {
-        trajectory_goto_forward_xy_abs(&robot.traj, 400, COLOR_Y(1100));
-        ret = wait_traj_end(TRAJ_FLAGS_SHORT_DISTANCE);
+        trajectory_goto_forward_xy_abs(&robot.traj, 1000, COLOR_Y(600));
+        ret = wait_traj_end(TRAJ_FLAGS_STD |END_NEAR);
         if (ret == END_TIMER)
             return;
 
@@ -104,50 +104,73 @@ void strat_begin(void) {
         }
     } while (!TRAJ_SUCCESS(ret));
 
-
+    /*
     do {
-        trajectory_goto_backward_xy_abs(&robot.traj, 400, COLOR_Y(600));
-        ret = wait_traj_end(TRAJ_FLAGS_SHORT_DISTANCE);
-        if (ret == END_TIMER)
-            return;
-
-        if (!TRAJ_SUCCESS(ret))
-            strat_wait_ms(2000);
-    } while (!TRAJ_SUCCESS(ret));
-
-    printf("RET=%d\n", ret);
-    do {
-        trajectory_goto_forward_xy_abs(&robot.traj, 900, COLOR_Y(600));
-        ret = wait_traj_end(TRAJ_FLAGS_SHORT_DISTANCE);
-        if (ret == END_TIMER)
-            return;
-
-        if (!TRAJ_SUCCESS(ret))
-            strat_wait_ms(2000);
-    } while (!TRAJ_SUCCESS(ret));
-
-    printf("RET=%d\n", ret);
-
-    do {
-        trajectory_goto_forward_xy_abs(&robot.traj, 1150, COLOR_Y(1000));
+        trajectory_goto_forward_xy_abs(&robot.traj, 1600, COLOR_Y(600));
         ret = wait_traj_end(TRAJ_FLAGS_STD);
         if (ret == END_TIMER)
             return;
 
-        if (!TRAJ_SUCCESS(ret))
+        if (!TRAJ_SUCCESS(ret)) {
             strat_wait_ms(2000);
+            printf("RET=%d\n", ret);
+        }
     } while (!TRAJ_SUCCESS(ret));
-    printf("RET=%d\n", ret);
+
+    trajectory_goto_backward_xy_abs(&robot.traj, 1350, COLOR_Y(230));
+    ret = wait_traj_end(TRAJ_FLAGS_SHORT_DISTANCE);
+
+    trajectory_goto_backward_xy_abs(&robot.traj, 1350, COLOR_Y(0));
+    ret = wait_traj_end(TRAJ_FLAGS_SHORT_DISTANCE);
+    */
+
     do {
-        trajectory_goto_forward_xy_abs(&robot.traj, 1150, COLOR_Y(1600));
+        trajectory_goto_xy_abs(&robot.traj, 1500, COLOR_Y(600));
+        ret = wait_traj_end(TRAJ_FLAGS_STD |TRAJ_FLAGS_NEAR);
+        if (ret == END_TIMER)
+            return;
+
+        if (!TRAJ_SUCCESS(ret)) {
+            strat_wait_ms(2000);
+            printf("RET=%d\n", ret);
+        }
+    } while (!TRAJ_SUCCESS(ret));
+
+    do {
+        trajectory_goto_xy_abs(&robot.traj, 1200, COLOR_Y(600));
+        ret = wait_traj_end(TRAJ_FLAGS_STD |TRAJ_FLAGS_NEAR);
+        if (ret == END_TIMER)
+            return;
+
+        if (!TRAJ_SUCCESS(ret)) {
+            strat_wait_ms(2000);
+            printf("RET=%d\n", ret);
+        }
+    } while (!TRAJ_SUCCESS(ret));
+
+    do {
+        trajectory_goto_xy_abs(&robot.traj, 1200, COLOR_Y(1000));
+        ret = wait_traj_end(TRAJ_FLAGS_STD |TRAJ_FLAGS_NEAR);
+        if (ret == END_TIMER)
+            return;
+
+        if (!TRAJ_SUCCESS(ret)) {
+            strat_wait_ms(2000);
+            printf("RET=%d\n", ret);
+        }
+    } while (!TRAJ_SUCCESS(ret));
+
+    do {
+        trajectory_goto_forward_xy_abs(&robot.traj, 1200, COLOR_Y(1600));
         ret = wait_traj_end(TRAJ_FLAGS_STD);
         if (ret == END_TIMER)
             return;
 
-        if (!TRAJ_SUCCESS(ret))
+        if (!TRAJ_SUCCESS(ret)) {
             strat_wait_ms(2000);
+            printf("RET=%d\n", ret);
+        }
     } while (!TRAJ_SUCCESS(ret));
-    printf("RET=%d\n", ret);
 
     do {
         trajectory_goto_forward_xy_abs(&robot.traj, 900, COLOR_Y(1600));
@@ -155,22 +178,49 @@ void strat_begin(void) {
         if (ret == END_TIMER)
             return;
 
-        if (!TRAJ_SUCCESS(ret))
+        if (!TRAJ_SUCCESS(ret)) {
             strat_wait_ms(2000);
+            printf("RET=%d\n", ret);
+        }
     } while (!TRAJ_SUCCESS(ret));
-    printf("RET=%d\n", ret);
 
     do {
-        trajectory_goto_forward_xy_abs(&robot.traj, 2100, COLOR_Y(1600));
+        trajectory_goto_xy_abs(&robot.traj, 1200, COLOR_Y(1000));
         ret = wait_traj_end(TRAJ_FLAGS_STD);
         if (ret == END_TIMER)
             return;
 
-        if (!TRAJ_SUCCESS(ret))
+        if (!TRAJ_SUCCESS(ret)) {
             strat_wait_ms(2000);
+            printf("RET=%d\n", ret);
+        }
     } while (!TRAJ_SUCCESS(ret));
-    printf("RET=%d\n", ret);
 
+    do {
+        trajectory_goto_xy_abs(&robot.traj, 400, COLOR_Y(600));
+        ret = wait_traj_end(TRAJ_FLAGS_STD);
+        if (ret == END_TIMER)
+            return;
+
+        if (!TRAJ_SUCCESS(ret)) {
+            strat_wait_ms(2000);
+            printf("RET=%d\n", ret);
+        }
+    } while (!TRAJ_SUCCESS(ret));
+
+    do {
+        trajectory_goto_forward_xy_abs(&robot.traj, 400, COLOR_Y(1050));
+        ret = wait_traj_end(TRAJ_FLAGS_STD);
+        if (ret == END_TIMER)
+            return;
+
+        if (!TRAJ_SUCCESS(ret)) {
+            strat_wait_ms(2000);
+            printf("RET=%d\n", ret);
+        }
+    } while (!TRAJ_SUCCESS(ret));
+
+    trajectory_d_rel(&robot.traj, 200);
 
 
 end:
