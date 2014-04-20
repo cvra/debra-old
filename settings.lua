@@ -8,7 +8,7 @@ trajectory_set_speed(SPEED_NORMAL_D, SPEED_NORMAL_A)
 bd_set_threshold("distance", 3600)
 bd_set_threshold("angle", 3000)
 
-pid_set_gains(angle_pid, 0.8*400, 0, 0.8*2000)
+pid_set_gains(angle_pid, 386, 0, 568)
 pid_set_gains(distance_pid, 0.6*200, 0, 0.8*1000)
 
 -- Wheel diameter correction factor

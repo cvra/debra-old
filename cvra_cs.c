@@ -145,6 +145,8 @@ void cvra_cs_init(void)
     // Initialisation deplacement:
     position_set(&robot.pos, 0, 0, 0);
 
+
+#if 1
     /* Creates the control task. */
     OSTaskCreateExt(cvra_cs_manage_task,
                     NULL,
@@ -164,6 +166,7 @@ void cvra_cs_init(void)
                     &odometry_task_stk[0],
                     2048, /* stack size */
                     NULL, NULL);
+#endif
 }
 
 void cvra_cs_manage_task(__attribute__((unused)) void * dummy)

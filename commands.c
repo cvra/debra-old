@@ -1,4 +1,7 @@
 #include <platform.h>
+#include <lwip/sockets.h>
+#include <lwip/api.h>
+#include <lwip/inet.h>
 #include <stdio.h>
 #include <uptime.h>
 #include "lua/lua.h"
@@ -555,6 +558,43 @@ int cmd_autopos(lua_State *l)
     return 0;
 }
 
+int cmd_generate_distance_data(lua_State *l)
+{
+#define SAMPLE_POINTS 1000
+    int data[SAMPLE_POINTS][2];
+
+    int i;
+    struct netconn *conn;
+
+    char buffer[1024];
+
+    lua_getglobal(l, "__conn");
+    conn = lua_touserdata(l, -1);
+
+    srand(uptime_get());
+
+    for (i=0;i<SAMPLE_POINTS;i++)
+    {
+        rs_update(&robot.rs);
+        //data[i][0] = (rand() % 2000) - 1000; // white noise
+        data[i][0] = 1000; // step
+        data[i][1] = rs_get_ext_angle(&robot.rs);
+        rs_set_angle(&robot.rs, data[i][0]);
+        OSTimeDlyHMSM(0, 0, 0, 2);
+    }
+
+    rs_set_distance(&robot.rs, 0);
+    rs_set_angle(&robot.rs, 0);
+
+    for (i=0;i<SAMPLE_POINTS;i++)
+    {
+        sprintf(buffer, "%d;%d\r\n", data[i][0], data[i][1]);
+        netconn_write(conn, buffer, strlen(buffer), NETCONN_COPY);
+    }
+
+    return 0;
+}
+
 int cmd_start(lua_State *l)
 {
     strat_begin();
@@ -667,6 +707,9 @@ void commands_register(lua_State *l)
 
     lua_pushcfunction(l, cmd_start);
     lua_setglobal(l, "start");
+
+    lua_pushcfunction(l, cmd_generate_distance_data);
+    lua_setglobal(l, "distance_data");
 
     lua_pushinteger(l, END_TRAJ);
     lua_setglobal(l, "END_TRAJ");
