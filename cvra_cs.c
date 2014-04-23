@@ -135,7 +135,7 @@ void cvra_cs_init(void)
     trajectory_set_robot_params(&robot.traj, &robot.rs, &robot.pos);
 
     /* distance window, angle window, angle start */
-    trajectory_set_windows(&robot.traj, 15., 1.0, 1.); // Prod
+    trajectory_set_windows(&robot.traj, 15., 1.0, 20.); // Prod
 
     // Angle BDM
     bd_init(&robot.angle_bd, &robot.angle_cs);
@@ -151,7 +151,7 @@ void cvra_cs_init(void)
     position_set(&robot.pos, 0, 0, 0);
 
 
-#if 1
+#if 0
     /* Creates the control task. */
     OSTaskCreateExt(cvra_cs_manage_task,
                     NULL,

@@ -4,7 +4,7 @@
 SPEED_NORMAL_D = 800
 SPEED_CALAGE_D = 100
 
-SPEED_NORMAL_A = 4.85
+SPEED_NORMAL_A = 20
 SPEED_CALAGE_A = 1.
 
 -- Standard flags to be used with wait_traj_end

@@ -208,7 +208,7 @@ int cmd_rs_get_angle(lua_State *l)
 
 int cmd_rs_get_distance(lua_State *l)
 {
-    lua_pushinteger(l, rs_get_distance(&robot.rs));
+    lua_pushinteger(l, rs_get_mot_distance(&robot.rs));
     return 1;
 }
 
@@ -247,7 +247,7 @@ int cmd_traj_goto(lua_State *l)
 int cmd_set_pid_gains(lua_State *l)
 {
 
-   struct pid_filter *pid; 
+   struct pid_filter *pid;
    int p, i, d;
 
     if (lua_gettop(l) < 4)
@@ -384,7 +384,7 @@ int cmd_get_hand_pos(lua_State *l)
     float sx, sy, sz;
     arm_t *arm;
 
-    if (lua_gettop(l) < 1) 
+    if (lua_gettop(l) < 1)
         return 0;
 
     if (!strcmp(lua_tostring(l, -1), "left"))
@@ -560,27 +560,38 @@ int cmd_autopos(lua_State *l)
 
 int cmd_generate_distance_data(lua_State *l)
 {
-#define SAMPLE_POINTS 1000
-    int data[SAMPLE_POINTS][2];
+#define SAMPLE_POINTS 500
+    static int data[SAMPLE_POINTS][3];
 
     int i;
     struct netconn *conn;
+    int pwm_val=0;
+    int divider;
 
     char buffer[1024];
+
+    if (lua_gettop(l) > 0)
+        divider = lua_tointeger(l, 1);
+    else
+        divider = 3;
 
     lua_getglobal(l, "__conn");
     conn = lua_touserdata(l, -1);
 
     srand(uptime_get());
 
+
     for (i=0;i<SAMPLE_POINTS;i++)
     {
         rs_update(&robot.rs);
-        //data[i][0] = (rand() % 2000) - 1000; // white noise
+        data[i][0] = pwm_val;
+        if (pwm_val < 1000 && i % divider == 0)
+            pwm_val ++;
         data[i][0] = 1000; // step
-        data[i][1] = rs_get_ext_angle(&robot.rs);
-        rs_set_angle(&robot.rs, data[i][0]);
-        OSTimeDlyHMSM(0, 0, 0, 2);
+        data[i][1] = rs_get_ext_distance(&robot.rs);
+        data[i][2] = rs_get_mot_distance(&robot.rs);
+        rs_set_distance(&robot.rs, data[i][0]);
+        OSTimeDlyHMSM(0, 0, 0, 1);
     }
 
     rs_set_distance(&robot.rs, 0);
@@ -588,7 +599,7 @@ int cmd_generate_distance_data(lua_State *l)
 
     for (i=0;i<SAMPLE_POINTS;i++)
     {
-        sprintf(buffer, "%d;%d\r\n", data[i][0], data[i][1]);
+        sprintf(buffer, "%d;%d;%d\r\n", data[i][0], data[i][1], data[i][2]);
         netconn_write(conn, buffer, strlen(buffer), NETCONN_COPY);
     }
 
@@ -598,7 +609,7 @@ int cmd_generate_distance_data(lua_State *l)
 int cmd_start(lua_State *l)
 {
     strat_begin();
-    return 0; 
+    return 0;
 }
 
 void commands_register(lua_State *l)
