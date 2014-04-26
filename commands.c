@@ -388,6 +388,7 @@ int cmd_arm_traj_test(lua_State *l)
     arm_do_trajectory(&robot.left_arm, &traj);
 
     arm_trajectory_delete(&traj);
+    return 0;
 }
 
 int cmd_hand_test(lua_State *l)
