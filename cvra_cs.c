@@ -89,6 +89,7 @@ void cvra_cs_init(void)
     position_set_related_robot_system(&robot.pos, &robot.rs);
 
     position_set_physical_params(&robot.pos,193.82313537598, 162.9746617261);
+    position_use_ext(&robot.pos);
 
     /****************************************************************************/
     /*                       Regulation de l'angle                              */
