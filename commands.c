@@ -70,6 +70,22 @@ int cmd_position_get(lua_State *l)
     return 3;
 }
 
+
+int cmd_position_set(lua_State *l)
+{
+    float x,y,a;
+    if (lua_gettop(l) < 3)
+        return 0;
+
+    x = lua_tonumber(l, -3);
+    y = lua_tonumber(l, -2);
+    a = lua_tonumber(l, -1);
+
+    position_set(&robot.pos, x,y,a);
+
+    return 0;
+}
+
 int cmd_encoders_get(lua_State *l)
 {
     int32_t *adress;
@@ -622,6 +638,9 @@ void commands_register(lua_State *l)
 
     lua_pushcfunction(l, cmd_position_get);
     lua_setglobal(l, "position_get");
+
+    lua_pushcfunction(l, cmd_position_set);
+    lua_setglobal(l, "position_set");
 
     lua_pushcfunction(l, cmd_bluetooth_send);
     lua_setglobal(l, "log");
