@@ -12,6 +12,7 @@
 #include "arm_trajectories.h"
 #include "arm_init.h"
 #include <2wheels/trajectory_manager_utils.h>
+#include "2wheels/trajectory_manager.h"
 #include "strat_utils.h"
 
 int cmd_pio_read(lua_State *l)
@@ -248,14 +249,14 @@ int cmd_set_wheel_correction_factor(lua_State *l)
 
 int cmd_traj_goto(lua_State *l)
 {
-    int x,y;
+    float x,y;
     if (lua_gettop(l) < 2)
         return 0;
 
-    x = lua_tointeger(l, -2);
-    y = lua_tointeger(l, -1);
+    x = lua_tonumber(l, -2);
+    y = lua_tonumber(l, -1);
 
-    trajectory_goto_xy_abs(&robot.traj, x, COLOR_Y(y));
+    trajectory_goto_forward_xy_abs(&robot.traj, x,y);
 
     return 0;
 }
