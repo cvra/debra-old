@@ -590,7 +590,7 @@ int cmd_generate_distance_data(lua_State *l)
         data[i][0] = 1000; // step
         data[i][1] = rs_get_ext_distance(&robot.rs);
         data[i][2] = rs_get_mot_distance(&robot.rs);
-        rs_set_distance(&robot.rs, data[i][0]);
+        rs_set_angle(&robot.rs, data[i][0]);
         OSTimeDlyHMSM(0, 0, 0, 1);
     }
 
