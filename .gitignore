@@ -27,3 +27,6 @@
 
 # Ctags
 tags
+
+# Dependencies files
+*.d

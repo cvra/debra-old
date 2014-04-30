@@ -142,6 +142,7 @@ include $(ALT_LIBRARY_ROOT_DIR)/public.mk
 
 INCLUDE_DIRS := $(addprefix -I, $(ALT_INCLUDE_DIRS) $(INCLUDE_DIRS)) 
 CFLAGS = -c -g $(INCLUDE_DIRS) -DCOMPILE_ON_ROBOT $(ALT_CFLAGS) $(ALT_CPPFLAGS) -Wall
+CFLAGS += -MD
 
 APP_LIB_DIRS := $(addprefix -L, $(ALT_LIBRARY_DIRS))
 
@@ -177,5 +178,7 @@ load: $(ELF)
 
 # make clean rule
 clean:
-	@rm -rf $(OBJS) $(ELF)
+	@rm -rf $(OBJS) $(ELF) $(OBJS:.o=.d)
+
+-include $(OBJS:.o=.d)
 
