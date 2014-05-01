@@ -48,6 +48,7 @@ INCLUDE_DIRS += $(PROJECT_ROOT)/lwip/src/netif/
 INCLUDE_DIRS += $(PROJECT_ROOT)
 
 SRC = $(wildcard $(PROJECT_ROOT)/*.c)
+SRC += lua_scripts.c
 
 SRC += $(PROJECT_ROOT)/modules/modules/blocking_detection_manager/blocking_detection_manager.c
 SRC += $(PROJECT_ROOT)/modules/modules/control_system_manager/control_system_manager.c
@@ -161,6 +162,9 @@ $(ELF): $(OBJS) $(LWIPLIB) $(LUALIB)
 	$(LD) -o test.elf $(OBJS) -lm -llwip -llua -L . $(APP_LIB_DIRS) -lucosii_bsp -T $(BSP_LINKER_SCRIPT) -msys-crt0='$(BSP_CRT0)'
 	@echo "Patching elf..."
 	@nios2-elf-insert test.elf $(ELF_PATCH_FLAG)
+
+lua_scripts.c: *.lua
+	./bin2c.exe --output lua_scripts.c *.lua 
 
 $(LWIPLIB): $(LWIP_OBJS)
 	@echo "Packaging $@..."

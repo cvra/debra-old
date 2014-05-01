@@ -30,3 +30,6 @@ tags
 
 # Dependencies files
 *.d
+
+# Generated automatically from .lua files
+lua_scripts.c
