@@ -48,7 +48,6 @@ INCLUDE_DIRS += $(PROJECT_ROOT)/lwip/src/netif/
 INCLUDE_DIRS += $(PROJECT_ROOT)
 
 SRC = $(wildcard $(PROJECT_ROOT)/*.c)
-SRC += lua_scripts.c
 
 SRC += $(PROJECT_ROOT)/modules/modules/blocking_detection_manager/blocking_detection_manager.c
 SRC += $(PROJECT_ROOT)/modules/modules/control_system_manager/control_system_manager.c
@@ -157,7 +156,7 @@ LUA_OBJS = $(LUA_SRC:.c=.o)
 #make all rule
 all: $(ELF)
 
-$(ELF): $(OBJS) $(LWIPLIB) $(LUALIB)
+$(ELF): $(OBJS) $(LWIPLIB) $(LUALIB) lua_scripts.o
 	@echo "Linking..."
 	$(LD) -o test.elf $(OBJS) -lm -llwip -llua -L . $(APP_LIB_DIRS) -lucosii_bsp -T $(BSP_LINKER_SCRIPT) -msys-crt0='$(BSP_CRT0)'
 	@echo "Patching elf..."
