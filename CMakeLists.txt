@@ -119,12 +119,6 @@ add_executable(
     circle_tests/main.c
 )
 
-add_executable(
-    oa_test
-    ${debra_source}
-    ${modules_source}
-    obstacle_avoidance_test/main.c
-)
 
 target_link_libraries(
 	tests
@@ -149,13 +143,6 @@ target_link_libraries(
 
 target_link_libraries(
 	circle_test
-	m
-    CppUTest
-    CppUTestExt
-)
-
-target_link_libraries(
-	oa_test
 	m
     CppUTest
     CppUTestExt
