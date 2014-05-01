@@ -26,8 +26,8 @@ void main(void)
 
     setup();
 
-    arm_trajectory_append_point(&traj, 200, 10, 10, COORDINATE_ARM, 1.);
-    arm_trajectory_append_point(&traj, 100, -10, 10, COORDINATE_ARM, 10.);
+    arm_trajectory_append_point(&traj, 100,  20, 10, COORDINATE_ARM, 10.);
+    arm_trajectory_append_point(&traj, 100, -20, 10, COORDINATE_ARM, 10.);
     arm_do_trajectory(&arm, &traj);
 
     while (uptime_get() < traj.frames[traj.frame_count-1].date) {
@@ -54,6 +54,6 @@ void main(void)
         printf("%d;", position_count);
         printf("\n");
 
-        uptime_set(uptime_get() + 200*1000);
+        uptime_set(uptime_get() + 2*1000);
     }
 }

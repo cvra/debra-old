@@ -23,8 +23,8 @@ beta = beta * 180 / pi;
 figure
 subplot(2, 2, 1)
 hold all
-plot(time, alpha, 'x-')
-plot(time, beta, 'x-')
+plot(time, alpha, '-')
+plot(time, beta, '-')
 xlabel 'Time (s)'
 ylabel 'Angle (deg)'
 title 'Inverse cinematics test'
