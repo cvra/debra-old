@@ -193,9 +193,9 @@ int main(void)
     robot.verbosity_level = ERROR_SEVERITY_NOTICE;
 
     /* Setup UART speed, must be first. */
-    cvra_set_uart_speed(COMPC_BASE, PIO_FREQ, 57600);
+    cvra_set_uart_speed(COMPC_BASE, PIO_FREQ, 115200);
     cvra_set_uart_speed(COMDEBUG_BASE, PIO_FREQ, 115200);
-//    cvra_set_uart_speed(COMBT2_BASE, 9600); 
+//    cvra_set_uart_speed(COMBT2_BASE, 9600);
 
     /* Inits the logging system. */
     error_register_emerg(mylog);
