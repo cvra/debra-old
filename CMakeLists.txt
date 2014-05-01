@@ -31,6 +31,7 @@ file(GLOB_RECURSE
     modules/modules/robot_system/2wheels/angle_distance.c
     modules/modules/cirbuf/cirbuf.c
     modules/modules/vt100/vt100.c
+    modules/modules/obstacle_avoidance.c
     modules/modules/rdline/rdline.c
     modules/modules/commandline/commandline.c
 
@@ -111,10 +112,24 @@ add_executable(
 )
 
 add_executable(
+    cinematics_table
+    ${debra_source}
+    ${modules_source}
+    cinematics_test_table/main.c
+)
+
+add_executable(
     circle_test
     ${debra_source}
     ${modules_source}
     circle_tests/main.c
+)
+
+add_executable(
+    oa_test
+    ${debra_source}
+    ${modules_source}
+    obstacle_avoidance_test/main.c
 )
 
 target_link_libraries(
@@ -132,7 +147,21 @@ target_link_libraries(
 )
 
 target_link_libraries(
+	cinematics_table
+	m
+    CppUTest
+    CppUTestExt
+)
+
+target_link_libraries(
 	circle_test
+	m
+    CppUTest
+    CppUTestExt
+)
+
+target_link_libraries(
+	oa_test
 	m
     CppUTest
     CppUTestExt
