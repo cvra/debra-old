@@ -191,10 +191,14 @@ end
 
 function r()
     prepare_start("red")
+    trajectory_set_acc(1000, 20)
+    trajectory_set_speed(SPEED_NORMAL_D, SPEED_NORMAL_A)
 end
 
 function y()
     prepare_start("yellow")
+    trajectory_set_acc(1000, 20)
+    trajectory_set_speed(SPEED_NORMAL_D, SPEED_NORMAL_A)
 end
 
 
