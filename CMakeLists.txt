@@ -29,11 +29,7 @@ file(GLOB_RECURSE
     modules/modules/position_manager/2wheels/position_manager.c
     modules/modules/robot_system/2wheels/robot_system.c
     modules/modules/robot_system/2wheels/angle_distance.c
-    modules/modules/cirbuf/cirbuf.c
-    modules/modules/vt100/vt100.c
     modules/modules/obstacle_avoidance.c
-    modules/modules/rdline/rdline.c
-    modules/modules/commandline/commandline.c
 
     modules/modules/cvra_dc/cvra_dc.c
     modules/modules/platform/platform_host.c
@@ -83,8 +79,6 @@ include_directories(modules/modules/math/fixed_point)
 include_directories(modules/modules/math/geometry)
 include_directories(modules/modules/math/vect2)
 include_directories(modules/modules/uptime)
-include_directories(modules/modules/vt100)
-include_directories(modules/modules/cirbuf)
 include_directories(modules/modules/rdline)
 include_directories(modules/modules/parse)
 include_directories(modules/modules/platform)
