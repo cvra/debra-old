@@ -1,17 +1,25 @@
 #include <stdio.h>
 #include "../arm.h"
 #include "../arm_trajectories.h"
+#include "2wheels/position_manager.h"
 #include "uptime.h"
 
 arm_t arm;
 arm_trajectory_t traj;
 
+struct robot_position pos;
+
+
+
 void setup()
 {
     arm_init(&arm);
     arm_set_physical_parameters(&arm);
+    arm.offset_xy.x = 0;
+    arm.offset_xy.y = 87.5;
     arm.offset_rotation = M_PI / 2;
     arm_trajectory_init(&traj);
+    arm_set_related_robot_pos(&arm, &pos);
 }
 
 void main(void)
@@ -26,11 +34,14 @@ void main(void)
 
     setup();
 
-    arm_trajectory_append_point(&traj, 100,  20, 10, COORDINATE_ARM, 10.);
-    arm_trajectory_append_point(&traj, 100, -20, 10, COORDINATE_ARM, 10.);
+//    arm_trajectory_append_point(&traj, 10, 0, 0, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, 10, 0 , 0, COORDINATE_TABLE, 1.);
     arm_do_trajectory(&arm, &traj);
+    uptime_set(10 * 1000000);
 
-    while (uptime_get() < traj.frames[traj.frame_count-1].date) {
+    position_set(&pos, -100, 0, 0);
+
+    while (position_get_x_s16(&pos) < 100) {
         arm_manage(&arm);
 
         alpha = arm.shoulder.manager.consign_value / (float)arm.shoulder_imp_per_rad;
@@ -48,11 +59,16 @@ void main(void)
         }
 
         printf("%d;", uptime_get());
+        printf("%.1f;%.1f;", position_get_x_float(&pos), position_get_y_float(&pos));
+        printf("%.1f;%.1f;", frame.position[0], frame.position[1]);
+        printf("%.1f;%.1f;", p1.x, p1.y);
         printf("%f;%f;", alpha, beta);
-        printf("%f;%f;", frame.position[0], frame.position[1]);
-        printf("%f;%f;", p1.x, p1.y);
         printf("%d;", position_count);
         printf("\n");
+
+        position_set(&pos,
+                position_get_x_s16(&pos) + 1,
+                position_get_y_s16(&pos) , 0);
 
         uptime_set(uptime_get() + 2*1000);
     }
