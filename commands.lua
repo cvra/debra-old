@@ -114,6 +114,45 @@ function arm()
     print("right arm : ("..x..";"..y..";"..z..")")
 end
 
+function arm_demo()
+
+    -- Shutdown the motors to be able to move the robot by hand
+    mode("off")
+
+    x,y,z = arm_get_position("left")
+
+    duration = 5
+
+    if z < 100 then
+        calibrate()
+    end
+
+    x,y,z = arm_get_position("left")
+    points = {
+        {x= 200, y=0, z=z,  type=COORDINATE_ARM, duration=duration},
+        {x= 100, y=0, z=z,  type=COORDINATE_ARM, duration=duration},
+        {x= 200, y=0, z=z,  type=COORDINATE_ARM, duration=duration},
+        {x= 100, y=0, z=z,  type=COORDINATE_ARM, duration=duration},
+        {x= 200, y=0, z=z,  type=COORDINATE_ARM, duration=duration},
+        {x= 100, y=0, z=z,  type=COORDINATE_ARM, duration=duration},
+        {x= 200, y=0, z=z,  type=COORDINATE_ARM, duration=duration},
+        {x= 100, y=0, z=z,  type=COORDINATE_ARM, duration=duration},
+        {x= 200, y=0, z=z,  type=COORDINATE_ARM, duration=duration},
+        {x= 100, y=0, z=z,  type=COORDINATE_ARM, duration=duration},
+    }
+
+    points = {
+        {x= 150, y=-20, z=z,  type=COORDINATE_ARM, duration=duration},
+        {x= 150, y= 20, z=z,  type=COORDINATE_ARM, duration=duration},
+    }
+
+    points = {
+        {x= 0, y=200, z=z,  type=COORDINATE_TABLE, duration=0.5},
+    }
+
+    arm_move("left", points)
+end
+
 function arm_move(arm, point_list)
 
     if arm == nil or point_list == nil then
@@ -202,17 +241,6 @@ function y()
 end
 
 
-points = {
-    {x=100, y=-40, z=200, type=COORDINATE_ARM, duration=1.},
-    {x=100, y=-40, z=80,  type=COORDINATE_ARM, duration=1.},
-    {x=180, y=-60, z=80,  type=COORDINATE_ARM, duration=1.},
-    {x=210, y=-60, z=30,  type=COORDINATE_ARM, duration=1.},
-    {x=210, y=-60, z=200, type=COORDINATE_ARM, duration=1.},
-    {x=120, y=-60, z=222, type=COORDINATE_ARM, duration=1.},
-    {x=120, y=-104, z=222, type=COORDINATE_ARM, duration=1.},
-    {x=-56, y=-104, z=222, type=COORDINATE_ARM, duration=1.},
-    {x=30,  y=0, z=222, type=COORDINATE_ROBOT, duration=1.},
-}
 
 -- Finally greet the user if running in interactive mode
 function greet()
