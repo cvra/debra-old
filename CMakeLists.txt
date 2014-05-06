@@ -30,7 +30,7 @@ file(GLOB_RECURSE
     modules/modules/robot_system/2wheels/robot_system.c
     modules/modules/robot_system/2wheels/angle_distance.c
     modules/modules/obstacle_avoidance.c
-
+    modules/modules/json.c
     modules/modules/cvra_dc/cvra_dc.c
     modules/modules/platform/platform_host.c
 )
@@ -86,6 +86,7 @@ include_directories(modules/modules/ramp)
 include_directories(modules/modules/cvra_pio)
 include_directories(modules/modules/cvra_servo)
 include_directories(modules/modules/commandline)
+include_directories(modules/json)
 
 include_directories($ENV{CPPUTEST_HOME}/include)
 link_directories($ENV{CPPUTEST_HOME}/lib)
