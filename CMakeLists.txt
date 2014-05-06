@@ -86,7 +86,7 @@ include_directories(modules/modules/ramp)
 include_directories(modules/modules/cvra_pio)
 include_directories(modules/modules/cvra_servo)
 include_directories(modules/modules/commandline)
-include_directories(modules/json)
+include_directories(modules/modules/json)
 
 include_directories($ENV{CPPUTEST_HOME}/include)
 link_directories($ENV{CPPUTEST_HOME}/lib)
