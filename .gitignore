@@ -22,6 +22,9 @@
 *.x86_64
 *.hex
 
+# CMake build dir
+build/
+
 # Vim swap files
 *.swp
 
