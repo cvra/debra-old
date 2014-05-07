@@ -53,6 +53,7 @@ file(GLOB_RECURSE
     arm.c
     hardware.c
     arm_cs.c
+    obstacle_avoidance_protocol.c
 )
 
 
