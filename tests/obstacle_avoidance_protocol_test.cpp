@@ -76,3 +76,44 @@ TEST(ObstacleAvoidanceProtocolTestGroup, MultipleObstaclesToo)
 
     free(json);
 }
+
+TEST(ObstacleAvoidanceProtocolTestGroup, CanDecodeEmptyPath)
+{
+    int ret;
+    obstacle_avoidance_path_t p;
+
+    ret = obstacle_avoidance_decode_path(&p, "[]");
+
+    CHECK_EQUAL(0, p.len);
+    CHECK_EQUAL(0, ret);
+}
+
+TEST(ObstacleAvoidanceProtocolTestGroup, CanDetectInvalidEncoding)
+{
+    int ret;
+    obstacle_avoidance_path_t p;
+
+    ret = obstacle_avoidance_decode_path(&p, "[1,2");
+    CHECK_EQUAL(-1, ret);
+
+    ret = obstacle_avoidance_decode_path(&p, "1");
+    CHECK_EQUAL(-1, ret);
+}
+
+TEST(ObstacleAvoidanceProtocolTestGroup, CanParseSimplePath)
+{
+    obstacle_avoidance_path_t p;
+
+    obstacle_avoidance_decode_path(&p, "[[1,2,3,4], [10, 11, 12, 13]]");
+    CHECK_EQUAL(2, p.len);
+
+    CHECK_EQUAL(1, p.points[0].x);
+    CHECK_EQUAL(2, p.points[0].y);
+    CHECK_EQUAL(3, p.points[0].vx);
+    CHECK_EQUAL(4, p.points[0].vy);
+
+    CHECK_EQUAL(10, p.points[1].x);
+    CHECK_EQUAL(11, p.points[1].y);
+    CHECK_EQUAL(12, p.points[1].vx);
+    CHECK_EQUAL(13, p.points[1].vy);
+}

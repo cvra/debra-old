@@ -56,3 +56,29 @@ char *obstacle_avoidance_request_encode(obstacle_avoidance_request_t *r)
     json_delete(node);
     return ret;
 }
+
+int obstacle_avoidance_decode_path(obstacle_avoidance_path_t *path,const char *json)
+{
+    JsonNode *node, *n;
+    int i;
+
+    node = json_decode(json);
+
+    if (node == NULL || node->tag != JSON_ARRAY)
+        return -1;
+
+    path->len = json_get_length(node);
+
+    path->points = malloc(sizeof(obstacle_avoidance_point_t) * path->len);
+
+    i = 0;
+    json_foreach(n, node) {
+        path->points[i].x  = json_find_element(n, 0)->number_;
+        path->points[i].y  = json_find_element(n, 1)->number_;
+        path->points[i].vx = json_find_element(n, 2)->number_;
+        path->points[i].vy = json_find_element(n, 3)->number_;
+        i++;
+    }
+
+    return 0;
+}

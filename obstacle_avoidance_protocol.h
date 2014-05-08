@@ -14,6 +14,11 @@ typedef struct {
 } obstacle_avoidance_point_t;
 
 typedef struct {
+    obstacle_avoidance_point_t *points;
+    int len;
+} obstacle_avoidance_path_t;
+
+typedef struct {
     int desired_datapoints;
     int desired_samplerate; /* ms */
 
@@ -30,4 +35,5 @@ void obstacle_avoidance_request_delete(obstacle_avoidance_request_t *r);
 
 char *obstacle_avoidance_request_encode(obstacle_avoidance_request_t *r);
 
+int obstacle_avoidance_decode_path(obstacle_avoidance_path_t *path,const char *json);
 #endif
