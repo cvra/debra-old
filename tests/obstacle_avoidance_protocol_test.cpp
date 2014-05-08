@@ -28,7 +28,8 @@ TEST(ObstacleAvoidanceProtocolTestGroup, CanFreeObstacles)
     CHECK_EQUAL(0, r.obstacle_count);
 }
 
-TEST(ObstacleAvoidanceProtocolTestGroup, CanEncodeEmptyRequest) {
+TEST(ObstacleAvoidanceProtocolTestGroup, CanEncodeEmptyRequest)
+{
     obstacle_avoidance_request_t r;
     char *json;
 
@@ -42,7 +43,8 @@ TEST(ObstacleAvoidanceProtocolTestGroup, CanEncodeEmptyRequest) {
     free(json);
 }
 
-TEST(ObstacleAvoidanceProtocolTestGroup, CanEncodeObstacles) {
+TEST(ObstacleAvoidanceProtocolTestGroup, CanEncodeObstacles)
+{
     obstacle_avoidance_request_t r;
     char *json;
 
@@ -59,7 +61,8 @@ TEST(ObstacleAvoidanceProtocolTestGroup, CanEncodeObstacles) {
     free(json);
 }
 
-TEST(ObstacleAvoidanceProtocolTestGroup, MultipleObstaclesToo) {
+TEST(ObstacleAvoidanceProtocolTestGroup, MultipleObstaclesToo)
+{
     obstacle_avoidance_request_t r;
     char *json;
     const int len = 2;
