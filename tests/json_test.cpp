@@ -72,3 +72,15 @@ TEST(JSONTestGroup, CanDecodeObject)
     CHECK_EQUAL(42, json_find_element(node, 0)->number_);
     CHECK_EQUAL(30, json_find_element(node, 1)->number_);
 }
+
+TEST(JSONTestGroup, NotArrayHasNegativeLength)
+{
+    node = json_mknumber(42);
+    CHECK_EQUAL(-1, json_get_length(node));
+}
+
+TEST(JSONTestGroup, CanComputeDecodedLength)
+{
+    node = json_decode("[42, 30]");
+    CHECK_EQUAL(2, json_get_length(node));
+}
