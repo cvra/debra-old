@@ -82,3 +82,10 @@ int obstacle_avoidance_decode_path(obstacle_avoidance_path_t *path,const char *j
 
     return 0;
 }
+
+void obstacle_avoidance_delete_path(obstacle_avoidance_path_t *path)
+{
+    path->points = NULL;
+    path->len = 0;
+    free(path->points);
+}

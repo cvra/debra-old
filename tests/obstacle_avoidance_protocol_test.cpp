@@ -86,6 +86,7 @@ TEST(ObstacleAvoidanceProtocolTestGroup, CanDecodeEmptyPath)
 
     CHECK_EQUAL(0, p.len);
     CHECK_EQUAL(0, ret);
+    obstacle_avoidance_delete_path(&p);
 }
 
 TEST(ObstacleAvoidanceProtocolTestGroup, CanDetectInvalidEncoding)
@@ -116,4 +117,17 @@ TEST(ObstacleAvoidanceProtocolTestGroup, CanParseSimplePath)
     CHECK_EQUAL(11, p.points[1].y);
     CHECK_EQUAL(12, p.points[1].vx);
     CHECK_EQUAL(13, p.points[1].vy);
+
+    obstacle_avoidance_delete_path(&p);
+}
+
+TEST(ObstacleAvoidanceProtocolTestGroup, CanDeletePath)
+{
+    obstacle_avoidance_path_t p;
+    obstacle_avoidance_decode_path(&p, "[[1,2,3,4], [10, 11, 12, 13]]");
+
+    obstacle_avoidance_delete_path(&p);
+
+    CHECK_EQUAL(0, p.len);
+    POINTERS_EQUAL(NULL, p.points);
 }
