@@ -31,7 +31,16 @@ file(GLOB_RECURSE
     modules/modules/json.c
     modules/modules/cvra_dc/cvra_dc.c
     modules/modules/platform/platform_host.c
+
 )
+
+file(GLOB_RECURSE
+    lwip_source
+    lwip/src/api/*.c
+    lwip/src/core/*.c
+    lwip/src/netif/eth*.c
+    lwip/src/contrib/ports/unix/*.c
+    )
 
 file(GLOB_RECURSE
     tests_source
@@ -82,6 +91,16 @@ include_directories(modules/modules/cvra_servo)
 include_directories(modules/modules/commandline)
 include_directories(modules/modules/json)
 
+include_directories(lwip/src/include/ipv4)
+include_directories(lwip/src/include/)
+include_directories(.)
+include_directories(lwip/src/include/ipv6)
+include_directories(lwip/src/include/netif)
+include_directories(lwip/src/contrib/ports/unix/include)
+
+
+
+
 include_directories($ENV{CPPUTEST_HOME}/include)
 link_directories($ENV{CPPUTEST_HOME}/lib)
 
@@ -91,6 +110,7 @@ add_executable(
     ${debra_source}
     ${modules_source}
     ${tests_source}
+    ${lwip_source}
 )
 
 target_link_libraries(
@@ -99,6 +119,9 @@ target_link_libraries(
     CppUTest
     CppUTestExt
 )
+
+find_package (Threads)
+target_link_libraries (tests ${CMAKE_THREAD_LIBS_INIT})
 
 add_subdirectory(cinematics_test)
 add_subdirectory(cinematics_test_table)
