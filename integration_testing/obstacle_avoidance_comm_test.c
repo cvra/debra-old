@@ -48,20 +48,38 @@ void ip_stack_init(void)
 
 }
 
+void send_request(void)
+{
+    struct ip_addr server;
+    int port;
+    int i;
+
+    IP4_ADDR(&server, 10,0,0,1);
+    port = 2048;
+
+    obstacle_avoidance_request_t request;
+    obstacle_avoidance_request_create(&request, 0);
+
+    obstacle_avoidance_path_t path;
+
+    request.desired_datapoints = 3;
+    request.desired_samplerate = 300;
+
+    int err = obstacle_avoidance_send_request(&request, server, port, &path);
+
+    printf("Request returned %d \n", err);
+
+    for (i=0;i<path.len;i++)
+        printf("x = %d, y = %d\n", path.points[i].x, path.points[i].y);
+
+    obstacle_avoidance_delete_path(&path);
+    obstacle_avoidance_request_delete(&request);
+}
+
 
 void main(void)
 {
     printf("Testing communication\n");
     ip_stack_init();
-
-    struct ip_addr server;
-    IP4_ADDR(&server, 10,0,0,1);
-    int port = 2048;
-    obstacle_avoidance_request_t request;
-    obstacle_avoidance_request_create(&request, 0);
-
-    request.desired_datapoints = 3;
-    request.desired_samplerate = 300;
-
-    obstacle_avoidance_send_request(&request, server, port);
+    send_request();
 }

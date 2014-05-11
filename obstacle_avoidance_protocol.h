@@ -38,6 +38,8 @@ void obstacle_avoidance_request_delete(obstacle_avoidance_request_t *r);
 char *obstacle_avoidance_request_encode(obstacle_avoidance_request_t *r);
 
 int obstacle_avoidance_decode_path(obstacle_avoidance_path_t *path,const char *json);
+
 void obstacle_avoidance_delete_path(obstacle_avoidance_path_t *path);
-void obstacle_avoidance_send_request(obstacle_avoidance_request_t *request, struct ip_addr remote_ip, int port);
+
+int obstacle_avoidance_send_request(obstacle_avoidance_request_t *request, struct ip_addr remote_ip, int port, obstacle_avoidance_path_t *path);
 #endif

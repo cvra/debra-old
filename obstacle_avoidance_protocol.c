@@ -83,10 +83,10 @@ int obstacle_avoidance_decode_path(obstacle_avoidance_path_t *path,const char *j
         i++;
     }
 
-    return 0;
+    return ERR_OK;
 }
 
-void obstacle_avoidance_send_request(obstacle_avoidance_request_t *request, struct ip_addr remote_ip, int port)
+int obstacle_avoidance_send_request(obstacle_avoidance_request_t *request, struct ip_addr remote_ip, int port, obstacle_avoidance_path_t *path)
 {
     /* XXX find a better way to do this. */
     #define MAX_LEN 2048
@@ -96,13 +96,25 @@ void obstacle_avoidance_send_request(obstacle_avoidance_request_t *request, stru
     struct netconn *conn = NULL;
 
     struct netbuf *buf;
-    u16_t err, len;
+    u16_t len;
+    int err;
 
     data = obstacle_avoidance_request_encode(request);
 
     conn = netconn_new(NETCONN_TCP);
-    netconn_connect(conn, &remote_ip, 2048);
-    netconn_write(conn, data, strlen(data), NETCONN_COPY);
+
+    err = netconn_connect(conn, &remote_ip, 2048);
+    if (err != ERR_OK) {
+        free(data);
+        return err;
+    }
+
+    err = netconn_write(conn, data, strlen(data), NETCONN_COPY);
+
+    if (err != ERR_OK) {
+        free(data);
+        return err;
+    }
 
     free(data);
 
@@ -117,7 +129,9 @@ void obstacle_avoidance_send_request(obstacle_avoidance_request_t *request, stru
         netbuf_delete(buf);
     }
 
+    err = obstacle_avoidance_decode_path(path, answer);
     netconn_delete(conn);
+    return err;
 }
 
 void obstacle_avoidance_delete_path(obstacle_avoidance_path_t *path)
