@@ -1,5 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
+#include <lwip/tcpip.h>
+#include <lwip/ip.h>
+#include <lwip/sys.h>
 #include "obstacle_avoidance_protocol.h"
 #include "json.h"
 
@@ -81,6 +84,21 @@ int obstacle_avoidance_decode_path(obstacle_avoidance_path_t *path,const char *j
     }
 
     return 0;
+}
+
+void obstacle_avoidance_send_request(obstacle_avoidance_request_t *request, struct ip_addr remote_ip, int port)
+{
+    char *data;
+    struct netconn *conn = NULL;
+
+    data = obstacle_avoidance_request_encode(request);
+
+    conn = netconn_new(NETCONN_TCP);
+    netconn_connect(conn, &remote_ip, 2048);
+    netconn_write(conn, data, strlen(data), NETCONN_COPY);
+
+    netconn_delete(conn);
+    free(data);
 }
 
 void obstacle_avoidance_delete_path(obstacle_avoidance_path_t *path)

@@ -123,5 +123,6 @@ target_link_libraries(
 find_package (Threads)
 target_link_libraries (tests ${CMAKE_THREAD_LIBS_INIT})
 
-add_subdirectory(cinematics_test)
-add_subdirectory(cinematics_test_table)
+#add_subdirectory(cinematics_test)
+#add_subdirectory(cinematics_test_table)
+add_subdirectory(integration_testing)

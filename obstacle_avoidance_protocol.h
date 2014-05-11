@@ -1,6 +1,8 @@
 #ifndef OBSTACLE_AVOIDANCE_H_
 #define OBSTACLE_AVOIDANCE_H_
 
+#include <lwip/ip.h>
+
 typedef struct {
     int x,y; /* mm */
     int vx, vy; /* mm / s */
@@ -37,4 +39,5 @@ char *obstacle_avoidance_request_encode(obstacle_avoidance_request_t *r);
 
 int obstacle_avoidance_decode_path(obstacle_avoidance_path_t *path,const char *json);
 void obstacle_avoidance_delete_path(obstacle_avoidance_path_t *path);
+void obstacle_avoidance_send_request(obstacle_avoidance_request_t *request, struct ip_addr remote_ip, int port);
 #endif
