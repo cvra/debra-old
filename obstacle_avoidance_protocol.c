@@ -68,7 +68,7 @@ int obstacle_avoidance_decode_path(obstacle_avoidance_path_t *path,const char *j
     node = json_decode(json);
 
     if (node == NULL || node->tag != JSON_ARRAY)
-        return -1;
+        return ERR_VAL;
 
     path->len = json_get_length(node);
 

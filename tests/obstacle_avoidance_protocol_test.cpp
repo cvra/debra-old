@@ -95,10 +95,10 @@ TEST(ObstacleAvoidanceProtocolTestGroup, CanDetectInvalidEncoding)
     obstacle_avoidance_path_t p;
 
     ret = obstacle_avoidance_decode_path(&p, "[1,2");
-    CHECK_EQUAL(-1, ret);
+    CHECK_EQUAL(ERR_VAL, ret);
 
     ret = obstacle_avoidance_decode_path(&p, "1");
-    CHECK_EQUAL(-1, ret);
+    CHECK_EQUAL(ERR_VAL, ret);
 }
 
 TEST(ObstacleAvoidanceProtocolTestGroup, CanParseSimplePath)
