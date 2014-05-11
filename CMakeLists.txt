@@ -12,7 +12,6 @@ endif()
 
 set(CMAKE_BUILD_TYPE Debug)
 
-
 file(GLOB_RECURSE
     modules_source
     modules/modules/uptime/uptime.c
@@ -38,11 +37,6 @@ file(GLOB_RECURSE
 file(GLOB_RECURSE
     tests_source
     tests/*
-)
-
-file(GLOB_RECURSE
-    cinematics_test_source
-    cinematics_test/*
 )
 
 file(GLOB_RECURSE
@@ -100,28 +94,6 @@ add_executable(
     ${tests_source}
 )
 
-add_executable(
-    cinematics_test
-    ${debra_source}
-    ${modules_source}
-    cinematics_test/main.c
-)
-
-add_executable(
-    cinematics_table
-    ${debra_source}
-    ${modules_source}
-    cinematics_test_table/main.c
-)
-
-add_executable(
-    circle_test
-    ${debra_source}
-    ${modules_source}
-    circle_tests/main.c
-)
-
-
 target_link_libraries(
 	tests
 	m
@@ -129,23 +101,5 @@ target_link_libraries(
     CppUTestExt
 )
 
-target_link_libraries(
-	cinematics_test
-	m
-    CppUTest
-    CppUTestExt
-)
-
-target_link_libraries(
-	cinematics_table
-	m
-    CppUTest
-    CppUTestExt
-)
-
-target_link_libraries(
-	circle_test
-	m
-    CppUTest
-    CppUTestExt
-)
+add_subdirectory(cinematics_test)
+add_subdirectory(cinematics_test_table)
