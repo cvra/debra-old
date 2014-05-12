@@ -12,7 +12,7 @@ void arm_set_physical_parameters(arm_t *arm)
 {
     /* Physical constants, not magic numbers. */
     arm->length[0] = 135.16; /* mm */
-    arm->length[1] = 97.74;
+    arm->length[1] = 106.5;
 
     pid_set_gains(&arm->z_axis.pid, 1200, 0, 0);
     pid_set_gains(&arm->elbow.pid, 10, 0, 0);
@@ -34,8 +34,8 @@ void arm_get_position(arm_t *arm, float *x, float *y, float *z)
 {
     float alpha, beta;
 
-    alpha = cs_get_feedback(&arm->shoulder.manager) / (float)arm->shoulder_imp_per_rad; 
-    beta = cs_get_feedback(&arm->elbow.manager) / (float)arm->elbow_imp_per_rad; 
+    alpha = cs_get_feedback(&arm->shoulder.manager) / (float)arm->shoulder_imp_per_rad;
+    beta = cs_get_feedback(&arm->elbow.manager) / (float)arm->elbow_imp_per_rad;
 
     beta += alpha;
 
