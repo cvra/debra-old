@@ -548,6 +548,7 @@ int cmd_arm_shutdown(lua_State *l)
 
 int cmd_calibrate(lua_State *l)
 {
+    strat_wait_ms(1000);
     arm_calibrate();
     return 0;
 }

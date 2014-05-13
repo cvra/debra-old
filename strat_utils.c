@@ -48,7 +48,7 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot)
 
     position_set(&robot.pos, epaisseurRobot, 0, COLOR_A(0.));
     /* On se mets a la bonne position en x. */
-    trajectory_d_rel(&robot.traj, (double) (x - epaisseurRobot));
+    trajectory_d_rel(&robot.traj, 80);
     wait_traj_end(END_TRAJ);
 
     /* On se tourne face a la paroi en Y. */
@@ -67,11 +67,14 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot)
     robot.pos.pos_d.y = COLOR_Y(epaisseurRobot);
     robot.pos.pos_s16.y = COLOR_Y(epaisseurRobot);
 
-    /* On se met en place a la position demandee. */
-    trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 300), speed_rd2imp(&robot.traj, 2.5));
 
-    trajectory_d_rel(&robot.traj, (double) (y - epaisseurRobot));
+    trajectory_d_rel(&robot.traj, 80);
     wait_traj_end(END_TRAJ);
+
+    trajectory_goto_forward_xy_abs(&robot.traj, x, COLOR_Y(y));
+    wait_traj_end(END_TRAJ);
+
+    strat_wait_ms(4000);
 
     /* Pour finir on s'occuppe de l'angle. */
     trajectory_a_abs(&robot.traj, COLOR_A((double)a));
@@ -80,6 +83,9 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot)
     /* On remet le robot dans son etat initial. */
     robot.mode = BOARD_MODE_ANGLE_DISTANCE;
     robot.is_aligning = 0;
+
+    /* On se met en place a la position demandee. */
+    trajectory_set_speed(&robot.traj, speed_mm2imp(&robot.traj, 300), speed_rd2imp(&robot.traj, 2.5));
 }
 
 /** Converts relative angle/distance coordinates to absolute. */

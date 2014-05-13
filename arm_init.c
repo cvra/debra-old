@@ -24,14 +24,14 @@ void arm_cinematics_manage_task(void *dummy)
 void arm_control_manage_task(__attribute__((unused)) void *dummy)
 {
     while (1) {
-        /*
         arm_cs_manage(&robot.right_arm.z_axis);
         arm_cs_manage(&robot.left_arm.z_axis);
         arm_cs_manage(&robot.right_arm.shoulder);
         arm_cs_manage(&robot.left_arm.shoulder);
         arm_cs_manage(&robot.right_arm.elbow);
         arm_cs_manage(&robot.left_arm.elbow);
-        //arm_cs_manage(&robot.right_arm.hand);
+        /*
+        arm_cs_manage(&robot.right_arm.hand);
         arm_cs_manage(&robot.left_arm.hand);
         */
         OSTimeDlyHMSM(0, 0, 0, 10);
@@ -98,7 +98,7 @@ void arm_highlevel_init(void)
 
 
 #if 1
-    OSTaskCreateExt(arm_cinematics_manage_task, 
+    OSTaskCreateExt(arm_cinematics_manage_task,
                     NULL,
                     &cinematics_task_stk[2047],
                     CINEMATICS_TASK_PRIORITY,

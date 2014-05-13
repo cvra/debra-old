@@ -90,7 +90,7 @@ int arm_trajectory_finished(arm_trajectory_t *traj)
 void arm_trajectory_set_hand_angle(arm_trajectory_t *traj, float angle)
 {
     int last_frame = traj->frame_count - 1;
-    
+
     if (last_frame == -1)
         return;
 

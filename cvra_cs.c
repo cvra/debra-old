@@ -53,7 +53,7 @@ void cvra_cs_init(void)
     /*--------------------------------------------------------------------------*/
 #ifdef COMPILE_ON_ROBOT
     int i;
-    for(i=0;i<6;i++) {
+    for(i=0;i<8;i++) {
         cvra_dc_set_encoder(HEXMOTORCONTROLLER_BASE, i, 0);
         cvra_dc_set_pwm(HEXMOTORCONTROLLER_BASE, i, 0);
     }

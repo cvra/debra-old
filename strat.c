@@ -43,7 +43,7 @@ void reset_arm_pos(void)
     arm_trajectory_init(&traj);
     arm_get_position(&robot.right_arm, &sx, &sy, &sz);
     arm_trajectory_append_point(&traj, sx, sy, sz, COORDINATE_ARM, 1.);
-    arm_trajectory_append_point(&traj, sx, sy, 220, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, sx, sy, 191, COORDINATE_ARM, 1.);
     arm_do_trajectory(&robot.right_arm, &traj);
     arm_trajectory_delete(&traj);
 
@@ -51,7 +51,7 @@ void reset_arm_pos(void)
     arm_get_position(&robot.left_arm, &sx, &sy, &sz);
     arm_trajectory_append_point(&traj, sx, sy, sz, COORDINATE_ARM, 1.);
     arm_trajectory_append_point(&traj, 200, 0, sz, COORDINATE_ARM, 1.);
-    arm_trajectory_append_point(&traj, 200, 0, 220, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, 200, 0, 191, COORDINATE_ARM, 1.);
     arm_do_trajectory(&robot.left_arm, &traj);
     arm_trajectory_delete(&traj);
 }
@@ -69,6 +69,36 @@ void setup_arm_pos(void)
     arm_trajectory_append_point(&traj, 130, 0, 95, COORDINATE_ROBOT, .5);
     arm_do_trajectory(&robot.right_arm, &traj);
     arm_trajectory_delete(&traj);
+}
+
+void do_first_fire(void)
+{
+    pump_left_bottom(1);
+    pump_left_top(1);
+    arm_trajectory_t traj;
+    arm_t *arm;
+    float sx, sy, sz;
+    if (strat.color == YELLOW)
+        arm = &robot.left_arm;
+    else
+        arm = &robot.right_arm;
+
+
+    arm_trajectory_init(&traj);
+    arm_get_position(arm, &sx, &sy, &sz);
+    arm_trajectory_append_point(&traj, sx, sy, sz, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, -40, COLOR_Y(800), sz, COORDINATE_TABLE, 1.);
+    arm_trajectory_append_point(&traj, -40, COLOR_Y(800), 85, COORDINATE_TABLE, 1.);
+    arm_trajectory_append_point(&traj, 125, COLOR_Y(800), 85, COORDINATE_TABLE, 1.);
+    arm_trajectory_append_point(&traj, 125, COLOR_Y(800), 32, COORDINATE_TABLE, 1.);
+    arm_trajectory_append_point(&traj, 125, COLOR_Y(800), 150, COORDINATE_TABLE, 1.);
+
+    arm_do_trajectory(arm, &traj);
+    arm_trajectory_delete(&traj);
+
+    strat_wait_ms(2000);
+    trajectory_d_rel(&robot.traj, 120);
+    while(!arm_trajectory_finished(&arm->trajectory));
 }
 
 void strat_begin(void) {
@@ -90,147 +120,12 @@ void strat_begin(void) {
     cvra_wait_starter_pull(PIO_BASE);
     strat_timer_reset();
     //setup_arm_pos();
-
-    int ret;
-    do {
-        trajectory_goto_forward_xy_abs(&robot.traj, 1000, COLOR_Y(600));
-        ret = wait_traj_end(TRAJ_FLAGS_STD |END_NEAR);
-        if (ret == END_TIMER)
-            return;
-
-        if (!TRAJ_SUCCESS(ret)) {
-            strat_wait_ms(2000);
-            printf("RET=%d\n", ret);
-        }
-    } while (!TRAJ_SUCCESS(ret));
-
-    /*
-    do {
-        trajectory_goto_forward_xy_abs(&robot.traj, 1600, COLOR_Y(600));
-        ret = wait_traj_end(TRAJ_FLAGS_STD);
-        if (ret == END_TIMER)
-            return;
-
-        if (!TRAJ_SUCCESS(ret)) {
-            strat_wait_ms(2000);
-            printf("RET=%d\n", ret);
-        }
-    } while (!TRAJ_SUCCESS(ret));
-
-    trajectory_goto_backward_xy_abs(&robot.traj, 1350, COLOR_Y(230));
-    ret = wait_traj_end(TRAJ_FLAGS_SHORT_DISTANCE);
-
-    trajectory_goto_backward_xy_abs(&robot.traj, 1350, COLOR_Y(0));
-    ret = wait_traj_end(TRAJ_FLAGS_SHORT_DISTANCE);
-    */
-
-    do {
-        trajectory_goto_xy_abs(&robot.traj, 1500, COLOR_Y(600));
-        ret = wait_traj_end(TRAJ_FLAGS_STD |TRAJ_FLAGS_NEAR);
-        if (ret == END_TIMER)
-            return;
-
-        if (!TRAJ_SUCCESS(ret)) {
-            strat_wait_ms(2000);
-            printf("RET=%d\n", ret);
-        }
-    } while (!TRAJ_SUCCESS(ret));
-
-    do {
-        trajectory_goto_xy_abs(&robot.traj, 1200, COLOR_Y(600));
-        ret = wait_traj_end(TRAJ_FLAGS_STD |TRAJ_FLAGS_NEAR);
-        if (ret == END_TIMER)
-            return;
-
-        if (!TRAJ_SUCCESS(ret)) {
-            strat_wait_ms(2000);
-            printf("RET=%d\n", ret);
-        }
-    } while (!TRAJ_SUCCESS(ret));
-
-    do {
-        trajectory_goto_xy_abs(&robot.traj, 1200, COLOR_Y(1000));
-        ret = wait_traj_end(TRAJ_FLAGS_STD |TRAJ_FLAGS_NEAR);
-        if (ret == END_TIMER)
-            return;
-
-        if (!TRAJ_SUCCESS(ret)) {
-            strat_wait_ms(2000);
-            printf("RET=%d\n", ret);
-        }
-    } while (!TRAJ_SUCCESS(ret));
-
-    do {
-        trajectory_goto_forward_xy_abs(&robot.traj, 1200, COLOR_Y(1600));
-        ret = wait_traj_end(TRAJ_FLAGS_STD);
-        if (ret == END_TIMER)
-            return;
-
-        if (!TRAJ_SUCCESS(ret)) {
-            strat_wait_ms(2000);
-            printf("RET=%d\n", ret);
-        }
-    } while (!TRAJ_SUCCESS(ret));
-
-    do {
-        trajectory_goto_forward_xy_abs(&robot.traj, 900, COLOR_Y(1600));
-        ret = wait_traj_end(TRAJ_FLAGS_STD);
-        if (ret == END_TIMER)
-            return;
-
-        if (!TRAJ_SUCCESS(ret)) {
-            strat_wait_ms(2000);
-            printf("RET=%d\n", ret);
-        }
-    } while (!TRAJ_SUCCESS(ret));
-
-    do {
-        trajectory_goto_xy_abs(&robot.traj, 1200, COLOR_Y(1000));
-        ret = wait_traj_end(TRAJ_FLAGS_STD);
-        if (ret == END_TIMER)
-            return;
-
-        if (!TRAJ_SUCCESS(ret)) {
-            strat_wait_ms(2000);
-            printf("RET=%d\n", ret);
-        }
-    } while (!TRAJ_SUCCESS(ret));
-
-    do {
-        trajectory_goto_xy_abs(&robot.traj, 400, COLOR_Y(600));
-        ret = wait_traj_end(TRAJ_FLAGS_STD);
-        if (ret == END_TIMER)
-            return;
-
-        if (!TRAJ_SUCCESS(ret)) {
-            strat_wait_ms(2000);
-            printf("RET=%d\n", ret);
-        }
-    } while (!TRAJ_SUCCESS(ret));
-
-    do {
-        trajectory_goto_forward_xy_abs(&robot.traj, 400, COLOR_Y(1050));
-        ret = wait_traj_end(TRAJ_FLAGS_STD);
-        if (ret == END_TIMER)
-            return;
-
-        if (!TRAJ_SUCCESS(ret)) {
-            strat_wait_ms(2000);
-            printf("RET=%d\n", ret);
-        }
-    } while (!TRAJ_SUCCESS(ret));
-
-    trajectory_d_rel(&robot.traj, 200);
-
-
-end:
-    pump_right_top(0);
-    pump_right_bottom(0);
-
-    pump_left_top(0);
-    pump_left_bottom(0);
-
 //    reset_arm_pos();
+//    trajectory_goto_forward_xy_abs(&robot.traj, 1500, COLOR_Y(690));
+//
+    do_first_fire();
+    strat_wait_ms(3000);
+    reset_arm_pos();
 }
 
 

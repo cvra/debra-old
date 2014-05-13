@@ -115,11 +115,10 @@ function arm()
 end
 
 function arm_demo()
-
     -- Shutdown the motors to be able to move the robot by hand
     mode("off")
 
-    x,y,z = arm_get_position("left")
+    x,y,z = arm_get_position("right")
 
     duration = 5
 
@@ -147,10 +146,10 @@ function arm_demo()
     }
 
     points = {
-        {x= 0, y=200, z=z,  type=COORDINATE_TABLE, duration=0.5},
+        {x= 0, y=-200, z=z,  type=COORDINATE_TABLE, duration=0.5},
     }
 
-    arm_move("left", points)
+    arm_move("right", points)
 end
 
 function arm_move(arm, point_list)
@@ -191,7 +190,6 @@ end
 
 function pump(p, v)
     v = v * 500 -- speed
-
     if p == "left_top" then
         pwm(hexmotor, 3, v)
     end
@@ -218,7 +216,7 @@ function prepare_start(color)
         print("Please specify color : red or yellow.")
     end
 
-    strat_autopos(color, 200, 500, 40)
+    strat_autopos(color, 139.49, 541, 42.75)
 end
 
 function off()
