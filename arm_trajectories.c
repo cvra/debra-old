@@ -42,9 +42,9 @@ void arm_trajectory_append_point(arm_trajectory_t *traj, const float x, const fl
 
 
     traj->frames[traj->frame_count-1].length[0] = 135.16;
-    traj->frames[traj->frame_count-1].length[1] = 97.74;
+    traj->frames[traj->frame_count-1].length[1] = 106.5;
 
-    if (traj->frame_count > 1) 
+    if (traj->frame_count > 1)
         traj->frames[traj->frame_count-1].hand_angle = traj->frames[traj->frame_count-2].hand_angle;
     else
         traj->frames[traj->frame_count-1].hand_angle = 0;

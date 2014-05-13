@@ -3,6 +3,7 @@
 #include <cvra_dc.h>
 #include "arm.h"
 #include "cvra_cs.h"
+#include <2wheels/trajectory_manager_utils.h>
 
 OS_STK    control_task_stk[2048];
 #define   CONTROL_TASK_PRIORITY 24
@@ -112,8 +113,18 @@ void arm_calibrate(void)
 {
     arm_shutdown(&robot.left_arm);
     arm_shutdown(&robot.right_arm);
-    cvra_dc_set_encoder(HEXMOTORCONTROLLER_BASE, 5, 223 * robot.left_arm.z_axis_imp_per_mm); 
-    cvra_dc_set_encoder(HEXMOTORCONTROLLER_BASE, 0, 223 *robot.left_arm.z_axis_imp_per_mm); 
+
+
+    /* Epaule : -117.1 coude: 162.65 */
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 1, RAD(117.11) * robot.left_arm.shoulder_imp_per_rad);
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 4, RAD(-117.11) * robot.right_arm.shoulder_imp_per_rad);
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 5, RAD(162.65) * robot.right_arm.elbow_imp_per_rad);
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 0, RAD(-162.65) * robot.left_arm.elbow_imp_per_rad);
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 2, 0); /* hands */
+    cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 3, 0);
+
+    cvra_dc_set_encoder(HEXMOTORCONTROLLER_BASE, 5, 200 * robot.left_arm.z_axis_imp_per_mm);
+    cvra_dc_set_encoder(HEXMOTORCONTROLLER_BASE, 0, 200 * robot.left_arm.z_axis_imp_per_mm);
 
 }
 
