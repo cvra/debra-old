@@ -39,11 +39,6 @@ char *obstacle_avoidance_request_encode(obstacle_avoidance_request_t *r)
     json_append_element(array_head, json_mknumber(r->start.vy));
     json_append_element(node, array_head);
 
-    array_head = json_mkarray();
-    json_append_element(array_head, json_mknumber(r->end.x));
-    json_append_element(array_head, json_mknumber(r->end.y));
-    json_append_element(node, array_head);
-
     json_append_element(node, json_mknumber(r->desired_samplerate));
     json_append_element(node, json_mknumber(r->desired_datapoints));
 
@@ -85,7 +80,6 @@ int obstacle_avoidance_decode_path(obstacle_avoidance_path_t *path,const char *j
         path->points[i].y  = json_find_element(n, 1)->number_;
         path->points[i].vx = json_find_element(n, 2)->number_;
         path->points[i].vy = json_find_element(n, 3)->number_;
-        path->points[i].timestamp = json_find_element(n, 4)->number_;
         i++;
     }
 
@@ -96,8 +90,8 @@ int obstacle_avoidance_send_request(obstacle_avoidance_request_t *request, struc
 {
     /* XXX find a better way to do this. */
     #define MAX_LEN 2048
-    char *data, to_append[TCP_MSS+1];
-    char answer[MAX_LEN];
+    char *data;
+    static char answer[MAX_LEN];
     void *tmp;
     struct netconn *conn = NULL;
 
@@ -124,14 +118,18 @@ int obstacle_avoidance_send_request(obstacle_avoidance_request_t *request, struc
 
     free(data);
 
+    int answer_offset = 0;
     while ((err = netconn_recv(conn, &buf)) == ERR_OK) {
         do {
             /* Copies the buffer data into a string. */
             netbuf_data(buf, &tmp, &len);
-            memcpy(to_append, tmp, len);
-            to_append[len] = 0;
-            snprintf(answer, MAX_LEN, "%s%s", answer, to_append);
+            if (answer_offset + len >= MAX_LEN) {   /* >= for null-terminator */
+                return ERR_BUF
+            }
+            memcpy(answer + answer_offset, tmp, len);
+            answer_offset += len;
         } while (netbuf_next(buf) >= 0);
+        answer[answer_offset] = '\0';
         netbuf_delete(buf);
     }
 
