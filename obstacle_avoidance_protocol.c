@@ -130,7 +130,7 @@ int obstacle_avoidance_send_request(obstacle_avoidance_request_t *request, struc
             /* Copies the buffer data into a string. */
             netbuf_data(buf, &tmp, &len);
             if (answer_offset + len >= MAX_LEN) {   /* >= for null-terminator */
-                return ERR_BUF
+                return ERR_BUF;
             }
             memcpy(answer + answer_offset, tmp, len);
             answer_offset += len;
