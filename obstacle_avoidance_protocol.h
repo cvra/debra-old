@@ -25,6 +25,7 @@ typedef struct {
     int desired_samplerate; /* ms */
 
     obstacle_avoidance_point_t start;
+    obstacle_avoidance_point_t end;
 
     obstacle_avoidance_obstacle_t *obstacles;
     int obstacle_count;

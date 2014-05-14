@@ -38,8 +38,10 @@ TEST(ObstacleAvoidanceProtocolTestGroup, CanEncodeEmptyRequest)
     r.desired_datapoints = 13;
     r.start.x = 42;
     r.start.y = 98;
+    r.end.x = 20;
+    r.end.y = 21;
     json = obstacle_avoidance_request_encode(&r);
-    STRCMP_EQUAL("[[42,98,0,0],12,13,[]]", json);
+    STRCMP_EQUAL("[[42,98,0,0],[20,21],12,13,[]]", json);
     free(json);
 }
 
@@ -57,7 +59,7 @@ TEST(ObstacleAvoidanceProtocolTestGroup, CanEncodeObstacles)
     r.obstacles[0].r = 150;
 
     json = obstacle_avoidance_request_encode(&r);
-    STRCMP_EQUAL("[[0,0,0,0],0,0,[[1,2,3,4,150]]]", json);
+    STRCMP_EQUAL("[[0,0,0,0],[0,0],0,0,[[1,2,3,4,150]]]", json);
     free(json);
 }
 
@@ -72,7 +74,7 @@ TEST(ObstacleAvoidanceProtocolTestGroup, MultipleObstaclesToo)
     memset(r.obstacles, 0, len * sizeof(obstacle_avoidance_obstacle_t));
 
     json = obstacle_avoidance_request_encode(&r);
-    STRCMP_EQUAL("[[0,0,0,0],0,0,[[0,0,0,0,0],[0,0,0,0,0]]]", json);
+    STRCMP_EQUAL("[[0,0,0,0],[0,0],0,0,[[0,0,0,0,0],[0,0,0,0,0]]]", json);
 
     free(json);
 }
