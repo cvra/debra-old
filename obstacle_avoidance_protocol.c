@@ -39,6 +39,11 @@ char *obstacle_avoidance_request_encode(obstacle_avoidance_request_t *r)
     json_append_element(array_head, json_mknumber(r->start.vy));
     json_append_element(node, array_head);
 
+    array_head = json_mkarray();
+    json_append_element(array_head, json_mknumber(r->end.x));
+    json_append_element(array_head, json_mknumber(r->end.y));
+    json_append_element(node, array_head);
+
     json_append_element(node, json_mknumber(r->desired_samplerate));
     json_append_element(node, json_mknumber(r->desired_datapoints));
 
