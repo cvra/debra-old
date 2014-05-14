@@ -105,18 +105,20 @@ TEST(ObstacleAvoidanceProtocolTestGroup, CanParseSimplePath)
 {
     obstacle_avoidance_path_t p;
 
-    obstacle_avoidance_decode_path(&p, "[[1,2,3,4], [10, 11, 12, 13]]");
+    obstacle_avoidance_decode_path(&p, "[[1,2,3,4, 1000], [10, 11, 12, 13, 1000]]");
     CHECK_EQUAL(2, p.len);
 
     CHECK_EQUAL(1, p.points[0].x);
     CHECK_EQUAL(2, p.points[0].y);
     CHECK_EQUAL(3, p.points[0].vx);
     CHECK_EQUAL(4, p.points[0].vy);
+    CHECK_EQUAL(1000, p.points[0].timestamp);
 
     CHECK_EQUAL(10, p.points[1].x);
     CHECK_EQUAL(11, p.points[1].y);
     CHECK_EQUAL(12, p.points[1].vx);
     CHECK_EQUAL(13, p.points[1].vy);
+    CHECK_EQUAL(1000, p.points[1].timestamp);
 
     obstacle_avoidance_delete_path(&p);
 }
@@ -124,7 +126,7 @@ TEST(ObstacleAvoidanceProtocolTestGroup, CanParseSimplePath)
 TEST(ObstacleAvoidanceProtocolTestGroup, CanDeletePath)
 {
     obstacle_avoidance_path_t p;
-    obstacle_avoidance_decode_path(&p, "[[1,2,3,4], [10, 11, 12, 13]]");
+    obstacle_avoidance_decode_path(&p, "[[1,2,3,4,5], [10, 11, 12, 13,14]]");
 
     obstacle_avoidance_delete_path(&p);
 

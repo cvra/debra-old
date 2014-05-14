@@ -80,6 +80,7 @@ int obstacle_avoidance_decode_path(obstacle_avoidance_path_t *path,const char *j
         path->points[i].y  = json_find_element(n, 1)->number_;
         path->points[i].vx = json_find_element(n, 2)->number_;
         path->points[i].vy = json_find_element(n, 3)->number_;
+        path->points[i].timestamp = json_find_element(n, 4)->number_;
         i++;
     }
 
