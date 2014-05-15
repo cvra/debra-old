@@ -95,7 +95,7 @@ int obstacle_avoidance_decode_path(obstacle_avoidance_path_t *path,const char *j
 int obstacle_avoidance_send_request(obstacle_avoidance_request_t *request, struct ip_addr remote_ip, int port, obstacle_avoidance_path_t *path)
 {
     /* XXX find a better way to do this. */
-    #define MAX_LEN 2048
+    #define MAX_LEN 16384
     char *data;
     static char answer[MAX_LEN];
     void *tmp;
@@ -109,7 +109,7 @@ int obstacle_avoidance_send_request(obstacle_avoidance_request_t *request, struc
 
     conn = netconn_new(NETCONN_TCP);
 
-    err = netconn_connect(conn, &remote_ip, 2048);
+    err = netconn_connect(conn, &remote_ip, port);
     if (err != ERR_OK) {
         free(data);
         return err;

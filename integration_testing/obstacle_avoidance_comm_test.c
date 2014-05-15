@@ -2,7 +2,6 @@
 #include <lwip/sys.h>
 #include <lwip/tcpip.h>
 #include <lwip/ip.h>
-#include <netif/tapif.h>
 #include <netif/slipif.h>
 
 #include "obstacle_avoidance_protocol.h"
@@ -15,6 +14,7 @@ void ipinit_done_cb(void *a)
 {
     sys_sem_signal(&lwip_init_done);
 }
+
 
 void ip_stack_init(void)
 {
@@ -41,7 +41,7 @@ void ip_stack_init(void)
     printf("LWIP init complete\n");
 
     /* Adds a tap pseudo interface for unix debugging. */
-    netif_add(&slipf,&ipaddr, &netmask, &gw, NULL, tapif_init, tcpip_input);
+    netif_add(&slipf,&ipaddr, &netmask, &gw, NULL, slipif_init, tcpip_input);
 
     netif_set_default(&slipf);
     netif_set_up(&slipf);

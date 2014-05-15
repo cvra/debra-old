@@ -88,6 +88,7 @@ void arm_manage(arm_t *arm)
         cs_disable(&arm->shoulder.manager);
         cs_disable(&arm->elbow.manager);
         cs_disable(&arm->z_axis.manager);
+        cs_disable(&arm->hand.manager);
         arm->last_loop = current_date;
         platform_signal_semaphore(&arm->trajectory_semaphore);
         return;
@@ -103,6 +104,7 @@ void arm_manage(arm_t *arm)
         cs_disable(&arm->shoulder.manager);
         cs_disable(&arm->elbow.manager);
         cs_disable(&arm->z_axis.manager);
+        cs_disable(&arm->hand.manager);
         arm->last_loop = current_date;
         platform_signal_semaphore(&arm->trajectory_semaphore);
         return;
@@ -132,11 +134,12 @@ void arm_manage(arm_t *arm)
     cs_enable(&arm->shoulder.manager);
     cs_enable(&arm->elbow.manager);
     cs_enable(&arm->z_axis.manager);
+    cs_enable(&arm->hand.manager);
 
     cs_set_consign(&arm->shoulder.manager, alpha * arm->shoulder_imp_per_rad);
     cs_set_consign(&arm->elbow.manager, beta * arm->elbow_imp_per_rad);
     cs_set_consign(&arm->z_axis.manager, frame.position[2] * arm->z_axis_imp_per_mm);
-    cs_set_consign(&arm->hand.manager, frame.hand_angle * 864);
+    cs_set_consign(&arm->hand.manager, frame.hand_angle * 432);
 
     arm->last_loop = uptime_get();
 

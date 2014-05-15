@@ -114,6 +114,7 @@ function arm()
     print("right arm : ("..x..";"..y..";"..z..")")
 end
 
+
 function arm_demo()
     -- Shutdown the motors to be able to move the robot by hand
     mode("off")
@@ -128,28 +129,40 @@ function arm_demo()
 
     x,y,z = arm_get_position("left")
     points = {
-        {x= 200, y=0, z=z,  type=COORDINATE_ARM, duration=duration},
-        {x= 100, y=0, z=z,  type=COORDINATE_ARM, duration=duration},
-        {x= 200, y=0, z=z,  type=COORDINATE_ARM, duration=duration},
-        {x= 100, y=0, z=z,  type=COORDINATE_ARM, duration=duration},
-        {x= 200, y=0, z=z,  type=COORDINATE_ARM, duration=duration},
-        {x= 100, y=0, z=z,  type=COORDINATE_ARM, duration=duration},
-        {x= 200, y=0, z=z,  type=COORDINATE_ARM, duration=duration},
-        {x= 100, y=0, z=z,  type=COORDINATE_ARM, duration=duration},
-        {x= 200, y=0, z=z,  type=COORDINATE_ARM, duration=duration},
-        {x= 100, y=0, z=z,  type=COORDINATE_ARM, duration=duration},
-    }
-
-    points = {
-        {x= 150, y=-20, z=z,  type=COORDINATE_ARM, duration=duration},
-        {x= 150, y= 20, z=z,  type=COORDINATE_ARM, duration=duration},
-    }
-
-    points = {
-        {x= 0, y=-200, z=z,  type=COORDINATE_TABLE, duration=0.5},
+        {x=40, y=-293, z=z, angle=90, type=COORDINATE_ROBOT, duration=0.5},
+        {x=40, y=-293, z=1, angle=90, type=COORDINATE_ROBOT, duration=0.5},
     }
 
     arm_move("right", points)
+end
+
+function hand()
+
+    x,y,z = arm_get_position("right")
+    points = {
+        {x= x, y=y, z=z, angle=0,  type=COORDINATE_ARM, duration=0.5},
+        {x= x, y=y, z=z, angle=90, type=COORDINATE_ARM, duration=0.2},
+--        {x= x, y=y, z=z, angle=0,  type=COORDINATE_ARM, duration=1.},
+    }
+    arm_move("right", points)
+
+    x,y,z = arm_get_position("left")
+    points = {
+        {x= x, y=y, z=z, angle=0,  type=COORDINATE_ARM, duration=0.5},
+        {x= x, y=y, z=z, angle=90, type=COORDINATE_ARM, duration=0.2},
+--        {x= x, y=y, z=z, angle=0,  type=COORDINATE_ARM, duration=1.},
+    }
+    arm_move("left", points)
+end
+
+function reset_arms()
+    x,y,z = arm_get_position("right")
+    points = {{x= x, y=y, z=192,  type=COORDINATE_ARM, duration=0.5}}
+    arm_move("right", points)
+
+    x,y,z = arm_get_position("left")
+    points = {{x= x, y=y, z=192,  type=COORDINATE_ARM, duration=0.5}}
+    arm_move("left", points)
 end
 
 function arm_move(arm, point_list)
@@ -197,6 +210,14 @@ function pump(p, v)
     if p == "left_bottom" then
         pwm(hexmotor, 6, v)
     end
+
+    if p == "right_top" then
+        pwm(hexmotor, 7, v)
+    end
+
+    if p == "right_bottom" then
+        pwm(hexmotor, 4, v)
+    end
 end
 
 function dump_coders()
@@ -234,8 +255,8 @@ end
 
 function y()
     prepare_start("yellow")
-    trajectory_set_acc(1000, 20)
-    trajectory_set_speed(SPEED_NORMAL_D, SPEED_NORMAL_A)
+--    trajectory_set_acc(1000, 20)
+--    trajectory_set_speed(SPEED_NORMAL_D, SPEED_NORMAL_A)
 end
 
 

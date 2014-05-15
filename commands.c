@@ -1,7 +1,13 @@
 #include <platform.h>
+
 #include <lwip/sockets.h>
 #include <lwip/api.h>
 #include <lwip/inet.h>
+#include <lwip/sys.h>
+#include <lwip/tcpip.h>
+#include <lwip/ip.h>
+
+#include <netif/slipif.h>
 #include <stdio.h>
 #include <uptime.h>
 #include "lua/lua.h"
@@ -14,6 +20,7 @@
 #include <2wheels/trajectory_manager_utils.h>
 #include "2wheels/trajectory_manager.h"
 #include "strat_utils.h"
+#include "obstacle_avoidance_protocol.h"
 
 int cmd_pio_read(lua_State *l)
 {
@@ -548,7 +555,7 @@ int cmd_arm_shutdown(lua_State *l)
 
 int cmd_calibrate(lua_State *l)
 {
-    strat_wait_ms(1000);
+    strat_wait_ms(3000);
     arm_calibrate();
     return 0;
 }
@@ -629,6 +636,65 @@ int cmd_start(lua_State *l)
 {
     strat_begin();
     return 0;
+}
+
+int cmd_pathplanner_test(lua_State *l)
+{
+    obstacle_avoidance_request_t request;
+    obstacle_avoidance_path_t path;
+    struct ip_addr server;
+
+//    IP4
+
+    if (lua_gettop(l) < 2)
+        return 0;
+
+    obstacle_avoidance_request_create(&request, 0);
+
+    request.end.x = lua_tointeger(l, -2);
+    request.end.y = lua_tointeger(l, -1);
+
+    request.start.x = position_get_x_float(&robot.pos);
+    request.start.y = position_get_y_float(&robot.pos);
+
+    request.desired_samplerate = 200;
+    request.desired_datapoints = 1000;
+
+    IP4_ADDR(&server, 192,168,1,10);
+
+    int ret = obstacle_avoidance_send_request(&request, server, 1337, &path);
+//    obstacle_avoidance_request_delete(&request);
+//
+
+    int i;
+
+    if (ret == ERR_OK) {
+        lua_pushinteger(l, path.len);
+    } else {
+        lua_pushinteger(l, ret);
+        return 1;
+    }
+
+    timestamp_t start_date = uptime_get();
+
+    int delta;
+
+    do {
+        delta = uptime_get() - start_date;
+        delta = delta / 1000; // us to ms
+
+        for (i=0;delta > path.points[i].timestamp;i++);
+
+        i--;
+
+        trajectory_goto_forward_xy_abs(&robot.traj, path.points[i].x, path.points[i].y);
+        OSTimeDlyHMSM(0,0,0,request.desired_samplerate);
+    } while (delta < path.points[path.len-1].timestamp);
+
+
+
+
+    return 1;
 }
 
 void commands_register(lua_State *l)
@@ -743,6 +809,9 @@ void commands_register(lua_State *l)
 
     lua_pushcfunction(l, cmd_generate_distance_data);
     lua_setglobal(l, "distance_data");
+
+    lua_pushcfunction(l, cmd_pathplanner_test);
+    lua_setglobal(l, "pp_go");
 
     lua_pushinteger(l, END_TRAJ);
     lua_setglobal(l, "END_TRAJ");
