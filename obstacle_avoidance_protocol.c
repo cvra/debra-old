@@ -112,6 +112,7 @@ int obstacle_avoidance_send_request(obstacle_avoidance_request_t *request, struc
     err = netconn_connect(conn, &remote_ip, 2048);
     if (err != ERR_OK) {
         free(data);
+        netconn_delete(conn);
         return err;
     }
 
@@ -119,6 +120,7 @@ int obstacle_avoidance_send_request(obstacle_avoidance_request_t *request, struc
 
     if (err != ERR_OK) {
         free(data);
+        netconn_delete(conn);
         return err;
     }
 
