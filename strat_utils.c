@@ -270,3 +270,37 @@ void left_pump(int status) {
     else
         cvra_dc_set_pwm1(HEXMOTORCONTROLLER_BASE, 0);
 }
+
+
+void strat_set_speed(enum speed_e speed)
+{
+    int speed_d, speed_a;
+    int acc_d, acc_a;
+
+    switch (speed) {
+
+        case SLOW:
+            speed_d = 400;
+            acc_d = 500;
+            acc_a = 10;
+            speed_a = 10;
+            break;
+
+        case FAST:
+        default:
+            speed_d = 800;
+            acc_d = 1000;
+            acc_a = 20;
+            speed_a = 20;
+            break;
+    }
+
+
+    trajectory_set_acc(&robot.traj,
+            acc_mm2imp(&robot.traj, acc_d),
+            acc_rd2imp(&robot.traj, acc_a));
+
+    trajectory_set_speed(&robot.traj,
+            speed_mm2imp(&robot.traj, speed_d),
+            speed_rd2imp(&robot.traj, speed_a));
+}

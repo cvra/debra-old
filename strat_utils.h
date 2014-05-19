@@ -37,7 +37,7 @@ struct strat_info {
 /** This global var holds everything related to the strat. */
 extern struct strat_info strat;
 
-/** Computes the symmetrical position depending on color. */ 
+/** Computes the symmetrical position depending on color. */
 #define COLOR_Y(x) (strat.color == YELLOW ? (x) : 2000 - (x))
 
 /** Computes the symmetrical angle depending on color. */
@@ -48,16 +48,22 @@ extern struct strat_info strat;
 enum servo_e {
     LEFT,
     RIGHT
-}; 
+};
 
-/** Auto positions the robot before the match. 
+enum speed_e {
+    CALAGE,
+    SLOW,
+    FAST
+};
+
+/** Auto positions the robot before the match.
  *
  * This function positions the robot using the border as references. The
  * color is assumed to be already configured.
- * 
+ *
  * @param [in] x, y The starting coordinates, in mm.
- * @param [in] a The starting angle relative to the X-axis, in degrees. 
- * @param epaisseurRobot The distance between the back of the robot and the wheel axis. 
+ * @param [in] a The starting angle relative to the X-axis, in degrees.
+ * @param epaisseurRobot The distance between the back of the robot and the wheel axis.
  */
 void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot);
 
@@ -82,9 +88,9 @@ void right_pump(int status);
 
 void strat_timer_reset(void);
 /**
- * Gets game time. 
+ * Gets game time.
  * @returns Time since start of game, in seconds.
- */ 
+ */
 int strat_get_time(void);
 
 /**
@@ -101,5 +107,7 @@ void strat_wait_ms(int ms);
  * @returns The end of trajectory cause ,such as END_TRAJ.
  */
 int strat_goto_avoid(int x, int y, int flags);
+
+void strat_set_speed(enum speed_e speed);
 
 #endif

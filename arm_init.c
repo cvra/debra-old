@@ -121,8 +121,7 @@ void arm_calibrate(void)
     cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 2, 0); /* hands */
     cvra_dc_set_encoder(ARMSMOTORCONTROLLER_BASE, 3, 0);
 
-    cvra_dc_set_encoder(HEXMOTORCONTROLLER_BASE, 5, 200 * robot.left_arm.z_axis_imp_per_mm);
-    cvra_dc_set_encoder(HEXMOTORCONTROLLER_BASE, 0, 200 * robot.left_arm.z_axis_imp_per_mm);
-
+    cvra_dc_set_encoder(HEXMOTORCONTROLLER_BASE, 5, 195 * robot.left_arm.z_axis_imp_per_mm);
+    cvra_dc_set_encoder(HEXMOTORCONTROLLER_BASE, 0, 195 * robot.left_arm.z_axis_imp_per_mm);
 }
 
