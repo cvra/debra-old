@@ -48,6 +48,7 @@ void arm_highlevel_init(void)
     arm_init(&robot.right_arm);
     arm_init(&robot.left_arm);
 
+
     arm_cs_connect_motor(&robot.right_arm.z_axis, cvra_dc_set_pwm5, HEXMOTORCONTROLLER_BASE);
     arm_cs_connect_encoder(&robot.right_arm.z_axis, cvra_dc_get_encoder5, HEXMOTORCONTROLLER_BASE);
 
@@ -74,6 +75,9 @@ void arm_highlevel_init(void)
 
     arm_set_physical_parameters(&robot.right_arm);
     arm_set_physical_parameters(&robot.left_arm);
+
+    /* Fix the weird wiring. */
+    robot.right_arm.hand_imp_per_deg *= -1;
 
     robot.left_arm.offset_xy.x = 0; robot.left_arm.offset_xy.y = 87.5;
     robot.right_arm.offset_xy.x = 0; robot.right_arm.offset_xy.y = -87.5;

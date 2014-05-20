@@ -27,6 +27,7 @@ void arm_set_physical_parameters(arm_t *arm)
     arm->z_axis_imp_per_mm = 655*4;
     arm->shoulder_imp_per_rad = -77785;
     arm->elbow_imp_per_rad = -56571;
+    arm->hand_imp_per_deg = 432;
 }
 
 
@@ -139,7 +140,7 @@ void arm_manage(arm_t *arm)
     cs_set_consign(&arm->shoulder.manager, alpha * arm->shoulder_imp_per_rad);
     cs_set_consign(&arm->elbow.manager, beta * arm->elbow_imp_per_rad);
     cs_set_consign(&arm->z_axis.manager, frame.position[2] * arm->z_axis_imp_per_mm);
-    cs_set_consign(&arm->hand.manager, frame.hand_angle * 432);
+    cs_set_consign(&arm->hand.manager, frame.hand_angle * arm->hand_imp_per_deg);
 
     arm->last_loop = uptime_get();
 

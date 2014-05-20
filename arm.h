@@ -30,6 +30,7 @@ typedef struct {
     int32_t z_axis_imp_per_mm;      /**< Z axis encoder impulsion per mm. */
     int32_t shoulder_imp_per_rad;   /**< Shoulder impulsions per rad. */
     int32_t elbow_imp_per_rad;      /**< Elbow impulsions per rad. */
+    int32_t hand_imp_per_deg;
     float length[2];                  /**< Length of the 2 arms elements. */
 
     /* Path informations */

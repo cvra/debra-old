@@ -14,6 +14,8 @@
 
 #include "cvra_cs.h"
 
+#define FIRE_HEIGHT 30
+
 void pump_left_bottom(int v)
 {
     cvra_dc_set_pwm(HEXMOTORCONTROLLER_BASE,6, v*500);
@@ -123,13 +125,12 @@ void grab_stack(void)
     arm_trajectory_delete(&traj);
 }
 
-void empty_fire_pit(void)
+void empty_fire_pit(int stack_x, int stack_y)
 {
     arm_trajectory_t traj;
     arm_t *arm;
     float sx, sy, sz;
     int i;
-    int stack_x = 430, stack_y = COLOR_Y(2000-160);
     int stack_height = 124;
 
     if (strat.color == RED)
@@ -150,53 +151,71 @@ void empty_fire_pit(void)
 
     while (!arm_trajectory_finished(&arm->trajectory));
 
-    arm->shoulder_mode = SHOULDER_FRONT;
+    //arm->shoulder_mode = SHOULDER_FRONT;
 
-    trajectory_only_a_rel(&robot.traj, COLOR_A(90));
+    trajectory_only_a_rel(&robot.traj, COLOR_A(-60));
     wait_traj_end(TRAJ_FLAGS_STD);
 
+    pump_right_bottom(1);
+    pump_right_top(1);
+    pump_left_bottom(1);
+    pump_left_top(1);
 
-    for (i=0;i<3;i++) {
+    arm_trajectory_init(&traj);
+    arm_get_position(arm, &sx, &sy, &sz);
+    arm_trajectory_append_point(&traj, sx, sy, sz, COORDINATE_ARM, 1.);
 
-        if (arm == &robot.right_arm) {
-            pump_right_bottom(1);
-            pump_right_top(1);
-        } else {
-            pump_left_bottom(1);
-            pump_left_top(1);
-        }
+    /* First triangle */
+    arm_trajectory_append_point(&traj, stack_x, stack_y, 180, COORDINATE_TABLE, 1.);
+    arm_trajectory_set_hand_angle(&traj, 0);
+    arm_trajectory_append_point(&traj, stack_x, stack_y, stack_height, COORDINATE_TABLE, 1.);
+    arm_trajectory_append_point(&traj, stack_x, stack_y, 180, COORDINATE_TABLE, 1.);
+    stack_height -= FIRE_HEIGHT;
 
+    /* Second triangle */
+    arm_trajectory_append_point(&traj, stack_x, stack_y, 180, COORDINATE_TABLE, 1.);
+    arm_trajectory_set_hand_angle(&traj, 180);
+    arm_trajectory_append_point(&traj, stack_x, stack_y, stack_height, COORDINATE_TABLE, 1.);
+    arm_trajectory_append_point(&traj, stack_x, stack_y, 180, COORDINATE_TABLE, 1.);
+    stack_height -= FIRE_HEIGHT;
 
-        arm_trajectory_init(&traj);
-        arm_get_position(arm, &sx, &sy, &sz);
-        arm_trajectory_append_point(&traj, sx, sy, sz, COORDINATE_ARM, 1.);
+    arm_do_trajectory(arm, &traj);
+    arm_trajectory_delete(&traj);
+    while (!arm_trajectory_finished(&arm->trajectory));
 
-        arm_trajectory_append_point(&traj, stack_x, stack_y, 180, COORDINATE_TABLE, 1.);
-        arm_trajectory_append_point(&traj, stack_x, stack_y, stack_height, COORDINATE_TABLE, 1.);
-        arm_trajectory_append_point(&traj, stack_x, stack_y, 180, COORDINATE_TABLE, 1.);
-        arm_trajectory_append_point(&traj, 100, COLOR_Y(1900), 180, COORDINATE_TABLE, 1.);
-        arm_trajectory_append_point(&traj, 100, COLOR_Y(1900), 130, COORDINATE_TABLE, 1.);
-        arm_trajectory_append_point(&traj, 100, COLOR_Y(1900), 180, COORDINATE_TABLE, 1.);
-
-        arm_do_trajectory(arm, &traj);
-        arm_trajectory_delete(&traj);
-
-        while (!arm_trajectory_finished(&arm->trajectory));
-
-        if (arm == &robot.right_arm) {
-            pump_right_bottom(0);
-            pump_right_top(0);
-        } else {
-            pump_left_bottom(0);
-            pump_left_top(0);
-        }
-
-
-        strat_wait_ms(400);
+    /* Switches from table coordinate to arm coordinate. */
+    arm_trajectory_init(&traj);
+    arm_get_position(arm, &sx, &sy, &sz);
+    arm_trajectory_append_point(&traj, sx, sy, sz, COORDINATE_ARM, 1.);
+    arm_trajectory_set_hand_angle(&traj, 180);
+    arm_do_trajectory(arm, &traj);
+    arm_trajectory_delete(&traj);
 
 
-        stack_height -= 30;
-    }
+    /* Switches arms for second part of movement. */
+    if (arm == &robot.right_arm)
+        arm = &robot.left_arm;
+    else
+        arm = &robot.right_arm;
+
+    trajectory_only_a_rel(&robot.traj, COLOR_A(-30));
+    wait_traj_end(TRAJ_FLAGS_SHORT_DISTANCE);
+
+    arm_trajectory_init(&traj);
+    arm_get_position(arm, &sx, &sy, &sz);
+    arm_trajectory_append_point(&traj, sx, sy, sz, COORDINATE_ARM, 1.);
+
+    arm_trajectory_append_point(&traj, stack_x, stack_y, 180, COORDINATE_TABLE, 1.);
+    arm_trajectory_set_hand_angle(&traj, 180);
+    arm_trajectory_append_point(&traj, stack_x, stack_y, stack_height, COORDINATE_TABLE, 1.);
+    arm_trajectory_append_point(&traj, stack_x, stack_y, 180, COORDINATE_TABLE, 1.);
+    stack_height -= FIRE_HEIGHT;
+    arm_do_trajectory(arm, &traj);
+    arm_trajectory_delete(&traj);
+
+    while (!arm_trajectory_finished(&arm->trajectory));
+
+    /* TODO */
 
 }
 
@@ -237,7 +256,7 @@ void strat_begin(void)
 
     strat_set_speed(FAST);
 
-    empty_fire_pit();
+    empty_fire_pit(430, COLOR_Y(2000 - 160));
 }
 
 
