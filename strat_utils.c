@@ -286,6 +286,13 @@ void strat_set_speed(enum speed_e speed)
             speed_a = 10;
             break;
 
+        case FUCKING_SLOW:
+            speed_d = 400;
+            acc_d = 50;
+            acc_a = 1;
+            speed_a = 10;
+            break;
+
         case FAST:
         default:
             speed_d = 800;

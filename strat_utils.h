@@ -53,6 +53,7 @@ enum servo_e {
 enum speed_e {
     CALAGE,
     SLOW,
+    FUCKING_SLOW,
     FAST
 };
 
