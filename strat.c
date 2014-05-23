@@ -290,14 +290,17 @@ void exchange_fires(void)
     arm_trajectory_t traj;
     arm_t *arm;
     float sx, sy, sz;
+    int ret;
 
     if (strat.color == RED)
         arm = &robot.left_arm;
     else
         arm = &robot.right_arm;
 
-    trajectory_d_rel(&robot.traj, -300);
-    wait_traj_end(END_TRAJ);
+    do {
+        trajectory_d_rel(&robot.traj, -300);
+        ret = wait_traj_end(TRAJ_FLAGS_STD);
+    } while (!TRAJ_SUCCESS(ret));
 
     arm_trajectory_init(&traj);
     arm_get_position(arm, &sx, &sy, &sz);
@@ -365,7 +368,7 @@ void exchange_fires(void)
     strat_wait_ms(400);
 
     trajectory_d_rel( &robot.traj, -100);
-    wait_traj_end(END_TRAJ);
+    wait_traj_end(TRAJ_FLAGS_STD);
 }
 
 void do_fire_middle_table(void)
@@ -375,6 +378,7 @@ void do_fire_middle_table(void)
     float sx, sy, sz;
 
     const int arm_x = 135;
+    int ret;
 
     arm = &robot.left_arm;
     arm_trajectory_init(&traj);
@@ -401,11 +405,15 @@ void do_fire_middle_table(void)
     pump_right_bottom(1);
     pump_right_top(1);
 
+    do {
     trajectory_goto_xy_abs(&robot.traj, 1500, COLOR_Y(1600));
-    wait_traj_end(END_TRAJ);
+    ret = wait_traj_end(END_TRAJ);
+    } while (!TRAJ_SUCCESS(ret));
 
-    trajectory_turnto_xy_behind(&robot.traj, 1500, COLOR_Y(2000));
-    wait_traj_end(END_TRAJ);
+    do {
+        trajectory_turnto_xy_behind(&robot.traj, 1500, COLOR_Y(2000));
+        ret = wait_traj_end(END_TRAJ);
+    } while (!TRAJ_SUCCESS(ret));
 
     trajectory_goto_backward_xy_abs(&robot.traj, 1500, COLOR_Y(2000-arm_x-38));
     wait_traj_end(END_TRAJ|END_BLOCKING);
@@ -440,6 +448,8 @@ void do_fire_middle_table(void)
 
 void strat_begin(void)
 {
+    int stack_grabbed = 0;
+    int ret;
     bd_set_thresholds(&robot.distance_bd, 6000, 1);
 
     setup_arm_pos();
@@ -453,19 +463,26 @@ void strat_begin(void)
 
     do_first_fire();
 
-    trajectory_goto_forward_xy_abs(&robot.traj, 690, COLOR_Y(1050));
-    while (position_get_x_float(&robot.pos) < 500);
-    grab_stack();
-    wait_traj_end(END_TRAJ);
+    do {
+        trajectory_goto_forward_xy_abs(&robot.traj, 690, COLOR_Y(1050));
+        ret = wait_traj_end(TRAJ_FLAGS_STD);
+        if (position_get_x_float(&robot.pos) > 500 && !stack_grabbed) {
+            stack_grabbed = 1;
+            grab_stack();
+        }
+    } while (!TRAJ_SUCCESS(ret));
 
     strat_set_speed(SLOW);
 
     trajectory_only_a_abs(&robot.traj, COLOR_A(80));
     wait_traj_end(END_TRAJ);
 
-    trajectory_goto_forward_xy_abs(&robot.traj, 300, COLOR_Y(1700));
     wait_traj_end(END_TRAJ);
 
+    do {
+        trajectory_goto_forward_xy_abs(&robot.traj, 300, COLOR_Y(1700));
+        ret = wait_traj_end(END_TRAJ);
+    } while (!TRAJ_SUCCESS(ret));
 
     strat_set_speed(FUCKING_SLOW);
     empty_fire_pit(430, COLOR_Y(2000 - 160));
@@ -474,7 +491,7 @@ void strat_begin(void)
     strat_set_speed(FAST);
     exchange_fires();
 
-    do_fire_middle_table();
+    //do_fire_middle_table();
 }
 
 

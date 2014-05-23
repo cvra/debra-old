@@ -21,6 +21,7 @@
 #include "2wheels/trajectory_manager.h"
 #include "strat_utils.h"
 #include "obstacle_avoidance_protocol.h"
+#include <cvra_beacon.h>
 
 int cmd_pio_read(lua_State *l)
 {
@@ -692,7 +693,12 @@ int cmd_pathplanner_test(lua_State *l)
     } while (delta < path.points[path.len-1].timestamp);
 
 
+    return 1;
+}
 
+int cmd_beacon_test(lua_State *l)
+{
+    lua_pushinteger(l, robot.beacon.beacon[0].distance);
 
     return 1;
 }
@@ -812,6 +818,9 @@ void commands_register(lua_State *l)
 
     lua_pushcfunction(l, cmd_pathplanner_test);
     lua_setglobal(l, "pp_go");
+
+    lua_pushcfunction(l, cmd_beacon_test);
+    lua_setglobal(l, "beacon");
 
     lua_pushinteger(l, END_TRAJ);
     lua_setglobal(l, "END_TRAJ");
