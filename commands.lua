@@ -127,7 +127,7 @@ function arm_demo()
         calibrate()
     end
 
-    x,y,z = arm_get_position("left")
+    x,y,z = arm_get_position("right")
     points = {
         {x=0, y=200, z=z, angle=90, type=COORDINATE_TABLE, duration=0.5},
     }

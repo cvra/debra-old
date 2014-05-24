@@ -74,8 +74,6 @@ void strat_autopos(int16_t x, int16_t y, int16_t a, int16_t epaisseurRobot)
     trajectory_goto_forward_xy_abs(&robot.traj, x, COLOR_Y(y));
     wait_traj_end(END_TRAJ);
 
-    strat_wait_ms(4000);
-
     /* Pour finir on s'occuppe de l'angle. */
     trajectory_a_abs(&robot.traj, COLOR_A((double)a));
     wait_traj_end(END_TRAJ);
