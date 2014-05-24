@@ -129,7 +129,9 @@ function arm_demo()
 
     x,y,z = arm_get_position("right")
     points = {
-        {x=0, y=200, z=z, angle=90, type=COORDINATE_TABLE, duration=0.5},
+        {x=200, y=0, z=z, angle=0, type=COORDINATE_ARM, duration=1.},
+        {x=200, y=0, z=z, angle=180, type=COORDINATE_ARM, duration=1.},
+        {x=200, y=0, z=z, angle=0, type=COORDINATE_ARM, duration=1.},
     }
 
     arm_move("right", points)

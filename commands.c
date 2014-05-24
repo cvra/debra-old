@@ -556,7 +556,10 @@ int cmd_arm_shutdown(lua_State *l)
 
 int cmd_calibrate(lua_State *l)
 {
-    strat_wait_ms(3000);
+    // only needed if we are alone
+
+    if (lua_gettop(l) > 0)
+        OSTimeDlyHMSM(0,0,3,0);
     arm_calibrate();
     return 0;
 }

@@ -315,9 +315,19 @@ void exchange_fires(void)
     arm_trajectory_init(&traj);
     arm_get_position(arm, &sx, &sy, &sz);
     arm_trajectory_append_point(&traj, sx, sy, sz, COORDINATE_ARM, 1.);
+    arm_trajectory_set_hand_angle(&traj, 180);
     arm_trajectory_append_point(&traj, sx, sy, 135, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, sx, sy, 135, COORDINATE_ARM, 1.);
+    arm_trajectory_set_hand_angle(&traj, 0);
+
     arm_trajectory_append_point(&traj, 200, 0, 135, COORDINATE_ROBOT, 1.);
-    arm_trajectory_append_point(&traj, 200, 0, 117, COORDINATE_ROBOT, 1.);
+
+    // XXX Fix for weird mechanical issues
+    if (strat.color == RED) {
+        arm_trajectory_append_point(&traj, 200, 0, 117, COORDINATE_ROBOT, 1.);
+    } else {
+        arm_trajectory_append_point(&traj, 200, 0, 110, COORDINATE_ROBOT, 1.);
+    }
     arm_do_trajectory(arm, &traj);
     arm_trajectory_delete(&traj);
 
@@ -383,19 +393,39 @@ void do_fire_middle_table(void)
 
 
     do {
-        trajectory_goto_xy_abs(&robot.traj, 900, COLOR_Y(1000));
+        trajectory_goto_backward_xy_abs(&robot.traj, 900, COLOR_Y(1400));
         ret = wait_traj_end(TRAJ_FLAGS_STD);
     } while (!TRAJ_SUCCESS(ret));
+
+    if (strat.color == RED)
+        arm = &robot.left_arm;
+    else
+        arm = &robot.right_arm;
+
+    arm_trajectory_init(&traj);
+    arm_get_position(arm, &sx, &sy, &sz);
+    arm_trajectory_append_point(&traj, sx, sy, sz, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, 1000, COLOR_Y(1600), 150, COORDINATE_TABLE, .5);
+    arm_trajectory_append_point(&traj, 1000, COLOR_Y(1600), 70, COORDINATE_TABLE, .5);
+    arm_trajectory_append_point(&traj, 800, COLOR_Y(1600), 70, COORDINATE_TABLE, .5);
+    arm_do_trajectory(arm, &traj);
+    arm_trajectory_delete(&traj);
+
+    while (!arm_trajectory_finished(&arm->trajectory));
+
 
     do {
         trajectory_goto_xy_abs(&robot.traj, 1500, COLOR_Y(1600));
         ret = wait_traj_end(TRAJ_FLAGS_STD);
     } while (!TRAJ_SUCCESS(ret));
 
-    pump_left_bottom(1);
-    pump_left_top(1);
-    pump_right_bottom(1);
-    pump_right_top(1);
+    if (strat.color == RED) {
+        pump_left_bottom(1);
+        pump_left_top(1);
+    } else {
+        pump_right_bottom(1);
+        pump_right_top(1);
+    }
 
     arm = &robot.left_arm;
     arm_trajectory_init(&traj);
@@ -431,6 +461,7 @@ void do_fire_middle_table(void)
     arm_trajectory_init(&traj);
     arm_get_position(arm, &sx, &sy, &sz);
     arm_trajectory_append_point(&traj, sx, sy, sz, COORDINATE_ARM, 1.);
+    arm_trajectory_set_hand_angle(&traj, 90);
     arm_trajectory_append_point(&traj, sx, sy, sz+10, COORDINATE_ARM, .1);
     arm_do_trajectory(arm, &traj);
     arm_trajectory_delete(&traj);
@@ -439,6 +470,7 @@ void do_fire_middle_table(void)
     arm_trajectory_init(&traj);
     arm_get_position(arm, &sx, &sy, &sz);
     arm_trajectory_append_point(&traj, sx, sy, sz, COORDINATE_ARM, 1.);
+    arm_trajectory_set_hand_angle(&traj, 90);
     arm_trajectory_append_point(&traj, sx, sy, sz+10, COORDINATE_ARM, .1);
     arm_do_trajectory(arm, &traj);
     arm_trajectory_delete(&traj);
@@ -459,7 +491,7 @@ void do_fire_middle_table(void)
     arm_trajectory_append_point(&traj, sx, sy, 75, COORDINATE_ARM, .5);
     arm_trajectory_set_hand_angle(&traj, 0);
     arm_trajectory_append_point(&traj, 120, 0, 75, COORDINATE_ARM, .5);
-    arm_trajectory_append_point(&traj, 200, 0, 140, COORDINATE_ROBOT, .5);
+    arm_trajectory_append_point(&traj, 200, 0, 75, COORDINATE_ROBOT, .5);
     arm_do_trajectory(arm, &traj);
     arm_trajectory_delete(&traj);
 
@@ -467,15 +499,42 @@ void do_fire_middle_table(void)
     wait_traj_end(TRAJ_FLAGS_STD);
     while (!arm_trajectory_finished(&arm->trajectory));
 
-    OSTimeDlyHMSM(0,0,0,300);
+    OSTimeDlyHMSM(0,0,1,0);
 
-    if (strat.color == RED) {
-        pump_left_bottom(0);
-        pump_left_top(0);
+    pump_left_bottom(0);
+    pump_right_bottom(0);
+    pump_left_top(0);
+    pump_right_top(0);
+
+    /*
+
+    arm = strat_opposite_arm(arm);
+
+    arm_trajectory_init(&traj);
+    arm_get_position(arm, &sx, &sy, &sz);
+    arm_trajectory_append_point(&traj, sx, sy, sz, COORDINATE_ARM, .5);
+    arm_trajectory_set_hand_angle(&traj, 90);
+    arm_trajectory_append_point(&traj, sx, sy, 150, COORDINATE_ARM, .5);
+    arm_trajectory_append_point(&traj, sx, sy, 150, COORDINATE_ARM, .5);
+    arm_trajectory_set_hand_angle(&traj, 0);
+
+    if (arm == &robot.right_arm) {
+        arm_trajectory_append_point(&traj, sx, sy-40, 150, COORDINATE_ARM, .5);
+        arm_trajectory_append_point(&traj, sx, sy-40, 75, COORDINATE_ARM, .5);
     } else {
-        pump_right_bottom(0);
-        pump_right_top(0);
+        arm_trajectory_append_point(&traj, sx, sy+40, 150, COORDINATE_ARM, .5);
+        arm_trajectory_append_point(&traj, sx, sy+40, 75, COORDINATE_ARM, .5);
     }
+
+    arm_trajectory_append_point(&traj, sx, sy, 75, COORDINATE_ARM, .5);
+
+    arm_do_trajectory(arm, &traj);
+    arm_trajectory_delete(&traj);
+    while (!arm_trajectory_finished(&arm->trajectory));
+
+    */
+
+
 
 /*
     if (strat.color == RED)
@@ -600,9 +659,16 @@ void strat_begin(void)
 
     do_fire_middle_table();
 
+    arm_position_navigation(&robot.left_arm);
+    arm_position_navigation(&robot.right_arm);
+
+    while (!arm_trajectory_finished(&robot.left_arm.trajectory));
+
+    trajectory_only_a_rel(&robot.traj, 180);
+    wait_traj_end(TRAJ_FLAGS_SHORT_DISTANCE);
+
     pump_left_bottom(0);
     pump_right_bottom(0);
-
     pump_left_top(0);
     pump_right_top(0);
 }

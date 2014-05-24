@@ -191,22 +191,23 @@ int test_traj_end(int why)
 
     if((why & END_OBSTACLE)) {
         int i;
+        OS_CPU_SR cpu_sr;
+        OS_ENTER_CRITICAL();
+
         for(i=0;i<robot.beacon.nb_beacon;i++) {
             if(robot.beacon.beacon[i].distance > 80) { /*cm*/
                 if(robot.distance_qr.previous_var > 0) {
                     /* Going forward. */
                     if(robot.beacon.beacon[i].direction > -30 && robot.beacon.beacon[i].direction < 30) {
-                        trajectory_stop(&robot.traj);
-                        while(robot.distance_qr.previous_var > 0);
+                        OS_EXIT_CRITICAL();
                         trajectory_hardstop(&robot.traj);
                         bd_reset(&robot.distance_bd);
                         return END_OBSTACLE;
                     }
                 } else if(robot.distance_qr.previous_var < 0) {
                     /* Going backward */
-                    if(robot.beacon.beacon[i].direction < -30 || robot.beacon.beacon[i].direction > 30) {
-                        trajectory_stop(&robot.traj);
-                        while(robot.distance_qr.previous_var < 0);
+                    if(robot.beacon.beacon[i].direction < -150 && robot.beacon.beacon[i].direction > -210) {
+                        OS_EXIT_CRITICAL();
                         trajectory_hardstop(&robot.traj);
                         bd_reset(&robot.distance_bd);
                         return END_OBSTACLE;
@@ -214,6 +215,7 @@ int test_traj_end(int why)
                 }
             }
         }
+        OS_EXIT_CRITICAL();
     }
 
     if((why & END_BLOCKING) && bd_get(&robot.distance_bd)) {
