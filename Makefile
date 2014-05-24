@@ -134,7 +134,7 @@ include $(ALT_LIBRARY_ROOT_DIR)/public.mk
 
 INCLUDE_DIRS := $(addprefix -I, $(ALT_INCLUDE_DIRS) $(INCLUDE_DIRS)) 
 
-CFLAGS = -c -g $(INCLUDE_DIRS) -DCOMPILE_ON_ROBOT $(ALT_CFLAGS) $(ALT_CPPFLAGS) -Wall -O3
+CFLAGS = -c -g $(INCLUDE_DIRS) -DCOMPILE_ON_ROBOT $(ALT_CFLAGS) $(ALT_CPPFLAGS) -Wall -O1
 CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -MD
 

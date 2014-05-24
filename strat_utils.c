@@ -16,8 +16,7 @@ int strat_get_time(void)
 
 void strat_wait_ms(int ms)
 {
-    int32_t time = uptime_get();
-    while(uptime_get() < time + ms*1000);
+    OSTimeDlyHMSM(0,0,0,ms);
 }
 
 void strat_timer_reset(void)
