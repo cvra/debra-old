@@ -262,9 +262,7 @@ end
 
 -- Finally greet the user if running in interactive mode
 function greet()
-    print("Wilkommen bei ReichOS 1.0 !")
-    print("Die offizielle Scriptsprache des vierten Reichs !")
-    print("---------------------------------------------------------------------------")
+    print ("Welcome to CVRA shell !")
 end
 
 
