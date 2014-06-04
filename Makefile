@@ -179,6 +179,7 @@ $(LUALIB): $(LUA_OBJS)
 
 # Rule to load the project to the board
 load: $(ELF)
+	@echo "Downloading..."
 	@nios2-download --go --cpu_name=$(CPU_NAME) $(SOPC_SYSID_FLAG) test.elf
 
 %.o: %.c
