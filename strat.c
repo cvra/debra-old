@@ -499,13 +499,10 @@ void do_fire_middle_table(void)
         ret = wait_traj_end(TRAJ_FLAGS_STD);
     } while (!TRAJ_SUCCESS(ret));
 
-    if (strat.color == RED) {
-        pump_left_bottom(1);
-        pump_left_top(1);
-    } else {
-        pump_right_bottom(1);
-        pump_right_top(1);
-    }
+    pump_left_bottom(1);
+    pump_left_top(1);
+    pump_right_bottom(1);
+    pump_right_top(1);
 
     arm = &robot.left_arm;
     arm_trajectory_init(&traj);
@@ -574,6 +571,7 @@ void do_fire_middle_table(void)
     arm_do_trajectory(arm, &traj);
     arm_trajectory_delete(&traj);
 
+
     do {
         trajectory_goto_forward_xy_abs(&robot.traj, 1500,COLOR_Y(1000+150+200));
         wait_traj_end(TRAJ_FLAGS_STD);
@@ -581,12 +579,63 @@ void do_fire_middle_table(void)
 
     while (!arm_trajectory_finished(&arm->trajectory)) {}
 
+    if (arm == &robot.left_arm) {
+        pump_left_bottom(0);
+        pump_left_top(0);
+    } else {
+        pump_right_bottom(0);
+        pump_right_top(0);
+    }
+
     OSTimeDlyHMSM(0,0,1,0);
 
+    do {
+        trajectory_goto_xy_abs(&robot.traj, 1500,COLOR_Y(1500));
+        wait_traj_end(TRAJ_FLAGS_STD);
+    } while (ret != END_BLOCKING && ret != END_TRAJ);
+
+    arm_position_navigation(arm);
+    while (!arm_trajectory_finished(&arm->trajectory)) {}
+
+    arm = strat_opposite_arm(arm);
+    arm_get_position(arm, &sx, &sy, &sz);
+    arm_get_position(arm, &sx, &sy, &sz);
+    arm_trajectory_append_point(&traj, sx, sy, sz, COORDINATE_ARM, .5);
+    arm_trajectory_set_hand_angle(&traj, 90);
+
+    arm_trajectory_append_point(&traj, sx, sy, 120, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, sx, sy, 120, COORDINATE_ARM, 1.);
+    arm_trajectory_set_hand_angle(&traj, 0);
+
+    arm_do_trajectory(arm, &traj);
+    arm_trajectory_delete(&traj);
+
+    while (!arm_trajectory_finished(&arm->trajectory)) {}
+
+    strat_pass_fire(strat_opposite_arm(arm), arm);
+    arm_position_navigation(arm);
+    while (!arm_trajectory_finished(&arm->trajectory)) {}
+
+    arm = strat_opposite_arm(arm);
+
+    arm_trajectory_init(&traj);
+    arm_get_position(arm, &sx, &sy, &sz);
+    arm_trajectory_append_point(&traj, 200, 0, 75, COORDINATE_ROBOT, .5);
+    arm_do_trajectory(arm, &traj);
+    arm_trajectory_delete(&traj);
+
+    while (!arm_trajectory_finished(&arm->trajectory)) {}
+
+    do {
+        trajectory_goto_xy_abs(&robot.traj, 1500,COLOR_Y(1000+150+200));
+        wait_traj_end(TRAJ_FLAGS_STD);
+    } while (ret != END_BLOCKING && ret != END_TRAJ);
+
     pump_left_bottom(0);
-    pump_right_bottom(0);
     pump_left_top(0);
+    pump_right_bottom(0);
     pump_right_top(0);
+
 }
 
 void strat_begin(void)
