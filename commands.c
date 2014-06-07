@@ -728,9 +728,15 @@ int cmd_pathplanner_test(lua_State *l)
 
 int cmd_beacon_test(lua_State *l)
 {
-    lua_pushinteger(l, robot.beacon.beacon[0].distance);
 
+#if 1
+    lua_pushinteger(l, robot.beacon.beacon[0].distance);
     return 1;
+#else
+    trajectory_d_rel(&robot.traj, 1000);
+    wait_traj_end(TRAJ_FLAGS_STD);
+    return 0;
+#endif
 }
 
 void commands_register(lua_State *l)

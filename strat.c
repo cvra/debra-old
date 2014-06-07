@@ -597,7 +597,6 @@ void strat_begin(void)
 
     setup_arm_pos();
 
-
     /* Starts the game timer. */
     cvra_wait_starter_pull(PIO_BASE);
     strat_timer_reset();
@@ -607,18 +606,26 @@ void strat_begin(void)
     do_first_fire();
 
     trajectory_goto_forward_xy_abs(&robot.traj, 690, COLOR_Y(1050));
-    while (position_get_x_float(&robot.pos) < 500);
+    while (position_get_x_float(&robot.pos) < 500) {
+        test_traj_end(TRAJ_FLAGS_STD);
+        trajectory_goto_forward_xy_abs(&robot.traj, 690, COLOR_Y(1050));
+    }
+
     grab_stack();
-    wait_traj_end(END_TRAJ);
+
+    do {
+        trajectory_goto_forward_xy_abs(&robot.traj, 690, COLOR_Y(1050));
+        ret = wait_traj_end(TRAJ_FLAGS_STD);
+    } while (!TRAJ_SUCCESS(ret));
 
     strat_set_speed(SLOW);
 
     trajectory_only_a_abs(&robot.traj, COLOR_A(80));
-    wait_traj_end(END_TRAJ);
+    wait_traj_end(TRAJ_FLAGS_STD);
 
     do {
         trajectory_goto_forward_xy_abs(&robot.traj, 300, COLOR_Y(1700));
-        ret = wait_traj_end(END_TRAJ);
+        ret = wait_traj_end(END_TRAJ |END_OBSTACLE);
     } while (!TRAJ_SUCCESS(ret));
 
     strat_set_speed(FUCKING_SLOW);

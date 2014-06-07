@@ -195,10 +195,10 @@ int test_traj_end(int why)
         OS_ENTER_CRITICAL();
 
         for(i=0;i<robot.beacon.nb_beacon;i++) {
-            if(robot.beacon.beacon[i].distance > 80) { /*cm*/
+            if(robot.beacon.beacon[i].distance > 0) { /*cm*/
                 if(robot.distance_qr.previous_var > 0) {
                     /* Going forward. */
-                    if(robot.beacon.beacon[i].direction > -30 && robot.beacon.beacon[i].direction < 30) {
+                    if(robot.beacon.beacon[i].direction > -90 && robot.beacon.beacon[i].direction < 90) {
                         OS_EXIT_CRITICAL();
                         trajectory_hardstop(&robot.traj);
                         bd_reset(&robot.distance_bd);
@@ -206,7 +206,7 @@ int test_traj_end(int why)
                     }
                 } else if(robot.distance_qr.previous_var < 0) {
                     /* Going backward */
-                    if(robot.beacon.beacon[i].direction < -150 && robot.beacon.beacon[i].direction > -210) {
+                    if(robot.beacon.beacon[i].direction < -90 && robot.beacon.beacon[i].direction > -270) {
                         OS_EXIT_CRITICAL();
                         trajectory_hardstop(&robot.traj);
                         bd_reset(&robot.distance_bd);
