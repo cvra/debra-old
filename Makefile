@@ -182,6 +182,9 @@ load: $(ELF)
 	@echo "Downloading..."
 	@nios2-download --go --cpu_name=$(CPU_NAME) $(SOPC_SYSID_FLAG) test.elf
 
+fpga:
+	nios2-configure-sof nios_files/FPGA.sof
+
 %.o: %.c
 	@echo
 	@echo Compiling $<...
