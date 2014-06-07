@@ -21,6 +21,8 @@
 #ifndef _STRAT_H_
 #define _STRAT_H_
 
+#include "arm.h"
+
 
 /** @brief Starts a match
  *
@@ -28,6 +30,8 @@
  * so the caller should do it.
  */
 void strat_begin(void);
+
+void strat_pass_fire(arm_t *dest, arm_t *src);
 
 
 #endif

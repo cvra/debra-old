@@ -135,6 +135,41 @@ function arm_demo()
     arm_move("right", points)
 end
 
+function arm_deploy()
+    points = {
+        {x=200, y=0, z=100, angle=0, type=COORDINATE_ARM, duration=4.},
+    }
+    arm_move("right", points)
+    arm_move("left", points)
+
+    while arm_traj_finished("left") == false do
+    end
+end
+
+-- Sends a fire from one hand to another, infinitely
+
+function pass_fire_loop(count)
+    pwm(hexmotor, 3, 500) -- turn on left pump
+
+    if count == nil then
+        count = 1000
+    end
+
+    src = "left"
+    dest = "right"
+
+    while count > 0 do
+        arm_deploy()
+        arm_pass_fires(dest, src)
+
+        tmp = src
+        src = dest
+        dest = tmp
+        count = count - 1
+    end
+end
+
+
 function hand()
 
     x,y,z = arm_get_position("right")

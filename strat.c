@@ -32,22 +32,22 @@ void strat_block_hand(arm_t *arm, int angle)
 
 void pump_left_bottom(int v)
 {
-    cvra_dc_set_pwm(HEXMOTORCONTROLLER_BASE,3, v*500);
+    cvra_dc_set_pwm((int *)HEXMOTORCONTROLLER_BASE,3, v*500);
 }
 
 void pump_left_top(int v)
 {
-    cvra_dc_set_pwm(HEXMOTORCONTROLLER_BASE,6, v*500);
+    cvra_dc_set_pwm((int *)HEXMOTORCONTROLLER_BASE,6, v*500);
 }
 
 void pump_right_bottom(int v)
 {
-    cvra_dc_set_pwm(HEXMOTORCONTROLLER_BASE, 4, v*500);
+    cvra_dc_set_pwm((int *)HEXMOTORCONTROLLER_BASE, 4, v*500);
 }
 
 void pump_right_top(int v)
 {
-    cvra_dc_set_pwm(HEXMOTORCONTROLLER_BASE,7, v*500);
+    cvra_dc_set_pwm((int *)HEXMOTORCONTROLLER_BASE,7, v*500);
 }
 
 arm_t *strat_opposite_arm(arm_t *arm)
@@ -285,6 +285,85 @@ void do_dropzone_corner(void)
     }
 }
 
+
+/** Pass a fire from src arm to dest.
+ *
+ * @warning Calling function should make sure the arm is in a safe operating
+ * position.
+ *
+ * @note This function sends the fire from bottom to bottom.
+ */
+void strat_pass_fire(arm_t *dest, arm_t *src)
+{
+    const int delta_z = 110;
+    const int src_z = 15;
+    arm_trajectory_t traj;
+    float sx, sy, sz;
+    float dx, dy, dz;
+
+    if (dest == src) {
+        return;
+    }
+
+    arm_trajectory_init(&traj);
+    arm_get_position(src, &sx, &sy, &sz);
+    arm_trajectory_append_point(&traj, sx, sy, sz, COORDINATE_ARM, .5);
+
+    arm_trajectory_append_point(&traj, sx, sy, 150, COORDINATE_ARM, .5);
+
+    arm_trajectory_append_point(&traj, sx, sy, 150, COORDINATE_ARM, 2.);
+    arm_trajectory_set_hand_angle(&traj, 180);
+
+    arm_trajectory_append_point(&traj, 180, 0, 150, COORDINATE_ROBOT, 2.);
+    arm_trajectory_append_point(&traj, 180, 0, src_z, COORDINATE_ROBOT, .5);
+    arm_do_trajectory(src, &traj);
+    while (!arm_trajectory_finished(&src->trajectory)) {}
+    arm_trajectory_delete(&traj);
+
+    if (dest == &robot.left_arm) {
+        pump_left_bottom(1);
+    } else {
+        pump_right_bottom(1);
+    }
+
+    arm_trajectory_init(&traj);
+    arm_get_position(dest, &dx, &dy, &dz);
+    arm_trajectory_append_point(&traj, dx, dy, dz, COORDINATE_ARM, 1.);
+    arm_trajectory_append_point(&traj, dx, dy, src_z + delta_z + 15, COORDINATE_ARM, .5);
+    arm_trajectory_append_point(&traj, 180, 0, src_z + delta_z + 15, COORDINATE_ROBOT, 2.);
+    arm_trajectory_append_point(&traj, 180, 0, src_z + delta_z, COORDINATE_ROBOT, .5);
+    arm_do_trajectory(dest, &traj);
+    while (!arm_trajectory_finished(&dest->trajectory)) {}
+    arm_trajectory_delete(&traj);
+
+    if (src == &robot.left_arm) {
+        pump_left_bottom(0);
+    } else {
+        pump_right_bottom(0);
+    }
+
+    strat_wait_ms(500);
+
+    arm_trajectory_init(&traj);
+    arm_get_position(dest, &dx, &dy, &dz);
+    arm_trajectory_append_point(&traj, dx, dy, dz + 30, COORDINATE_ARM, 1.);
+    arm_do_trajectory(dest, &traj);
+
+    while (!arm_trajectory_finished(&dest->trajectory)) {}
+    arm_trajectory_delete(&traj);
+
+
+    arm_trajectory_init(&traj);
+    arm_get_position(src, &sx, &sy, &sz);
+    arm_trajectory_append_point(&traj, sx, sy, sz, COORDINATE_ARM, .5);
+    arm_trajectory_set_hand_angle(&traj, 180);
+    arm_trajectory_append_point(&traj, sx, sy, sz, COORDINATE_ARM, .5);
+    arm_trajectory_set_hand_angle(&traj, 0);
+    arm_do_trajectory(src, &traj);
+    while (!arm_trajectory_finished(&src->trajectory)) {}
+    arm_trajectory_delete(&traj);
+}
+
 void exchange_fires(void)
 {
     arm_trajectory_t traj;
@@ -475,7 +554,6 @@ void do_fire_middle_table(void)
     arm_trajectory_append_point(&traj, sx, sy, sz+10, COORDINATE_ARM, .1);
     arm_do_trajectory(arm, &traj);
     arm_trajectory_delete(&traj);
-
 
     trajectory_d_rel(&robot.traj, 200);
     wait_traj_end(TRAJ_FLAGS_STD);

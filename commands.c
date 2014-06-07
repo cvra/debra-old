@@ -516,6 +516,33 @@ int cmd_arm_trajectory_set_hand_angle(lua_State *l)
     return 0;
 }
 
+int cmd_arm_pass_fires(lua_State *l)
+{
+
+    arm_t *src, *dest;
+
+    if (lua_gettop(l) < 2) {
+        return 0;
+    }
+
+
+    if (!strcmp(lua_tostring(l, -2), "left")) {
+        dest = &robot.left_arm;
+    } else {
+        dest = &robot.right_arm;
+    }
+
+    if (!strcmp(lua_tostring(l, -1), "left")) {
+        src = &robot.left_arm;
+    } else {
+        src = &robot.right_arm;
+    }
+
+
+    strat_pass_fire(dest, src);
+    return 0;
+}
+
 int cmd_arm_do_traj(lua_State *l)
 {
     arm_t *arm;
@@ -824,6 +851,9 @@ void commands_register(lua_State *l)
 
     lua_pushcfunction(l, cmd_beacon_test);
     lua_setglobal(l, "beacon");
+
+    lua_pushcfunction(l, cmd_arm_pass_fires);
+    lua_setglobal(l, "arm_pass_fires");
 
     lua_pushinteger(l, END_TRAJ);
     lua_setglobal(l, "END_TRAJ");
